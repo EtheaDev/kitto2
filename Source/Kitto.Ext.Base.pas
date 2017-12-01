@@ -434,8 +434,8 @@ end;
 destructor TKExtWindowControllerBase.Destroy;
 begin
   FreeAndNil(FConfig);
-  if Session <> nil then
-    Session.RemoveController(Self);
+  if TKWebSession.Current <> nil then
+    TKWebSession.Current.RemoveController(Self);
   inherited;
 end;
 
@@ -447,8 +447,8 @@ end;
 
 procedure TKExtWindowControllerBase.DoDisplay;
 begin
-  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
-  Session.EnsureViewSupportFiles(View);
+  TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
+  TKWebSession.Current.EnsureViewSupportFiles(View);
   CreateSubController;
   Show;
 end;
@@ -542,8 +542,8 @@ end;
 
 procedure TKExtWindowControllerBase.WindowClosed;
 begin
-  if Session <> nil then
-    Session.RemoveController(GetControllerToRemove);
+  if TKWebSession.Current <> nil then
+    TKWebSession.Current.RemoveController(GetControllerToRemove);
 end;
 
 function TKExtWindowControllerBase.GetControllerToRemove: IJSController;
@@ -616,8 +616,8 @@ end;
 destructor TKExtViewportControllerBase.Destroy;
 begin
   FreeAndNil(FConfig);
-  if Session <> nil then
-    Session.RemoveController(Self);
+  if TKWebSession.Current <> nil then
+    TKWebSession.Current.RemoveController(Self);
   inherited;
 end;
 
@@ -629,8 +629,8 @@ end;
 
 procedure TKExtViewportControllerBase.DoDisplay;
 begin
-  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
-  Session.EnsureViewSupportFiles(View);
+  TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
+  TKWebSession.Current.EnsureViewSupportFiles(View);
   CreateSubController;
   Show;
 end;
@@ -745,8 +745,8 @@ end;
 
 destructor TKExtPanelControllerBase.Destroy;
 begin
-  if Session <> nil then
-    Session.RemoveController(Self);
+  if TKWebSession.Current <> nil then
+    TKWebSession.Current.RemoveController(Self);
   inherited;
 end;
 
@@ -773,13 +773,13 @@ var
   LClassType: TClass;
 begin
   LClassType := ClassType;
-  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(LClassType));
+  TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(LClassType));
   while LClassType.ClassParent <> nil do
   begin
     LClassType := LClassType.ClassParent;
-    Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(LClassType));
+    TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(LClassType));
   end;
-  Session.EnsureViewSupportFiles(View);
+  TKWebSession.Current.EnsureViewSupportFiles(View);
 end;
 
 procedure TKExtPanelControllerBase.DoDisplay;
@@ -1042,8 +1042,8 @@ end;
 destructor TKExtControllerBase.Destroy;
 begin
   FreeAndNil(FConfig);
-  if Session <> nil then
-    Session.RemoveController(Self);
+  if TKWebSession.Current <> nil then
+    TKWebSession.Current.RemoveController(Self);
   inherited;
 end;
 
@@ -1054,8 +1054,8 @@ end;
 
 procedure TKExtControllerBase.DoDisplay;
 begin
-  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
-  Session.EnsureViewSupportFiles(View);
+  TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
+  TKWebSession.Current.EnsureViewSupportFiles(View);
 end;
 
 function TKExtControllerBase.GetConfig: TEFNode;
@@ -1161,7 +1161,7 @@ begin
   Assert(Assigned(FView));
   Assert(Assigned(FActionObserver));
 
-  LController := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, FView, nil, nil, FActionObserver);
+  LController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, FView, nil, nil, FActionObserver);
   InitController(LController);
   LController.Display;
 end;

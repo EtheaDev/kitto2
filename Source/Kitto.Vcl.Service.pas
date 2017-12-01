@@ -49,7 +49,6 @@ type
     procedure ServiceAfterInstall(Sender: TService);
   private
     FServer: TKWebServer;
-    FApplication: TKWebApplication;
     FLogEndPoint: TKServiceLogEndpoint;
     procedure DoLog(const AString: string);
     procedure SetDescription(const ADescription: string);
@@ -109,9 +108,7 @@ end;
 procedure TKService.ServiceCreate(Sender: TObject);
 begin
   FServer := TKWebServer.Create(nil);
-  //FServer.OnSessionStart := ServerSessionStart;
-  //FServer.OnSessionEnd := ServerSessionEnd;
-  FApplication := FServer.AddRoute(TKWebApplication.Create) as TKWebApplication;
+  FServer.Engine.AddRoute(TKWebApplication.Create);
 
   FLogEndPoint := TKServiceLogEndpoint.Create;
   FLogEndPoint.OnLog := DoLog;

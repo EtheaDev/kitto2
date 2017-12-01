@@ -3,7 +3,7 @@ object KMainForm: TKMainForm
   Top = 0
   Caption = 'Kitto Application'
   ClientHeight = 313
-  ClientWidth = 680
+  ClientWidth = 809
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -424,22 +424,20 @@ object KMainForm: TKMainForm
   object PageControl: TPageControl
     Left = 0
     Top = 0
-    Width = 680
+    Width = 809
     Height = 313
     ActivePage = HomeTabSheet
     Align = alClient
     TabOrder = 0
+    ExplicitWidth = 680
     object HomeTabSheet: TTabSheet
       Caption = 'Home'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitWidth = 672
       object LogMemo: TMemo
         Left = 0
         Top = 81
-        Width = 672
+        Width = 801
         Height = 183
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
@@ -451,17 +449,19 @@ object KMainForm: TKMainForm
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitWidth = 672
       end
       object ControlPanel: TPanel
         Left = 0
         Top = 0
-        Width = 672
+        Width = 801
         Height = 81
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
+        ExplicitWidth = 672
         DesignSize = (
-          672
+          801
           81)
         object SessionCountLabel: TLabel
           Left = 264
@@ -548,7 +548,7 @@ object KMainForm: TKMainForm
           OnClick = HomeURLLabelClick
         end
         object AppIcon: TImage
-          Left = 604
+          Left = 733
           Top = 0
           Width = 64
           Height = 64
@@ -556,6 +556,7 @@ object KMainForm: TKMainForm
           Anchors = [akTop, akRight]
           Proportional = True
           Stretch = True
+          ExplicitLeft = 604
         end
         object ConfigFileNameComboBox: TComboBox
           Left = 4
@@ -571,7 +572,7 @@ object KMainForm: TKMainForm
         AlignWithMargins = True
         Left = 4
         Top = 264
-        Width = 664
+        Width = 793
         Height = 21
         Margins.Left = 4
         Margins.Top = 0
@@ -590,11 +591,12 @@ object KMainForm: TKMainForm
           'Sessions')
         TabIndex = 0
         OnChange = MainTabSetChange
+        ExplicitWidth = 664
       end
       object SessionPanel: TPanel
         Left = 0
         Top = 81
-        Width = 672
+        Width = 801
         Height = 183
         Align = alClient
         BevelOuter = bvNone
@@ -602,14 +604,16 @@ object KMainForm: TKMainForm
         Padding.Right = 4
         Padding.Bottom = 2
         TabOrder = 3
+        ExplicitWidth = 672
         object SessionToolPanel: TPanel
           Left = 4
           Top = 0
-          Width = 664
+          Width = 793
           Height = 36
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
+          ExplicitWidth = 664
         end
         object RefreshButton: TButton
           Left = 4
@@ -623,7 +627,7 @@ object KMainForm: TKMainForm
         object SessionListView: TListView
           Left = 4
           Top = 36
-          Width = 664
+          Width = 793
           Height = 145
           Align = alClient
           BevelInner = bvNone
@@ -648,6 +652,10 @@ object KMainForm: TKMainForm
             item
               Caption = 'Client Address'
               Width = 100
+            end
+            item
+              Caption = 'User Agent'
+              Width = 150
             end>
           TabOrder = 2
           ViewStyle = vsReport
@@ -684,7 +692,7 @@ object KMainForm: TKMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C000C0110001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00100110001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000

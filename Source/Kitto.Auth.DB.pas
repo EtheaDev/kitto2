@@ -482,9 +482,9 @@ begin
           raise EKError.Create(_('Error changing password.'));
         LDBCommand.Connection.CommitTransaction;
         if IsClearPassword then
-          Session.AuthData.SetString('Password', AValue)
+          TKWebSession.Current.AuthData.SetString('Password', AValue)
         else
-          Session.AuthData.SetString('Password', GetStringHash(AValue));
+          TKWebSession.Current.AuthData.SetString('Password', GetStringHash(AValue));
       except
         LDBCommand.Connection.RollbackTransaction;
         raise;

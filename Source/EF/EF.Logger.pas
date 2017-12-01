@@ -24,13 +24,12 @@ unit EF.Logger;
 interface
 
 uses
-  SysUtils, Types, Classes, SyncObjs,
+  SysUtils, Types, Classes,
   EF.ObserverIntf, EF.Tree, EF.Macros;
 
 type
   TEFLogger = class(TEFSubjectAndObserver)
   private
-    FCriticalSection: TCriticalSection;
     FLogLevel: Integer;
     FConfig: TEFNode;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -38,14 +37,11 @@ type
       FInstance: TEFLogger;
     procedure SetLogLevelFromConfig(const ALogLevelNode: TEFNode);
   protected
-    procedure EnterCS;
-    procedure LeaveCS;
-    procedure Sync(AProc: TProc);
+    procedure Synchronize(AProc: TProc);
   public
     class constructor Create;
     class destructor Destroy;
     procedure AfterConstruction; override;
-    destructor Destroy; override;
   public
     const LOG_LOW = 1;
     const LOG_MEDIUM = 2;
@@ -95,7 +91,6 @@ implementation
 procedure TEFLogger.AfterConstruction;
 begin
   inherited;
-  FCriticalSection := TCriticalSection.Create;
   FLogLevel := DEFAULT_LOG_LEVEL;
 end;
 
@@ -109,25 +104,9 @@ begin
   FreeAndNil(FInstance);
 end;
 
-destructor TEFLogger.Destroy;
-begin
-  FreeAndNil(FCriticalSection);
-  inherited;
-end;
-
-procedure TEFLogger.EnterCS;
-begin
-  FCriticalSection.Enter;
-end;
-
-procedure TEFLogger.LeaveCS;
-begin
-  FCriticalSection.Leave;
-end;
-
 procedure TEFLogger.Log(const AString: string; const ALogLevel: Integer);
 begin
-  Sync(
+  Synchronize(
     procedure
     begin
       if FLogLevel >= ALogLevel then
@@ -215,13 +194,13 @@ begin
   end;
 end;
 
-procedure TEFLogger.Sync(AProc: TProc);
+procedure TEFLogger.Synchronize(AProc: TProc);
 begin
-  EnterCS;
+  MonitorEnter(Self);
   try
     AProc;
   finally
-    LeaveCS;
+    MonitorExit(Self);
   end;
 end;
 

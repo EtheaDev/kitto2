@@ -22,12 +22,9 @@ uses
   SysUtils
   , HTTPApp
   , Generics.Collections
-  , System.Diagnostics
   , IdCustomHTTPServer
   , IdContext
-  , IdHTTPWebBrokerBridge
-  , IdSchedulerOfThreadPool
-  , EF.ObserverIntf
+  , Kitto.Web.Engine
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Web.Session
@@ -35,86 +32,11 @@ uses
   ;
 
 type
-  TKWebServer = class;
-
-  /// <summary>
-  ///  Abstract route. Handles requests for a class of paths.
-  /// </summary>
-  TKWebRoute = class(TEFSubjectAndObserver)
-  public
-    /// <summary>
-    ///  Handles a request; if handled, returns True (and sets the reponse up) if handled.
-    /// </summary>
-    function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
-      const AURL: TKURL): Boolean; virtual; abstract;
-    /// <summary>
-    ///  Called when the route is added to the server. May be used to add dependant routes.
-    ///  The predefined implementation does nothing.
-    /// </summary>
-    procedure AddedToServer(const AServer: TKWebServer; const AIndex: Integer); virtual;
-  end;
-
-  /// <summary>
-  ///  Base class for routes that serve local files from the file system.
-  /// </summary>
-  TKBaseStaticWebRoute = class(TKWebRoute)
-  protected
-    function ComputeLocalFileName(const ALocalPath, AURLPath, AURLDocument: string): string;
-    function ServeLocalFile(const AFileName: string; const AResponse: TKWebResponse): Boolean;
-  end;
-
-  /// <summary>
-  ///  A route that serves requests for paths matching a specified pattern,
-  ///  providing local files from the file system.
-  /// </summary>
-  TKStaticWebRoute = class(TKBaseStaticWebRoute)
-  private
-    FPattern: string;
-    FPath: string;
-    function StripBasePath(const AURLPath: string): string;
-  public
-    constructor Create(const APattern, APath: string);
-    function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
-      const AURL: TKURL): Boolean; override;
-  end;
-
-  /// <summary>
-  ///  A route that serves requests for paths matching a specified pattern,
-  ///  looking through an ordered list of local paths and serving the first file
-  ///  it finds.
-  /// </summary>
-  TKMultipleStaticWebRoute = class(TKBaseStaticWebRoute)
-  private
-    FBasePath: string;
-    FLocalPaths: TArray<string>;
-    function StripBasePath(const AURLPath: string): string;
-  public
-    function HandleRequest(const ARequest: TKWebRequest;
-      const AResponse: TKWebResponse; const AURL: TKURL): Boolean; override;
-    constructor Create(const ABasePath: string; const ALocalPaths: TArray<string>);
-  end;
-
-  IKWebHandleRequestEventListener = interface
-    procedure BeforeHandleRequest(const ASender: TKWebServer; const ARequest: TKWebRequest; const AResponse: TKWebResponse; var AIsAllowed: Boolean);
-    procedure AfterHandleRequest(const ASender: TKWebServer; const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
-  end;
-
   TKWebServer = class(TIdCustomHTTPServer)
   private
-    FSessions: TThreadList<TKWebSession>;
-    FThreadPoolSize: Integer;
-    FRoutes: TObjectList<TKWebRoute>;
-    FSubscribers: TList<IKWebHandleRequestEventListener>;
     FCharset: string;
-    class threadvar FCurrentSession: TIdHTTPSession;
-    procedure DeleteSession(const ASession: TIdHTTPSession);
-    class function GetCurrentSession: TIdHTTPSession; static;
-    class procedure SetCurrentSession(const AValue: TIdHTTPSession); static;
-    function DoBeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse): Boolean;
-    procedure DoAfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
-    class function GetCurrentKSession: TObject; static;
-    class procedure SetCurrentKSession(const AValue: TObject); static;
-    const SESSION_OBJECT = 'KittoSession';
+    FEngine: TKWebEngine;
+    procedure InitThreadScheduler(const AThreadPoolSize: Integer);
   protected
     procedure Startup; override;
     procedure Shutdown; override;
@@ -123,21 +45,12 @@ type
 
     procedure DoSessionStart(Sender: TIdHTTPSession); override;
     procedure DoSessionEnd(Sender: TIdHTTPSession); override;
-
-    procedure SetupThreadPooling;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
-    function AddRoute(const ARoute: TKWebRoute; const AIndex: Integer = -1): TKWebRoute;
-    class property CurrentSession: TIdHTTPSession read GetCurrentSession write SetCurrentSession;
-    class property CurrentKSession: TObject read GetCurrentKSession write SetCurrentKSession;
-
-    function LockSessionList: TList<TKWebSession>;
-    procedure UnlockSessionList;
-
-    procedure AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-    procedure RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
+    // Internal object; we might add ability to provide it externally at some point if needed.
+    property Engine: TKWebEngine read FEngine;
   end;
 
 implementation
@@ -145,47 +58,22 @@ implementation
 uses
   StrUtils
   , Classes
-  {$IFDEF MSWINDOWS}
-  , ComObj
-  , ActiveX
-  {$ENDIF}
   , IOUtils
+  , IdSchedulerOfThreadPool
   , EF.Logger
   , EF.StrUtils
   , Kitto.Config
   , Kitto.Web.Types
   ;
 
-function CreateKSession(const ASessionId: string): TKWebSession;
-begin
-  Result := TKWebSession.Create(ASessionId);
-end;
-
 { TKWebServer }
-
-function TKWebServer.AddRoute(const ARoute: TKWebRoute; const AIndex: Integer): TKWebRoute;
-var
-  LIndex: Integer;
-begin
-  if AIndex = -1 then
-    LIndex := FRoutes.Add(ARoute)
-  else
-  begin
-    FRoutes.Insert(AIndex, ARoute);
-    LIndex := AIndex;
-  end;
-  ARoute.AddedToServer(Self, LIndex);
-  Result := ARoute;
-end;
 
 procedure TKWebServer.AfterConstruction;
 var
   LConfig: TKConfig;
+  LThreadPoolSize: Integer;
 begin
   inherited;
-  FSessions := TThreadList<TKWebSession>.Create;
-  FRoutes := TObjectList<TKWebRoute>.Create;
-  FSubscribers := TList<IKWebHandleRequestEventListener>.Create;
 
   AutoStartSession := True;
   SessionState := True;
@@ -195,7 +83,7 @@ begin
   LConfig := TKConfig.Create;
   try
     DefaultPort := LConfig.Config.GetInteger('Server/Port', 8080);
-    FThreadPoolSize := LConfig.Config.GetInteger('Server/ThreadPoolSize', 20);
+    LThreadPoolSize := LConfig.Config.GetInteger('Server/ThreadPoolSize', 20);
     SessionTimeOut := LConfig.Config.GetInteger('Server/SessionTimeOut', 10) * MSecsPerSec * SecsPerMin;
     { TODO :  No multiple applications until we can have multiple cookie names. }
     SessionIDCookieName := LConfig.AppName;
@@ -203,23 +91,21 @@ begin
   finally
     FreeAndNil(LConfig);
   end;
+  InitThreadScheduler(LThreadPoolSize);
+
+  FEngine := TKWebEngine.Create;
 end;
 
 destructor TKWebServer.Destroy;
 begin
-  FreeAndNil(FSubscribers);
-  FreeAndNil(FRoutes);
-  FreeAndNil(FSessions);
+  FreeAndNil(FEngine);
   inherited;
 end;
 
-procedure TKWebServer.DoCommandGet(AContext: TIdContext;
-  ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
+procedure TKWebServer.DoCommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
 var
   LHandled: Boolean;
-  LRoute: TKWebRoute;
-  LURL: TKURL;
-  LStopWatch: TStopWatch;
+  LURL: TKWebURL;
 
   function IsPageRefresh: Boolean;
   begin
@@ -231,33 +117,34 @@ var
     LSession: TKWebSession;
     LSessionId: string;
   begin
-    LSession := TKWebSession(CurrentKSession);
+    Assert(Assigned(FEngine));
+    
+    LSession := TKWebSession.Current;
     Assert(Assigned(LSession));
 
     if IsPageRefresh then
     begin
       LSessionId := LSession.SessionId;
-      FreeAndNil(LSession);
-      LSession := CreateKSession(LSessionId);
+      LSession := FEngine.RecreateSession(LSessionId); // Also sets it as current session.
       LSession.SetDefaultLanguage(TKWebRequest.Current.AcceptLanguage);
-      CurrentKSession := LSession;
     end;
   end;
 
 begin
   inherited;
-
+  Assert(Assigned(FEngine));
+  
   Assert(Assigned(ARequestInfo.Session));
-  CurrentSession := ARequestInfo.Session;
-
-  LURL := TKURL.Create(ARequestInfo.URI, ARequestInfo.Params);
+  TKWebSession.Current := FEngine.Sessions[ARequestInfo.Session.SessionID];
+  
+  LURL := TKWebURL.Create(ARequestInfo.URI);
   try
     TKWebRequest.Current := TKWebRequest.Create(AContext, ARequestInfo, AResponseInfo);
     try
-      Session.SetDefaultLanguage(TKWebRequest.Current.AcceptLanguage);
-      Session.LastRequestInfo.UserAgent := TKWebRequest.Current.UserAgent;
-      Session.LastRequestInfo.ClientAddress := TKWebRequest.Current.RemoteAddr;
-      Session.LastRequestInfo.DateTime := Now;
+      TKWebSession.Current.SetDefaultLanguage(TKWebRequest.Current.AcceptLanguage);
+      TKWebSession.Current.LastRequestInfo.UserAgent := TKWebRequest.Current.UserAgent;
+      TKWebSession.Current.LastRequestInfo.ClientAddress := TKWebRequest.Current.RemoteAddr;
+      TKWebSession.Current.LastRequestInfo.DateTime := Now;
 
       TKWebResponse.Current := TKWebResponse.Create(TKWebRequest.Current, AContext, ARequestInfo, AResponseInfo);
       try
@@ -267,30 +154,21 @@ begin
         TKWebResponse.Current.FreeContentStream := False;
         AResponseInfo.FreeContentStream := True;
 
-        LStopWatch := TStopWatch.StartNew;
-        if DoBeforeHandleRequest(TKWebRequest.Current, TKWebResponse.Current) then begin
-          LHandled := False;
+        // When the page is refreshed, the browser keeps sending the same
+        // session id, but we need to treat the event as a new session.
+        RefreshSession;
 
-          // Recreate Kitto session each time the page is refreshed.
-          RefreshSession;
+        Assert(Assigned(FEngine));
+        LHandled := FEngine.HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL);
 
-          for LRoute in FRoutes do
-          begin
-            LHandled := LRoute.HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL);
-            if LHandled then
-              Break;
-          end;
-
-          if not LHandled then
-          begin
-            { TODO : use a template }
-            TKWebResponse.Current.Items.Clear;
-            TKWebResponse.Current.Items.AddHTML('<html><body>Unknown request</body></html>');
-            TKWebResponse.Current.Render;
-          end;
-          DoAfterHandleRequest(TKWebRequest.Current, TKWebResponse.Current, LStopWatch);
-          AResponseInfo.CustomHeaders.AddStrings(TKWebResponse.Current.CustomHeaders);
+        if not LHandled then
+        begin
+          { TODO : use a template }
+          TKWebResponse.Current.Items.Clear;
+          TKWebResponse.Current.Items.AddHTML('<html><body>Unknown request</body></html>');
+          TKWebResponse.Current.Render;
         end;
+        AResponseInfo.CustomHeaders.AddStrings(TKWebResponse.Current.CustomHeaders);
       finally
         TKWebResponse.ClearCurrent;
       end;
@@ -302,8 +180,7 @@ begin
   end;
 end;
 
-procedure TKWebServer.DoCommandOther(AContext: TIdContext;
-  ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
+procedure TKWebServer.DoCommandOther(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
 begin
   inherited;
   DoCommandGet(AContext, ARequestInfo, AResponseInfo);
@@ -312,68 +189,19 @@ end;
 procedure TKWebServer.DoSessionEnd(Sender: TIdHTTPSession);
 begin
   inherited;
-  DeleteSession(Sender);
-end;
-
-procedure TKWebServer.DeleteSession(const ASession: TIdHTTPSession);
-var
-  LIndex: Integer;
-  LSession: TObject;
-begin
-  LIndex := ASession.Content.IndexOf(SESSION_OBJECT);
-  if LIndex >= 0 then
-  begin
-    LSession := ASession.Content.Objects[LIndex];
-    ASession.Content.Delete(LIndex);
-    if LSession is TKWebSession then
-      FSessions.Remove(TKWebSession(LSession));
-    LSession.Free;
-  end;
+  FEngine.RemoveSession(Sender.SessionID); // also resets the current session
 end;
 
 procedure TKWebServer.DoSessionStart(Sender: TIdHTTPSession);
-var
-  LSession: TKWebSession;
 begin
+  Assert(Assigned(FEngine));
+
   TEFLogger.Instance.LogFmt('New session %s.', [Sender.SessionID], TEFLogger.LOG_MEDIUM);
-  LSession := CreateKSession(Sender.SessionID);
-  Sender.Content.AddObject(SESSION_OBJECT, LSession);
-  FSessions.Add(LSession);
+  FEngine.AddNewSession(Sender.SessionID); // also sets it as current session
   inherited;
 end;
 
-class function TKWebServer.GetCurrentKSession: TObject;
-begin
-  if Assigned(CurrentSession) then
-    Result := CurrentSession.Content.Objects[
-      CurrentSession.Content.IndexOf(SESSION_OBJECT)]
-  else
-    Result := nil;
-end;
-
-class function TKWebServer.GetCurrentSession: TIdHTTPSession;
-begin
-  Result := FCurrentSession;
-end;
-
-function TKWebServer.LockSessionList: TList<TKWebSession>;
-begin
-  Result := FSessions.LockList;
-end;
-
-class procedure TKWebServer.SetCurrentKSession(const AValue: TObject);
-begin
-  Assert(Assigned(CurrentSession));
-
-  CurrentSession.Content.Objects[CurrentSession.Content.IndexOf(SESSION_OBJECT)] := AValue;
-end;
-
-class procedure TKWebServer.SetCurrentSession(const AValue: TIdHTTPSession);
-begin
-  FCurrentSession := AValue;
-end;
-
-procedure TKWebServer.SetupThreadPooling;
+procedure TKWebServer.InitThreadScheduler(const AThreadPoolSize: Integer);
 var
   LScheduler: TIdSchedulerOfThreadPool;
 begin
@@ -384,7 +212,7 @@ begin
   end;
 
   LScheduler := TIdSchedulerOfThreadPool.Create(Self);
-  LScheduler.PoolSize := FThreadPoolSize;
+  LScheduler.PoolSize := AThreadPoolSize;
   Scheduler := LScheduler;
   MaxConnections := LScheduler.PoolSize;
 end;
@@ -398,146 +226,7 @@ end;
 procedure TKWebServer.Startup;
 begin
   Bindings.Clear;
-  SetupThreadPooling;
   inherited;
-end;
-
-procedure TKWebServer.UnlockSessionList;
-begin
-  FSessions.UnlockList;
-end;
-
-procedure TKWebServer.AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-begin
-  FSubscribers.Add(ASubscriber);
-end;
-
-procedure TKWebServer.RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-begin
-  FSubscribers.Remove(ASubscriber);
-end;
-
-procedure TKWebServer.DoAfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
-var
-  LSubscriber: IKWebHandleRequestEventListener;
-begin
-  for LSubscriber in FSubscribers do
-    LSubscriber.AfterHandleRequest(Self, ARequest, AResponse, AStopWatch);
-
-  {$IFDEF MSWINDOWS}
-  { TODO : only do this when ADO is used }
-  CoUninitialize;
-  {$ENDIF}
-end;
-
-function TKWebServer.DoBeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse): Boolean;
-var
-  LSubscriber: IKWebHandleRequestEventListener;
-begin
-  {$IFDEF MSWINDOWS}
-  { TODO : only do this when ADO is used }
-  OleCheck(CoInitialize(nil));
-  {$ENDIF}
-
-  Result := True;
-  for LSubscriber in FSubscribers do
-  begin
-    LSubscriber.BeforeHandleRequest(Self, ARequest, AResponse, Result);
-    if not Result then
-      Break;
-  end;
-end;
-
-{ TKBaseStaticWebRoute }
-
-function TKBaseStaticWebRoute.ComputeLocalFileName(const ALocalPath, AURLPath, AURLDocument: string): string;
-var
-  LURLPath: string;
-begin
-  LURLPath := AURLPath.Replace('/', PathDelim);
-  Result := TPath.Combine(TPath.Combine(ALocalPath, LURLPath), AURLDocument);
-end;
-
-function TKBaseStaticWebRoute.ServeLocalFile(const AFileName: string; const AResponse: TKWebResponse): Boolean;
-begin
-  if FileExists(AFileName) then
-  begin
-    AResponse.ContentType := GetFileMimeType(AFileName, 'application/octet-stream');
-    AResponse.ReplaceContentStream(TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone));
-    Result := True;
-  end
-  else
-    Result := False;
-end;
-
-{ TKStaticWebRoute }
-
-constructor TKStaticWebRoute.Create(const APattern, APath: string);
-begin
-  inherited Create;
-  FPattern := APattern;
-  FPath := APath;
-end;
-
-function TKStaticWebRoute.StripBasePath(const AURLPath: string): string;
-var
-  LBasePath: string;
-begin
-  // This only works reliably in the basic case of path/*, which is all we need ATM.
-  LBasePath := StripJollyCharacters(FPattern);
-  Result := StripPrefix(AURLPath, LBasePath);
-end;
-
-function TKStaticWebRoute.HandleRequest(const ARequest: TKWebRequest;
-  const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
-var
-  LFileName: string;
-begin
-  Result := False;
-  if StrMatches(AURL.Path, FPattern) then
-  begin
-    LFileName := ComputeLocalFileName(FPath, StripBasePath(AURL.Path), AURL.Document);
-    Result := ServeLocalFile(LFileName, AResponse);
-  end;
-end;
-
-{ TKWebRoute }
-
-procedure TKWebRoute.AddedToServer(const AServer: TKWebServer; const AIndex: Integer);
-begin
-end;
-
-{ TKMultipleStaticWebRoute }
-
-constructor TKMultipleStaticWebRoute.Create(const ABasePath: string; const ALocalPaths: TArray<string>);
-begin
-  inherited Create;
-  FBasePath := ABasePath;
-  FLocalPaths := RemoveDuplicates(ALocalPaths);
-end;
-
-function TKMultipleStaticWebRoute.StripBasePath(const AURLPath: string): string;
-begin
-  Result := StripPrefix(AURLPath, FBasePath);
-end;
-
-function TKMultipleStaticWebRoute.HandleRequest(const ARequest: TKWebRequest;
-  const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
-var
-  LLocalPath: string;
-  LFileName: string;
-begin
-  Result := False;
-  if AURL.Path.StartsWith(FBasePath) then
-  begin
-    for LLocalPath in FLocalPaths do
-    begin
-      LFileName := ComputeLocalFileName(LLocalPath, StripBasePath(AURL.Path), AURL.Document);
-      Result := ServeLocalFile(LFileName, AResponse);
-      if Result then
-        Break;
-    end;
-  end;
 end;
 
 end.

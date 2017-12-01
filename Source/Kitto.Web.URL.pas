@@ -8,14 +8,8 @@ uses
   ;
 
 type
-  TKURL = class(TIdURI)
-  private
-    FParsedParams: TStrings;
+  TKWebURL = class(TIdURI)
   public
-    constructor Create(const AURI: string; const AParams: TStrings); reintroduce;
-    function ParamByName(const AName: string): string;
-    destructor Destroy; override;
-
     /// <summary>
     ///  Returns the last path segment. If the path has only one segment, returns ''.
     /// </summary>
@@ -32,26 +26,12 @@ implementation
 uses
   SysUtils
   , StrUtils
-  , IdGlobal
   , EF.StrUtils
   ;
 
-{ TKURL }
+{ TWebKURL }
 
-constructor TKURL.Create(const AURI: string; const AParams: TStrings);
-begin
-  inherited Create(AURI);
-  FParsedParams := TStringList.Create;
-  FParsedParams.Assign(AParams);
-end;
-
-destructor TKURL.Destroy;
-begin
-  FreeAndNil(FParsedParams);
-  inherited;
-end;
-
-function TKURL.ExtractObjectName: string;
+function TKWebURL.ExtractObjectName: string;
 var
   LPathSegments: TArray<string>;
 begin
@@ -62,7 +42,7 @@ begin
     Result := '';
 end;
 
-class function TKURL.IncludeTrailingPathDelimiter(const APath: string): string;
+class function TKWebURL.IncludeTrailingPathDelimiter(const APath: string): string;
 const
   PATH_DELIMITER = '/';
 
@@ -76,11 +56,6 @@ begin
   Result := APath;
   if not IsPathDelimiter(Result, High(Result)) then
     Result := Result + PATH_DELIMITER;
-end;
-
-function TKURL.ParamByName(const AName: string): string;
-begin
-  Result := FParsedParams.Values[AName];
 end;
 
 end.

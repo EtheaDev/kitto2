@@ -263,8 +263,8 @@ end;
 procedure TKAuthenticator.AfterConstruction;
 begin
   inherited;
-  DefineAuthData(Session.AuthData);
-  Session.IsAuthenticated := False;
+  DefineAuthData(TKWebSession.Current.AuthData);
+  TKWebSession.Current.IsAuthenticated := False;
 end;
 
 procedure TKAuthenticator.DefineAuthData(const AAuthData: TEFNode);
@@ -286,7 +286,7 @@ end;
 
 function TKAuthenticator.GetIsAuthenticated: Boolean;
 begin
-  Result := Session.IsAuthenticated;
+  Result := TKWebSession.Current.IsAuthenticated;
 end;
 
 function TKAuthenticator.GetIsClearPassword: Boolean;
@@ -311,7 +311,7 @@ end;
 procedure TKAuthenticator.Logout;
 begin
   ClearAuthData;
-  Session.IsAuthenticated := False;
+  TKWebSession.Current.IsAuthenticated := False;
 end;
 
 class procedure TKAuthenticator.SetCurrent(const AValue: TKAuthenticator);
@@ -325,8 +325,8 @@ end;
 
 procedure TKAuthenticator.ClearAuthData;
 begin
-  Session.AuthData.Clear;
-  DefineAuthData(Session.AuthData);
+  TKWebSession.Current.AuthData.Clear;
+  DefineAuthData(TKWebSession.Current.AuthData);
 end;
 
 procedure TKAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
@@ -339,16 +339,16 @@ begin
 
   Result := False;
   // Make sure the macros are enabled while authenticating.
-  Session.AuthData.Assign(AAuthData);
+  TKWebSession.Current.AuthData.Assign(AAuthData);
   try
     InternalBeforeAuthenticate(AAuthData);
     Result := InternalAuthenticate(AAuthData);
-    Session.IsAuthenticated := Result;
+    TKWebSession.Current.IsAuthenticated := Result;
     if Result then
     begin
       InternalAfterAuthenticate(AAuthData);
       // Pick up any data changed by InternalAfterAuthenticate.
-      Session.AuthData.Assign(AAuthData);
+      TKWebSession.Current.AuthData.Assign(AAuthData);
     end;
   finally
     if not Result then
@@ -362,12 +362,12 @@ end;
 
 function TKClassicAuthenticator.GetPassword: string;
 begin
-  Result := Session.AuthData.GetString('Password');
+  Result := TKWebSession.Current.AuthData.GetString('Password');
 end;
 
 function TKClassicAuthenticator.GetUserName: string;
 begin
-  Result := Session.AuthData.GetString('UserName');
+  Result := TKWebSession.Current.AuthData.GetString('UserName');
 end;
 
 procedure TKClassicAuthenticator.InternalDefineAuthData(const AAuthData: TEFNode);

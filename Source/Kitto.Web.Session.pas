@@ -68,6 +68,7 @@ type
     FLastRequestInfo: TJSRequestInfo;
     FCreationDateTime: TDateTime;
     FObjectSpace: TJSObjectSpace;
+    class threadvar FCurrent: TKWebSession;
     function GetDisplayName: string;
     procedure SetLanguage(const AValue: string);
     /// <summary>
@@ -83,6 +84,8 @@ type
     /// </summary>
     procedure EnsureDynamicScript(const AScriptBaseName: string);
     function GetObjectSpace: TJSObjectSpace;
+    class function GetCurrent: TKWebSession; static;
+    class procedure SetCurrent(const Value: TKWebSession); static;
   strict protected
     function GetViewportContent: string; virtual;
     function GetManifestFileName: string; virtual;
@@ -166,6 +169,11 @@ type
 
     property LastRequestInfo: TJSRequestInfo read FLastRequestInfo;
     procedure SetDefaultLanguage(const AValue: string);
+
+    /// <summary>
+    ///  Globally accessible reference to the current thread's active session.
+    /// </summary>
+    class property Current: TKWebSession read GetCurrent write SetCurrent;
   end;
 
   /// <summary>
@@ -191,25 +199,17 @@ type
     procedure AfterConstruction; override;
   end;
 
-function Session: TKWebSession;
-
 implementation
 
 uses
   SysUtils
   , EF.Logger
-  , Kitto.Web.Server
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Web.Application
   ;
 
-function Session: TKWebSession;
-begin
-  Result := TKWebServer.CurrentKSession as TKWebSession;
-end;
-
-{ TJSSession }
+{ TKWebSession }
 
 function TKWebSession.GetViewportContent: string;
 begin
@@ -256,6 +256,11 @@ begin
   inherited;
 end;
 
+class procedure TKWebSession.SetCurrent(const Value: TKWebSession);
+begin
+  FCurrent := Value;
+end;
+
 procedure TKWebSession.SetDefaultLanguage(const AValue: string);
 var
   I: Integer;
@@ -270,6 +275,11 @@ begin
       LNewLanguage := Copy(LNewLanguage, I - 2, 2) + '_' + Uppercase(Copy(LNewLanguage, I + 1, 2));
     Language := LNewLanguage;
   end;
+end;
+
+class function TKWebSession.GetCurrent: TKWebSession;
+begin
+  Result := FCurrent;
 end;
 
 function TKWebSession.GetDefaultViewportWidth: Integer;
@@ -447,8 +457,8 @@ end;
 
 function TKSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
 begin
-  if Session <> nil then
-    Result := Session.FGettextInstance
+  if TKWebSession.Current <> nil then
+    Result := TKWebSession.Current.FGettextInstance
   else
     Result := gnugettext.DefaultInstance;
 end;

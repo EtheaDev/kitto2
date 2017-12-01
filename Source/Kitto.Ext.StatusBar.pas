@@ -90,16 +90,16 @@ end;
 
 destructor TKExtDefaultStatusBar.Destroy;
 begin
-  if (Session <> nil) and Assigned(Session.StatusHost) and (Session.StatusHost.AsObject = Self) then
-    Session.StatusHost := nil;
+  if (TKWebSession.Current <> nil) and Assigned(TKWebSession.Current.StatusHost) and (TKWebSession.Current.StatusHost.AsObject = Self) then
+    TKWebSession.Current.StatusHost := nil;
   inherited;
 end;
 
 procedure TKExtDefaultStatusBar.InitDefaults;
 begin
   inherited;
-  if Session.StatusHost = nil then
-    Session.StatusHost := Self;
+  if TKWebSession.Current.StatusHost = nil then
+    TKWebSession.Current.StatusHost := Self;
 end;
 
 function TKExtDefaultStatusBar.ShowBusy: TJSExpression;

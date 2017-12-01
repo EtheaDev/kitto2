@@ -104,7 +104,7 @@ var
   function GetHorizontalMargin: Integer;
   begin
     if Maximized then
-      Result := Session.ViewportWidth div 4
+      Result := TKWebSession.Current.ViewportWidth div 4
     else
       Result := 20;
   end;
@@ -112,15 +112,15 @@ var
 begin
   Draggable := View.GetBoolean('Controller/Movable', False);
   if Maximized then
-    LWidth := Session.ViewportWidth
+    LWidth := TKWebSession.Current.ViewportWidth
   else
     LWidth := Max(Config.GetInteger('ExtraWidth'), STANDARD_WIDTH);
   LHeight := Max(Config.GetInteger('ExtraHeight'), 0) + STANDARD_HEIGHT;
 
   if Maximized then
   begin
-    LLabelWidth := Trunc(Session.ViewportWidth * 0.4);
-    LEditWidth := Trunc(Session.ViewportWidth * 0.6) - GetHorizontalMargin;
+    LLabelWidth := Trunc(TKWebSession.Current.ViewportWidth * 0.4);
+    LEditWidth := Trunc(TKWebSession.Current.ViewportWidth * 0.6) - GetHorizontalMargin;
   end
   else
   begin
@@ -239,7 +239,7 @@ begin
 
   FUserName := TExtFormTextField.CreateAndAddToArray(Items);
   FUserName.Name := 'UserName';
-  FUserName.Value := Session.AuthData.GetExpandedString('UserName');
+  FUserName.Value := TKWebSession.Current.AuthData.GetExpandedString('UserName');
   FUserName.FieldLabel := _('User Name');
   FUserName.AllowBlank := False;
   FUserName.EnableKeyEvents := True;
@@ -249,7 +249,7 @@ begin
 
   FPassword := TExtFormTextField.CreateAndAddToArray(Items);
   FPassword.Name := 'Password';
-  FPassword.Value := Session.AuthData.GetExpandedString('Password');
+  FPassword.Value := TKWebSession.Current.AuthData.GetExpandedString('Password');
   FPassword.FieldLabel := _('Password');
   FPassword.InputType := itPassword;
   FPassword.AllowBlank := False;
@@ -272,7 +272,7 @@ begin
     // Don't call JSArray on the windows, as it will generate a dependency cycle.
     FLanguage.StoreArray := FLanguage.JSArray('["it", "Italiano"], ["en", "English"]');
     FLanguage.HiddenName := 'Language';
-    FLanguage.Value := Session.AuthData.GetExpandedString('Language');
+    FLanguage.Value := TKWebSession.Current.AuthData.GetExpandedString('Language');
     if FLanguage.Value = '' then
       FLanguage.Value := TKWebApplication.Current.Config.Config.GetString('LanguageId');
     FLanguage.FieldLabel := _('Language');

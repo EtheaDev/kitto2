@@ -772,16 +772,16 @@ uses
 
 function ExtQuickTips: TExtQuickTipsSingleton;
 begin
-  if Session <> nil then
-    Result := Session.ObjectSpace.GetSingleton<TExtQuickTipsSingleton>(TExtQuickTipsSingleton.JSClassName)
+  if TKWebSession.Current <> nil then
+    Result := TKWebSession.Current.ObjectSpace.GetSingleton<TExtQuickTipsSingleton>(TExtQuickTipsSingleton.JSClassName)
   else
     Result := nil;
 end;
 
 function ExtMessageBox: TExtMessageBoxSingleton;
 begin
-  if Session <> nil then
-    Result := Session.ObjectSpace.GetSingleton<TExtMessageBoxSingleton>(TExtMessageBoxSingleton.JSClassName)
+  if TKWebSession.Current <> nil then
+    Result := TKWebSession.Current.ObjectSpace.GetSingleton<TExtMessageBoxSingleton>(TExtMessageBoxSingleton.JSClassName)
   else
     Result := nil;
 end;

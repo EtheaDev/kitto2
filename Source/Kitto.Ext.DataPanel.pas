@@ -212,7 +212,7 @@ begin
 
   PerformBeforeExecute;
   LController := TKExtControllerFactory.Instance.CreateController(
-    Session.ObjectSpace, View, nil, nil, ActionObserver);
+    TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
   if LController.Config.GetBoolean('RequireSelection', True) then
     FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
   else
@@ -406,7 +406,7 @@ begin
     FreeAndNil(FEditHostWindow);
   end;
   FEditHostWindow := TKExtModalWindow.Create(Self);
-//  FEditHostWindow.OwnerCt := Session.HomeController.AsJSObject as TExtContainer;
+//  FEditHostWindow.OwnerCt := TKWebSession.Current.HomeController.AsJSObject as TExtContainer;
 
   //FEditHostWindow.ResizeHandles := 'n s';
   FEditHostWindow.Layout := lyFit;

@@ -114,12 +114,10 @@ uses
   Math
   , StrUtils
   , DateUtils
-  , SyncObjs
   , EF.Sys
   , EF.Sys.Windows
   , EF.Shell
   , EF.Localization
-  , Kitto.Ext.Start
   ;
 
 { TKMainForm }
@@ -251,36 +249,34 @@ procedure TKMainForm.UpdateSessionInfo;
       LItem.SubItems.Add(IfThen(DateOf(ASession.CreationDateTime) = Date,
         TimeToStr(TimeOf(ASession.CreationDateTime)), DateTimeToStr(ASession.CreationDateTime)));
       // Last Req.
-      LItem.SubItems.Add(DateTimeToStr(ASession.LastRequestInfo.DateTime));
+      LItem.SubItems.Add(IfThen(DateOf(ASession.LastRequestInfo.DateTime) = Date,
+        TimeToStr(TimeOf(ASession.LastRequestInfo.DateTime)), DateTimeToStr(ASession.LastRequestInfo.DateTime)));
       // User.
       LItem.SubItems.Add(ASession.AuthData.GetString('UserName'));
       // Origin.
       LItem.SubItems.Add(ASession.LastRequestInfo.ClientAddress);
+      // User Agent.
+      LItem.SubItems.Add(ASession.LastRequestInfo.UserAgent);
     end;
   end;
 
 var
-  I: Integer;
-  LSessions: TList<TKWebSession>;
+  LSessions: TArray<TKWebSession>;
+  LSession: TKWebSession;
 begin
   SessionListView.Clear;
   if FServer.Active then
   begin
-    LSessions := FServer.LockSessionList;
-    try
-      SessionCountLabel.Caption := Format('Active Sessions: %d', [LSessions.Count]);
+    LSessions := FServer.Engine.GetSessions;
 
-      if LSessions.Count = 0 then
-        AddItem(_('None'))
-      else
-      begin
-        for I := 0 to LSessions.Count - 1 do
-        begin
-          AddItem(LSessions[I].DisplayName, LSessions[I]);
-        end;
-      end;
-    finally
-      FServer.UnlockSessionList;
+    SessionCountLabel.Caption := Format('Active Sessions: %d', [Length(LSessions)]);
+
+    if Length(LSessions) = 0 then
+      AddItem(_('None'))
+    else
+    begin
+      for LSession in LSessions do
+        AddItem(LSession.DisplayName, LSession);
     end;
   end
   else
@@ -336,7 +332,7 @@ begin
   FServer := TKWebServer.Create(nil);
   FServer.OnSessionStart := ServerSessionStart;
   FServer.OnSessionEnd := ServerSessionEnd;
-  FApplication := FServer.AddRoute(TKWebApplication.Create) as TKWebApplication;
+  FApplication := FServer.Engine.AddRoute(TKWebApplication.Create) as TKWebApplication;
 
   FLogEndPoint := TKMainFormLogEndpoint.Create;
   FLogEndPoint.OnLog := DoLog;
