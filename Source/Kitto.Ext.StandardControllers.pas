@@ -325,7 +325,7 @@ begin
   begin
     for I := 0 to LFilters.ChildCount - 1 do
     begin
-      LHeader := TKWebRequest.Current.GetFieldByName(LFilters.Children[I].GetExpandedString('Header'));
+      LHeader := TKWebRequest.Current.GetHeaderField(LFilters.Children[I].GetExpandedString('Header'));
       LPattern := LFilters.Children[I].GetExpandedString('Pattern');
       LTargetURL := LFilters.Children[I].GetExpandedString('TargetURL');
       if StrMatchesPatternOrRegex(LHeader, LPattern) then
@@ -634,7 +634,7 @@ var
 begin
   LResult := TJSONObject.Create;
   try
-    if TKWebRequest.Current.Files.Count = 0 then
+    if TKWebRequest.Current.Request.Files.Count = 0 then
     begin
       LResult.AddPair('success', TJSONFalse.Create);
       LResult.AddPair('msg', _('No file uploaded'));
@@ -642,7 +642,7 @@ begin
       Exit;
     end;
 
-    LFileName := TKWebRequest.Current.Files[0].FileName;
+    LFileName := TKWebRequest.Current.Request.Files[0].FileName;
     LAcceptedWildcards := AcceptedWildcards;
     if LAcceptedWildcards <> '' then
     begin
@@ -667,7 +667,7 @@ begin
     end;
 
     { TODO : Check the file against limitations such as type and size}
-    ProcessUploadedFile(TKWebRequest.Current.Files[0]);
+    ProcessUploadedFile(TKWebRequest.Current.Request.Files[0]);
     LResult.AddPair('success', TJSONTrue.Create);
     TKWebResponse.Current.Items.AddJSON(LResult.ToJSON);
     AfterExecuteTool;

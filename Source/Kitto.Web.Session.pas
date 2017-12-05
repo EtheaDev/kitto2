@@ -222,7 +222,7 @@ var
 begin
   if FLanguage = '' then
   begin
-    FLanguage := TKWebRequest.Current.GetFieldByName('Accept-Language');
+    FLanguage := TKWebRequest.Current.AcceptLanguage;
     I := Pos('-', FLanguage);
     if I <> 0 then
       // Convert language code

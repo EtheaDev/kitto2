@@ -59,6 +59,7 @@ uses
   StrUtils
   , Classes
   , IOUtils
+  , IdHTTPWebBrokerBridge
   , IdSchedulerOfThreadPool
   , EF.Logger
   , EF.StrUtils
@@ -139,19 +140,19 @@ begin
   
   LURL := TKWebURL.Create(ARequestInfo.URI);
   try
-    TKWebRequest.Current := TKWebRequest.Create(AContext, ARequestInfo, AResponseInfo);
+    TKWebRequest.Current := TKWebRequest.Create(TIdHTTPAppRequest.Create(AContext, ARequestInfo, AResponseInfo));
     try
       TKWebSession.Current.SetDefaultLanguage(TKWebRequest.Current.AcceptLanguage);
       TKWebSession.Current.LastRequestInfo.UserAgent := TKWebRequest.Current.UserAgent;
       TKWebSession.Current.LastRequestInfo.ClientAddress := TKWebRequest.Current.RemoteAddr;
       TKWebSession.Current.LastRequestInfo.DateTime := Now;
 
-      TKWebResponse.Current := TKWebResponse.Create(TKWebRequest.Current, AContext, ARequestInfo, AResponseInfo);
+      TKWebResponse.Current := TKWebResponse.Create(TIdHTTPAppResponse.Create(TKWebRequest.Current.Request, AContext, ARequestInfo, AResponseInfo));
       try
         TKWebResponse.Current.Items.Charset := FCharset;
         // Switch stream ownership so that we have it still alive in AResponseInfo
         // which will destroy it later.
-        TKWebResponse.Current.FreeContentStream := False;
+        TKWebResponse.Current.Response.FreeContentStream := False;
         AResponseInfo.FreeContentStream := True;
 
         // When the page is refreshed, the browser keeps sending the same
@@ -168,7 +169,8 @@ begin
           TKWebResponse.Current.Items.AddHTML('<html><body>Unknown request</body></html>');
           TKWebResponse.Current.Render;
         end;
-        AResponseInfo.CustomHeaders.AddStrings(TKWebResponse.Current.CustomHeaders);
+        // Must pass any custom headers back.
+        AResponseInfo.CustomHeaders.AddStrings(TKWebResponse.Current.Response.CustomHeaders);
       finally
         TKWebResponse.ClearCurrent;
       end;

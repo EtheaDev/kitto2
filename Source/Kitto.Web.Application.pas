@@ -834,7 +834,7 @@ procedure TKWebApplication.ReloadOrDisplayHomeView;
 var
   LNewLanguageId: string;
 begin
-  LNewLanguageId := TKWebRequest.Current.QueryFields.Values['Language'];
+  LNewLanguageId := TKWebRequest.Current.Language;
   if (LNewLanguageId <> '') and (LNewLanguageId <> TKWebSession.Current.Language) then
   begin
     TKWebSession.Current.RefreshingLanguage := True;
@@ -915,7 +915,7 @@ begin
   if not TKWebSession.Current.RefreshingLanguage then
     GetAuthenticator.Logout;
 
-  TKWebSession.Current.HomeViewNodeName := TKWebRequest.Current.QueryFields.Values['home'];
+  TKWebSession.Current.HomeViewNodeName := TKWebRequest.Current.GetQueryField('home');
   SetViewportContent;
   TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.ObjectSpace, 'kittoInit();');
   SetAjaxTimeout;
@@ -927,7 +927,7 @@ begin
   if not TKWebSession.Current.RefreshingLanguage then
     TKWebSession.Current.SetLanguageFromQueriesOrConfig(Config);
 
-  TKWebSession.Current.AutoOpenViewName := TKWebRequest.Current.QueryFields.Values['view'];
+  TKWebSession.Current.AutoOpenViewName := TKWebRequest.Current.GetQueryField('view');
 //  if FAutoOpenViewName <> '' then
 //    Query['view'] := '';
 
@@ -1103,7 +1103,7 @@ var
   function GetSeparator: string;
   begin
     // IE on Windows Phone wants comma, others want space.
-    if string(TKWebRequest.Current.UserAgent).Contains('Windows Phone') then
+    if TKWebRequest.Current.IsBrowserWindowsPhone then
       Result := ', '
     else
       Result := ' ';

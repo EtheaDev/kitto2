@@ -1,4 +1,22 @@
-﻿unit Kitto.Web.Response;
+﻿{-------------------------------------------------------------------------------
+   Copyright 2012-2017 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------}
+
+unit Kitto.Web.Response;
+
+{$I Kitto.Defines.inc}
 
 interface
 
@@ -6,7 +24,7 @@ uses
   Classes
   , Generics.Collections
   , SysUtils
-  , IdHTTPWebBrokerBridge
+  , HTTPApp
   , Kitto.JS.Types
   , Kitto.JS.Base
   , Kitto.JS.Formatting
@@ -16,19 +34,29 @@ uses
 type
   TJSResponseItems = class;
 
-  TKWebResponse = class(TIdHTTPAppResponse)
+  TKWebResponse = class
   private
+    FResponse: TWebResponse;
     FResponseItemsStack: TStack<TJSResponseItems>;
     class threadvar FCurrent: TKWebResponse;
     class function GetCurrent: TKWebResponse; static;
     class procedure SetCurrent(const AValue: TKWebResponse); static;
     function GetItems: TJSResponseItems;
+    function GetContentType: string;
+    procedure SetContentType(const Value: string);  public
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
     class property Current: TKWebResponse read GetCurrent write SetCurrent;
     class procedure ClearCurrent;
+
+    constructor Create(const AResponse: TWebResponse);
+
+    property Response: TWebResponse read FResponse;
+
+    property ContentType: string read GetContentType write SetContentType;
+    procedure SetCustomHeader(const AName, AValue: string);
 
     function HasResponseItems: Boolean;
     function BranchResponseItems: TJSResponseItems;
@@ -310,12 +338,25 @@ begin
   FreeAndNil(FCurrent);
 end;
 
+constructor TKWebResponse.Create(const AResponse: TWebResponse);
+begin
+  Assert(Assigned(AResponse));
+  inherited Create;
+  FResponse := AResponse;
+end;
+
 destructor TKWebResponse.Destroy;
 begin
   Assert(FResponseItemsStack.Count = 1);
   FResponseItemsStack.Pop.Free;
   FreeAndNil(FResponseItemsStack);
+  FreeAndNil(FResponse);
   inherited;
+end;
+
+function TKWebResponse.GetContentType: string;
+begin
+  Result := FResponse.ContentType;
 end;
 
 class function TKWebResponse.GetCurrent: TKWebResponse;
@@ -351,18 +392,28 @@ procedure TKWebResponse.ReplaceContentStream(const AStream: TStream);
 var
   LContentStream: TStream;
 begin
-  if Assigned(ContentStream) then
+  if Assigned(FResponse.ContentStream) then
   begin
-    LContentStream := ContentStream;
-    ContentStream := nil; // propagates to response info object.
+    LContentStream := FResponse.ContentStream;
+    FResponse.ContentStream := nil;
     FreeAndNil(LContentStream);
   end;
-  ContentStream := AStream;
+  FResponse.ContentStream := AStream;
+end;
+
+procedure TKWebResponse.SetContentType(const Value: string);
+begin
+  FResponse.ContentType := Value;
 end;
 
 class procedure TKWebResponse.SetCurrent(const AValue: TKWebResponse);
 begin
   FCurrent := AValue;
+end;
+
+procedure TKWebResponse.SetCustomHeader(const AName, AValue: string);
+begin
+  FResponse.SetCustomHeader(AName, AValue);
 end;
 
 procedure TKWebResponse.AfterConstruction;

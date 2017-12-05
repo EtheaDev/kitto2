@@ -16,6 +16,8 @@
 
 unit Kitto.Vcl.Start;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 type
@@ -38,18 +40,18 @@ implementation
 uses
   SysUtils
   , Classes
+  , EF.Logger
+  , EF.Localization
+  , Kitto.Config
   {$IFDEF MSWINDOWS}
+  , ShlObj
   , Vcl.Forms
   , Vcl.SvcMgr
-  , ShlObj
   , Vcl.Themes
   , Vcl.Styles
   , Kitto.Vcl.MainForm
   , Kitto.Vcl.Service
   {$ENDIF}
-  , EF.Logger
-  , EF.Localization
-  , Kitto.Config
   ;
 
 { TKStart }

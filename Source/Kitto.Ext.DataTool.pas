@@ -239,7 +239,7 @@ begin
   try
     LKey.Assign(ServerStore.Key);
     Assert(LKey.ChildCount > 0);
-    LRecordCount := Length(EF.StrUtils.Split(TKWebRequest.Current.QueryFields.Values[LKey[0].Name], ','));
+    LRecordCount := Length(EF.StrUtils.Split(TKWebRequest.Current.GetQueryField((LKey[0].Name)), ','));
     SetLength(FSelectedRecords, LRecordCount);
     for I := 0 to LRecordCount - 1 do
       FSelectedRecords[I] := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, I);
