@@ -249,8 +249,11 @@ procedure TKMainForm.UpdateSessionInfo;
       LItem.SubItems.Add(IfThen(DateOf(ASession.CreationDateTime) = Date,
         TimeToStr(TimeOf(ASession.CreationDateTime)), DateTimeToStr(ASession.CreationDateTime)));
       // Last Req.
-      LItem.SubItems.Add(IfThen(DateOf(ASession.LastRequestInfo.DateTime) = Date,
-        TimeToStr(TimeOf(ASession.LastRequestInfo.DateTime)), DateTimeToStr(ASession.LastRequestInfo.DateTime)));
+      if ASession.LastRequestInfo.DateTime = 0 then
+        LItem.SubItems.Add('-')
+      else
+        LItem.SubItems.Add(IfThen(DateOf(ASession.LastRequestInfo.DateTime) = Date,
+          TimeToStr(TimeOf(ASession.LastRequestInfo.DateTime)), DateTimeToStr(ASession.LastRequestInfo.DateTime)));
       // User.
       LItem.SubItems.Add(ASession.AuthData.GetString('UserName'));
       // Origin.

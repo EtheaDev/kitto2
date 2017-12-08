@@ -271,15 +271,6 @@ type
     property Count: Integer read GetCount;
   end;
 
-  /// <summary>
-  ///  Keeps track of some request data to be accessed after the request is destroyed.
-  /// </summary>
-  TJSRequestInfo = class
-    UserAgent: string;
-    ClientAddress: string;
-    DateTime: TDateTime;
-  end;
-
 implementation
 
 uses

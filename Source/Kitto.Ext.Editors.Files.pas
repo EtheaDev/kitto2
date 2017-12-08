@@ -652,7 +652,7 @@ var
 begin
   LResult := TJSONObject.Create;
   try
-    if TKWebRequest.Current.Request.Files.Count = 0 then
+    if TKWebRequest.Current.Files.Count = 0 then
     begin
       LResult.AddPair('success', TJSONFalse.Create);
       LResult.AddPair('msg', _('No file uploaded'));
@@ -660,7 +660,7 @@ begin
     else
     begin
       LMaxUploadSize := FRecordField.ViewField.GetInteger('MaxUploadSize', MaxInt);
-      if TKWebRequest.Current.Request.Files[0].Stream.Size > LMaxUploadSize then
+      if TKWebRequest.Current.Files[0].Stream.Size > LMaxUploadSize then
       begin
         LResult.AddPair('success', TJSONFalse.Create);
         LResult.AddPair('msg', Format(_('File too large. Maximum size is %s.'),
@@ -669,7 +669,7 @@ begin
       else
       begin
         try
-          ProcessUploadedFile(TKWebRequest.Current.Request.Files[0]);
+          ProcessUploadedFile(TKWebRequest.Current.Files[0]);
           LResult.AddPair('success', TJSONTrue.Create);
         except
           on E: Exception do

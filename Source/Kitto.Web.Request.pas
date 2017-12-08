@@ -42,6 +42,7 @@ type
     FQueryTree: TEFTree;
     FJSONContentTree: TEFTree;
     FRequest: TWebRequest;
+    FOwnsRequest: Boolean;
     class threadvar FCurrent: TKWebRequest;
     function GetIsAjax: Boolean;
     class function GetCurrent: TKWebRequest; static;
@@ -53,13 +54,16 @@ type
     function GetLanguage: string;
     function GetRemoteAddr: string;
     function GetUserAgent: string;
+    function GetTimestamp: TDateTime;
+    function GetFiles: TAbstractWebRequestFiles;
   public
     destructor Destroy; override;
   public
+    const HOME_DOCUMENT = 'home';
     class property Current: TKWebRequest read GetCurrent write SetCurrent;
     class procedure ClearCurrent;
 
-    constructor Create(const ARequest: TWebRequest);
+    constructor Create(const ARequest: TWebRequest; const AOwnsRequest: Boolean = True);
 
     property IsAjax: Boolean read GetIsAjax;
     property IsRefresh: Boolean read GetIsRefresh;
@@ -88,18 +92,37 @@ type
     ///  or '' if not found.
     /// </summary>
     function GetHeaderField(const AName: string): string;
+    /// <summary>
+    ///  Returns the value of the cookie with the given name,
+    ///  or '' if not found.
+    /// </summary>
+    function GetCookie(const AName: string): string;
 
     function IsBrowserIPhone: Boolean;
     function IsBrowserIPad: Boolean;
     function IsMobileBrowser: Boolean;
     function IsBrowserWindowsPhone: Boolean;
 
+    function IsPageRefresh(const AURLDocument: string): Boolean;
+
     property AcceptLanguage: string read GetAcceptLanguage;
     property Language: string read GetLanguage;
     property UserAgent: string read GetUserAgent;
     property RemoteAddr: string read GetRemoteAddr;
+    property Timestamp: TDateTime read GetTimestamp;
+    property Files: TAbstractWebRequestFiles read GetFiles;
+  end;
 
-    property Request: TWebRequest read FRequest;
+  /// <summary>
+  ///  Keeps track of some request data to be accessed after the request
+  ///  object itself is destroyed.
+  /// </summary>
+  TKWebRequestInfo = record
+    UserAgent: string;
+    ClientAddress: string;
+    DateTime: TDateTime;
+    procedure ClearData;
+    procedure SetData(const ARequest: TKWebRequest);
   end;
 
 implementation
@@ -119,18 +142,20 @@ begin
   FreeAndNil(FCurrent);
 end;
 
-constructor TKWebRequest.Create(const ARequest: TWebRequest);
+constructor TKWebRequest.Create(const ARequest: TWebRequest; const AOwnsRequest: Boolean);
 begin
   Assert(Assigned(ARequest));
   inherited Create;
   FRequest := ARequest;
+  FOwnsRequest := AOwnsRequest;
 end;
 
 destructor TKWebRequest.Destroy;
 begin
   FreeAndNil(FQueryTree);
   FreeAndNil(FJSONContentTree);
-  FreeAndNil(FRequest);
+  if FOwnsRequest then
+    FreeAndNil(FRequest);
   inherited;
 end;
 
@@ -139,9 +164,19 @@ begin
   Result := GetHeaderField('Accept-Language');
 end;
 
+function TKWebRequest.GetCookie(const AName: string): string;
+begin
+  Result := FRequest.CookieFields.Values[AName];
+end;
+
 class function TKWebRequest.GetCurrent: TKWebRequest;
 begin
   Result := FCurrent;
+end;
+
+function TKWebRequest.GetFiles: TAbstractWebRequestFiles;
+begin
+  Result := FRequest.Files;
 end;
 
 function TKWebRequest.GetHeaderField(const AName: string): string;
@@ -210,6 +245,13 @@ begin
   Result := FRequest.RemoteAddr;
 end;
 
+function TKWebRequest.GetTimestamp: TDateTime;
+begin
+  Result := FRequest.Date;
+  if Result <= 0 then
+    Result := Now;
+end;
+
 function TKWebRequest.GetUserAgent: string;
 begin
   Result := FRequest.UserAgent;
@@ -241,9 +283,30 @@ begin
     LUserAgent.Contains('Android');
 end;
 
+function TKWebRequest.IsPageRefresh(const AURLDocument: string): Boolean;
+begin
+  Result := not IsAjax and ((AURLDocument = '') or SameText(AURLDocument, HOME_DOCUMENT));
+end;
+
 class procedure TKWebRequest.SetCurrent(const AValue: TKWebRequest);
 begin
   FCurrent := AValue;
+end;
+
+{ TKWebRequestInfo }
+
+procedure TKWebRequestInfo.ClearData;
+begin
+  UserAgent := '';
+  ClientAddress := '';
+  DateTime := 0;
+end;
+
+procedure TKWebRequestInfo.SetData(const ARequest: TKWebRequest);
+begin
+  UserAgent := ARequest.UserAgent;
+  ClientAddress := ARequest.RemoteAddr;
+  DateTime := ARequest.Timestamp;
 end;
 
 end.

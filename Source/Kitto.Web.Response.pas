@@ -38,12 +38,14 @@ type
   private
     FResponse: TWebResponse;
     FResponseItemsStack: TStack<TJSResponseItems>;
+    FOwnsResponse: Boolean;
     class threadvar FCurrent: TKWebResponse;
     class function GetCurrent: TKWebResponse; static;
     class procedure SetCurrent(const AValue: TKWebResponse); static;
     function GetItems: TJSResponseItems;
     function GetContentType: string;
-    procedure SetContentType(const Value: string);  public
+    procedure SetContentType(const Value: string);
+    function GetCustomHeaders: TStrings;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -51,12 +53,12 @@ type
     class property Current: TKWebResponse read GetCurrent write SetCurrent;
     class procedure ClearCurrent;
 
-    constructor Create(const AResponse: TWebResponse);
-
-    property Response: TWebResponse read FResponse;
+    constructor Create(const AResponse: TWebResponse; const AOwnsResponse: Boolean = True);
 
     property ContentType: string read GetContentType write SetContentType;
     procedure SetCustomHeader(const AName, AValue: string);
+    property CustomHeaders: TStrings read GetCustomHeaders;
+    procedure SetCookie(const AName, AValue: string);
 
     function HasResponseItems: Boolean;
     function BranchResponseItems: TJSResponseItems;
@@ -328,7 +330,8 @@ type
 implementation
 
 uses
-  Kitto.Web.Application
+  DateUtils
+  , Kitto.Web.Application
   ;
 
 { TKWebResponse }
@@ -338,11 +341,12 @@ begin
   FreeAndNil(FCurrent);
 end;
 
-constructor TKWebResponse.Create(const AResponse: TWebResponse);
+constructor TKWebResponse.Create(const AResponse: TWebResponse; const AOwnsResponse: Boolean);
 begin
   Assert(Assigned(AResponse));
   inherited Create;
   FResponse := AResponse;
+  FOwnsResponse := AOwnsResponse;
 end;
 
 destructor TKWebResponse.Destroy;
@@ -350,7 +354,8 @@ begin
   Assert(FResponseItemsStack.Count = 1);
   FResponseItemsStack.Pop.Free;
   FreeAndNil(FResponseItemsStack);
-  FreeAndNil(FResponse);
+  if FOwnsResponse then
+    FreeAndNil(FResponse);
   inherited;
 end;
 
@@ -362,6 +367,11 @@ end;
 class function TKWebResponse.GetCurrent: TKWebResponse;
 begin
   Result := FCurrent;
+end;
+
+function TKWebResponse.GetCustomHeaders: TStrings;
+begin
+  Result := FResponse.CustomHeaders;
 end;
 
 function TKWebResponse.GetItems: TJSResponseItems;
@@ -378,14 +388,15 @@ end;
 
 procedure TKWebResponse.Render;
 begin
-  // Don't overwrite custom responses.
 { TODO : tunnel all responses (including downloads) through the response items? }
+  // Don't overwrite custom responses.
   if Items.Count > 0 then
   begin
     //Content := Items.Consume;
     ReplaceContentStream(TStringStream.Create(Items.Consume, Items.Encoding));
     ContentType := Items.GetContentType;
   end;
+  FResponse.SendResponse;
 end;
 
 procedure TKWebResponse.ReplaceContentStream(const AStream: TStream);
@@ -404,6 +415,17 @@ end;
 procedure TKWebResponse.SetContentType(const Value: string);
 begin
   FResponse.ContentType := Value;
+end;
+
+procedure TKWebResponse.SetCookie(const AName, AValue: string);
+var
+  LCookie: TCookie;
+begin
+  LCookie := FResponse.Cookies.Add;
+  LCookie.Name := AName;
+  LCookie.Value := AValue;
+  { TODO : Cookie expiration policy }
+  LCookie.Expires := IncYear(Now);
 end;
 
 class procedure TKWebResponse.SetCurrent(const AValue: TKWebResponse);

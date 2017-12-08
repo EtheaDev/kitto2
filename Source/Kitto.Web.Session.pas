@@ -25,7 +25,8 @@ unit Kitto.Web.Session;
 interface
 
 uses
-  Classes
+  SysUtils
+  , Classes
   , Generics.Collections
   , gnugettext
   , EF.Intf
@@ -36,12 +37,13 @@ uses
   , Kitto.JS
   , Kitto.Config
   , Kitto.Metadata.Views
+  , Kitto.Web.Request
   ;
 
 type
   /// <summary>
   ///  Represents the server side of a user client session.
-  ///  Holds all objects pertaining to the user session.
+  ///  Holds all objects and data pertaining to the user session.
   /// </summary>
   TKWebSession = class(TEFSubjectAndObserver)
   private
@@ -65,7 +67,7 @@ type
     FDynamicScripts: TStringList;
     FDynamicStyles: TStringList;
     FDisplayName: string;
-    FLastRequestInfo: TJSRequestInfo;
+    FLastRequestInfo: TKWebRequestInfo;
     FCreationDateTime: TDateTime;
     FObjectSpace: TJSObjectSpace;
     class threadvar FCurrent: TKWebSession;
@@ -167,8 +169,13 @@ type
     procedure RemoveController(const AController: IJSController);
     property DisplayName: string read GetDisplayName write FDisplayName;
 
-    property LastRequestInfo: TJSRequestInfo read FLastRequestInfo;
+    property LastRequestInfo: TKWebRequestInfo read FLastRequestInfo;
     procedure SetDefaultLanguage(const AValue: string);
+
+    /// <summary>
+    ///  True if the session has not been used in the last ATimeout minutes.
+    /// </summary>
+    function IsStale(const ATimeout: Integer): Boolean;
 
     /// <summary>
     ///  Globally accessible reference to the current thread's active session.
@@ -199,12 +206,48 @@ type
     procedure AfterConstruction; override;
   end;
 
+  TKWebSessions = class(TObjectDictionary<string, TKWebSession>)
+  private type
+    TKWebSessionProc = TProc<TKWebSession>;
+  private
+    FTimeout: Integer;
+    FOnSessionEnd: TKWebSessionProc;
+    FOnSessionStart: TKWebSessionProc;
+    function CreateNewSessionId: string;
+  public
+    constructor Create(const ATimeout: Integer); reintroduce;
+
+    function CreateSession: TKWebSession;
+    function SessionExists(const ASessionId: string): Boolean;
+    procedure DeleteSession(const ASessionId: string);
+
+    procedure Cleanup;
+
+    /// <summary>
+    ///  Fired when a new session has started.
+    /// </summary>
+    /// <remarks>
+    ///  This event is handled by the Kitto Engine. Applications should use
+    ///  the equivalent engine event.
+    /// </remarks>
+    property OnSessionStart: TKWebSessionProc read FOnSessionStart write FOnSessionStart;
+    /// <summary>
+    ///  Fired just before a session ends, either prematurely or when cleaned up due to
+    ///  timeout.
+    /// </summary>
+    /// <remarks>
+    ///  This event is handled by the Kitto Engine. Applications should use
+    ///  the equivalent engine event.
+    /// </remarks>
+    property OnSessionEnd: TKWebSessionProc read FOnSessionEnd write FOnSessionEnd;
+  end;
+
 implementation
 
 uses
-  SysUtils
+  DateUtils
+  , EF.StrUtils
   , EF.Logger
-  , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Web.Application
   ;
@@ -214,6 +257,11 @@ uses
 function TKWebSession.GetViewportContent: string;
 begin
   Result := '';
+end;
+
+function TKWebSession.IsStale(const ATimeout: Integer): Boolean;
+begin
+  Result := not WithinPastMinutes(Now, FLastRequestInfo.DateTime, ATimeout);
 end;
 
 procedure TKWebSession.BeforeHandleRequest;
@@ -251,7 +299,6 @@ begin
   FreeAndNil(FGettextInstance);
   FreeAndNil(FDynamicScripts);
   FreeAndNil(FDynamicStyles);
-  FreeAndNil(FLastRequestInfo);
   FreeAndNil(FObjectSpace);
   inherited;
 end;
@@ -328,7 +375,7 @@ end;
 procedure TKWebSession.AfterConstruction;
 begin
   inherited;
-  FLastRequestInfo := TJSRequestInfo.Create;
+  FLastRequestInfo.ClearData;
   FCreationDateTime := Now;
 
   FDynamicScripts := TStringList.Create;
@@ -482,6 +529,57 @@ begin
   Result := LInstance.dgettext(KITTO_TEXT_DOMAIN, AString);
   if Result = AString then
     Result := LInstance.dgettext('default', AString);
+end;
+
+{ TKWebSessions }
+
+constructor TKWebSessions.Create(const ATimeout: Integer);
+begin
+  inherited Create([doOwnsValues]);
+  FTimeout := ATimeout;
+end;
+
+procedure TKWebSessions.Cleanup;
+var
+  LSession: TKWebSession;
+  LStaleSessionIds: TArray<string>;
+  LSessionId: string;
+begin
+  LStaleSessionIds := [];
+  for LSession in Values do
+    if LSession.IsStale(FTimeout) then
+      LStaleSessionIds := LStaleSessionIds + [LSession.SessionId];
+
+  for LSessionId in LStaleSessionIds do
+    DeleteSession(LSessionId);
+end;
+
+procedure TKWebSessions.DeleteSession(const ASessionId: string);
+begin
+  if Assigned(FOnSessionEnd) then
+    FOnSessionEnd(Items[ASessionId]);
+  Remove(ASessionId);
+end;
+
+function TKWebSessions.CreateSession: TKWebSession;
+var
+  LSessionId: string;
+begin
+  LSessionId := CreateNewSessionId;
+  Result := TKWebSession.Create(LSessionId);
+  Add(LSessionId, Result);
+  if Assigned(FOnSessionStart) then
+    FOnSessionStart(Result);
+end;
+
+function TKWebSessions.SessionExists(const ASessionId: string): Boolean;
+begin
+  Result := ContainsKey(ASessionId);
+end;
+
+function TKWebSessions.CreateNewSessionId: string;
+begin
+  Result := CreateCompactGuidStr;
 end;
 
 initialization

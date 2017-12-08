@@ -36,8 +36,6 @@ type
     class var
       FInstance: TEFLogger;
     procedure SetLogLevelFromConfig(const ALogLevelNode: TEFNode);
-  protected
-    procedure Synchronize(AProc: TProc);
   public
     class constructor Create;
     class destructor Destroy;
@@ -106,7 +104,7 @@ end;
 
 procedure TEFLogger.Log(const AString: string; const ALogLevel: Integer);
 begin
-  Synchronize(
+  TThread.Synchronize(nil,
     procedure
     begin
       if FLogLevel >= ALogLevel then
@@ -191,16 +189,6 @@ begin
   finally
     FConfig := nil;
     FMacroExpansionEngine := nil;
-  end;
-end;
-
-procedure TEFLogger.Synchronize(AProc: TProc);
-begin
-  MonitorEnter(Self);
-  try
-    AProc;
-  finally
-    MonitorExit(Self);
   end;
 end;
 
