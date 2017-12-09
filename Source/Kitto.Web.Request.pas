@@ -103,6 +103,10 @@ type
     function IsMobileBrowser: Boolean;
     function IsBrowserWindowsPhone: Boolean;
 
+    /// <summary>
+    ///  True if the specified URL is interpreted as a page refresh (which
+    ///  in Kitto means a new session).
+    /// </summary>
     function IsPageRefresh(const AURLDocument: string): Boolean;
 
     property AcceptLanguage: string read GetAcceptLanguage;

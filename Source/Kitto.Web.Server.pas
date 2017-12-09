@@ -105,7 +105,7 @@ begin
   // which will destroy it later.
   LResponse.FreeContentStream := False;
   AResponseInfo.FreeContentStream := True;
-  FEngine.SimpleHandleRequest(LRequest, LResponse, ARequestInfo.Document, True);
+  FEngine.SimpleHandleRequest(LRequest, LResponse, ARequestInfo.Document, True, True);
 end;
 
 procedure TKWebServer.DoCommandOther(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);

@@ -47,6 +47,8 @@ type
     class property Current: TKWebBrokerHandler read GetCurrent;
 
     property Engine: TKWebEngine read GetEngine;
+
+    function HandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse): Boolean;
   end;
 
 implementation
@@ -92,6 +94,12 @@ begin
     FEngine.Active := True;
   end;
   Result := FEngine;
+end;
+
+function TKWebBrokerHandler.HandleRequest(const ARequest: TWebRequest;
+  const AResponse: TWebResponse): Boolean;
+begin
+  Result := Engine.SimpleHandleRequest(ARequest, AResponse, ARequest.URL);
 end;
 
 end.

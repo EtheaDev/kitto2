@@ -120,8 +120,13 @@ Server:
   Port: 2601
   # default 20
   ThreadPoolSize: 15
-  # In minutes.
-  SessionTimeOut: 10
+
+Engine:
+  Session:
+    # Minutes after which an inactive session is cleaned up. Defaults to 10.
+    TimeOut: 1
+    # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
+    CleanupInterval: 30
 
 Log:
   Level: detailed

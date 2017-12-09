@@ -50,8 +50,10 @@ type
   private
     FServer: TKWebServer;
     FLogEndPoint: TKServiceLogEndpoint;
+    FServiceDescription: string;
     procedure DoLog(const AString: string);
     procedure SetDescription(const ADescription: string);
+    procedure Configure;
   public
     function GetServiceController: TServiceController; override;
   end;
@@ -65,6 +67,8 @@ implementation
 
 uses
   Winapi.WinSvc
+  , EF.Localization
+  , Kitto.Config
   , Kitto.Vcl.Start
   ;
 
@@ -102,16 +106,38 @@ end;
 
 procedure TKService.ServiceAfterInstall(Sender: TService);
 begin
-  SetDescription(TKStart.ServiceDescription);
+  SetDescription(FServiceDescription);
 end;
 
 procedure TKService.ServiceCreate(Sender: TObject);
 begin
+  DisplayName := TKConfig.AppName;
+
   FServer := TKWebServer.Create(nil);
   FServer.Engine.AddRoute(TKWebApplication.Create);
 
-  FLogEndPoint := TKServiceLogEndpoint.Create;
-  FLogEndPoint.OnLog := DoLog;
+  Configure;
+end;
+
+procedure TKService.Configure;
+var
+  LConfig: TKConfig;
+  LLogToEventViewer: Boolean;
+begin
+  LConfig := TKConfig.Create;
+  try
+    FServiceDescription := _(LConfig.AppTitle);
+    LLogToEventViewer := LConfig.Config.GetBoolean('Service/LogToEventViewer');
+  finally
+    FreeAndNil(LConfig);
+  end;
+
+  FreeAndNil(FLogEndPoint);
+  if LLogToEventViewer then
+  begin
+    FLogEndPoint := TKServiceLogEndpoint.Create;
+    FLogEndPoint.OnLog := DoLog;
+  end;
 end;
 
 procedure TKService.ServiceDestroy(Sender: TObject);
@@ -130,8 +156,9 @@ end;
 
 procedure TKService.ServiceStart(Sender: TService; var Started: Boolean);
 begin
+  Configure;
   TEFLogger.Instance.LogDetailed('Service start. Updating description...');
-  SetDescription(TKStart.ServiceDescription);
+  SetDescription(FServiceDescription);
   TEFLogger.Instance.LogDetailed('Service start. Turning on web server...');
   FServer.Active := True;
   TEFLogger.Instance.LogDetailed('Service start. Web server on.');

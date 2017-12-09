@@ -23,15 +23,10 @@ interface
 type
   TKStart = class
   private
-  class var
-    FServiceDisplayName: string;
-    FIsService: Boolean;
-    FServiceDescription: string;
-    class procedure Configure;
+    class var FIsService: Boolean;
   public
-    class property ServiceDisplayName: string read FServiceDisplayName write FServiceDisplayName;
-    class property ServiceDescription: string read FServiceDescription write FServiceDescription;
     class procedure Start;
+
     class property IsService: Boolean read FIsService;
   end;
 
@@ -41,10 +36,8 @@ uses
   SysUtils
   , Classes
   , EF.Logger
-  , EF.Localization
   , Kitto.Config
   {$IFDEF MSWINDOWS}
-  , ShlObj
   , Vcl.Forms
   , Vcl.SvcMgr
   , Vcl.Themes
@@ -56,25 +49,24 @@ uses
 
 { TKStart }
 
-class procedure TKStart.Configure;
-var
-  LConfig: TKConfig;
-begin
-  LConfig := TKConfig.Create;
-  try
-    TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
-    FServiceDisplayName := TKConfig.AppName;
-    FServiceDescription := _(LConfig.AppTitle);
-  finally
-    FreeAndNil(LConfig);
-  end;
-end;
-
 class procedure TKStart.Start;
+
+  procedure Configure;
+  var
+    LConfig: TKConfig;
+  begin
+    LConfig := TKConfig.Create;
+    try
+      TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
+    finally
+      FreeAndNil(LConfig);
+    end;
+  end;
+
 begin
-  FIsService := not FindCmdLineSwitch('a');
   Configure;
 
+  FIsService := not FindCmdLineSwitch('a');
   if FIsService then
   begin
     {$IFDEF MSWINDOWS}
@@ -82,7 +74,6 @@ begin
     if not Vcl.SvcMgr.Application.DelayInitialize or Vcl.SvcMgr.Application.Installing then
       Vcl.SvcMgr.Application.Initialize;
     Vcl.SvcMgr.Application.CreateForm(TKService, KService);
-    KService.DisplayName := FServiceDisplayName;
     Vcl.SvcMgr.Application.Run;
     {$ELSE}
     TEFLogger.Instance.Log('Services not yet supported on this platform.');

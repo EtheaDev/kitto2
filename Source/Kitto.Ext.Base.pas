@@ -1173,11 +1173,11 @@ begin
   { TODO : does this code produce any client-side effect? }
   if AButton is TKExtActionButton then
   begin
-    LResponseItemBranch := TKWebResponse.Current.BranchResponseItems;
+    LResponseItemBranch := TKWebResponse.Current.BranchItems;
     try
       TKExtActionButton(AButton).ExecuteButtonAction;
     finally
-      TKWebResponse.Current.UnbranchResponseItems(LResponseItemBranch, False); // throw away
+      TKWebResponse.Current.UnbranchItems(LResponseItemBranch, False); // throw away
     end;
   end;
 end;

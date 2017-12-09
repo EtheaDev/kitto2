@@ -223,9 +223,6 @@ type
     ///  to ensure that additional javascript or css files are included.
     /// </summary>
     procedure AddAdditionalRef(const APath: string);
-    procedure MethodCallError(const AMessage, AMethodName, AParams: string);
-    procedure MethodNotFoundError(const AMethodName: string);
-    procedure Error(const AMessage: string);
     function GetMethodURL(const AObjectName, AMethodName: string): string;
     /// <summary>
     ///  Returns the Home URL of the Kitto application assuming the URL is
@@ -319,7 +316,13 @@ begin
   else
     Result := TKWebSession.Current.ObjectSpace.FindChildByJSName(LJSName);
   if not Assigned(Result) then
-    raise Exception.CreateFmt('Handler object %s for method %s not found in session.', [LJSName, AURL.Document]);
+  begin
+    {$IFDEF DEBUG}
+    raise Exception.CreateFmt('Handler object %s for method %s not found in session. The session might have expired. Please refresh the page.', [LJSName, AURL.Document]);
+    {$ELSE}
+    raise Exception.Create('Your session has expired. Please refresh the page to start a new session.');
+    {$ENDIF}
+  end;
 end;
 
 procedure TKWebApplication.AfterConstruction;
@@ -707,7 +710,39 @@ var
 
   function IsHomeRequest: Boolean;
   begin
-    Result := not TKWebRequest.Current.IsAjax and ((AURL.Document = '') or (AURL.Document = 'home'));
+    Result := TKWebRequest.Current.IsPageRefresh(AURL.Document);
+  end;
+
+  procedure Error(const AMessage: string; const AIsFatal: Boolean);
+  begin
+    if AIsFatal then
+      SignalFatalError;
+    TKWebResponse.Current.Items.Clear;
+    if TKWebRequest.Current.IsAjax then
+      TKWebResponse.Current.Items.ExecuteJSCode(Format(
+        'showErrorMessage({title: "%s", msg: %s});'
+        , [_('Error'), TJS.StrToJS(AMessage, True)]))
+    else
+      TKWebResponse.Current.Items.AddHTML(TNetEncoding.HTML.Encode(AMessage).Replace(sLineBreak, '<br/>'));
+  end;
+
+  procedure MethodCallError(const AMessage, AMethodName, AParams: string);
+  var
+    LMessage: string;
+  begin
+    {$IFDEF DEBUG}
+      LMessage := AMessage +
+        sLineBreak + 'Method: ' + IfThen(AMethodName = '', 'Home', AMethodName)
+        + IfThen(AParams = '', '', sLineBreak + 'Params:' + sLineBreak + AnsiReplaceStr(AParams, '&', sLineBreak));
+    {$ELSE}
+      LMessage := AMessage;
+    {$ENDIF}
+    Error(LMessage, False);
+  end;
+
+  procedure MethodNotFoundError(const AMethodName: string);
+  begin
+    Error(Format('Method: ''%s'' not found', [AMethodName]), True);
   end;
 
 begin
@@ -741,12 +776,10 @@ begin
         end;
         if not Result then
           MethodNotFoundError(AURL.Path + '/' + AURL.Document);
-        AResponse.Render;
       except
         on E: Exception do
         begin
-          Error(E.Message);
-          AResponse.Render;
+          Error(E.Message, True);
           Result := True;
         end;
       end;
@@ -941,36 +974,6 @@ function TKWebApplication.GetViewportWidthInInches: TJSExpression;
 begin
   Result := TJSExpression.Create(TKWebSession.Current.ObjectSpace);
   Result.Text := 'getViewportWidthInInches()';
-end;
-
-procedure TKWebApplication.Error(const AMessage: string);
-begin
-  TKWebResponse.Current.Items.Clear;
-  if TKWebRequest.Current.IsAjax then
-    TKWebResponse.Current.Items.ExecuteJSCode(Format(
-      'showErrorMessage({title: "%s", msg: %s});'
-      , [_('Error'), TJS.StrToJS(AMessage, True)]))
-  else
-    TKWebResponse.Current.Items.AddHTML(TNetEncoding.HTML.Encode(AMessage).Replace(sLineBreak, '<br/>'));
-end;
-
-procedure TKWebApplication.MethodCallError(const AMessage, AMethodName, AParams: string);
-var
-  LMessage: string;
-begin
-  {$IFDEF DEBUG}
-    LMessage := AMessage +
-      sLineBreak + 'Method: ' + IfThen(AMethodName = '', 'Home', AMethodName)
-      + IfThen(AParams = '', '', sLineBreak + 'Params:' + sLineBreak + AnsiReplaceStr(AParams, '&', sLineBreak));
-  {$ELSE}
-    LMessage := AMessage;
-  {$ENDIF}
-  Error(LMessage);
-end;
-
-procedure TKWebApplication.MethodNotFoundError(const AMethodName: string);
-begin
-  Error(Format('Method: ''%s'' not found', [AMethodName]));
 end;
 
 function TKWebApplication.GetLibraryTags: string;

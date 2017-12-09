@@ -20,6 +20,7 @@ interface
 
 uses
   SysUtils
+  , DateUtils
   , Classes
   , HTTPApp
   , Generics.Collections
@@ -40,17 +41,17 @@ type
   TKWebSessionCleanupThread = class(TThread)
   private
     FSessions: TKWebSessions;
-    FInterval: Integer;
+    FInterval: Double;
     procedure WaitInterval;
   protected
     procedure Execute; override;
   public
-    const DEFAULT_INTERVAL = 30;
+    const DEFAULT_INTERVAL = 30 * OneSecond;
     /// <summary>
-    ///  Pass the session list to clean up and an interval in seconds between
+    ///  Pass the session list to clean up and an interval between
     ///  each cleanup pass.
     /// </summary>
-    constructor Create(const ASessions: TKWebSessions; const AInterval: Integer);
+    constructor Create(const ASessions: TKWebSessions; const AInterval: Double);
   end;
 
   /// <summary>
@@ -68,12 +69,12 @@ type
     FSessionIDCookieName: string;
     FSessionCleanupThread: TKWebSessionCleanupThread;
     FActive: Boolean;
-    FSessionCleanupInterval: Integer;
+    FSessionCleanupInterval: Double;
     FOnSessionStart: TKWebEngineSessionProc;
     FOnSessionEnd: TKWebEngineSessionProc;
     procedure EnsureSession(const AURL: TKWebURL);
     function GetSessionIdFromRequest: string;
-    procedure SetSessionIdIntoResponse(const ASessionId: string);
+    procedure SetSessionIdIntoResponse(const ASession: TKWebSession; const ARemove: Boolean);
     procedure SetActive(const Value: Boolean);
     procedure DoSessionStart(ASession: TKWebSession);
     procedure DoSessionEnd(ASession: TKWebSession);
@@ -81,7 +82,7 @@ type
     procedure BeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
       const AURL: TKWebURL; var AIsAllowed: Boolean); override;
     procedure AfterHandleRequest(const ARequest: TKWebRequest;
-      const AResponse: TKWebResponse; const AURL: TKWebURL); override;
+      const AResponse: TKWebResponse; const AURL: TKWebURL; const AIsFatalError: Boolean); override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -117,8 +118,8 @@ type
     ///  True if ARequest and AResponse should be destroyed before returning.
     /// </param>
     /// </summary>
-    procedure SimpleHandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse;
-      const ADocument: string; const AOwnsObjects: Boolean);
+    function SimpleHandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse;
+      const AURLDocument: string; const AOwnsObjects: Boolean = False; const AHandleAllRequests: Boolean = False): Boolean;
   end;
 
 implementation
@@ -141,7 +142,7 @@ uses
 procedure TKWebEngine.AfterConstruction;
 var
   LConfig: TKConfig;
-  LSessionTimeOut: Integer;
+  LSessionTimeOut: Double;
 begin
   inherited;
   // Standard config objects are per application; we need to create our own
@@ -151,8 +152,8 @@ begin
     { TODO :  No multiple applications until we can have multiple cookie names. }
     FSessionIDCookieName := LConfig.AppName;
     FCharset := LConfig.Config.GetString('Charset', 'utf-8');
-    LSessionTimeOut := LConfig.Config.GetInteger('Session/TimeOut', 10) * MSecsPerSec * SecsPerMin; // in minutes
-    FSessionCleanupInterval := LConfig.Config.GetInteger('Session/CleanupInterval', TKWebSessionCleanupThread.DEFAULT_INTERVAL) * MSecsPerSec; // in seconds
+    LSessionTimeOut := LConfig.Config.GetInteger('Engine/Session/TimeOut', 10) * OneMinute;
+    FSessionCleanupInterval := LConfig.Config.GetInteger('Engine/Session/CleanupInterval') * OneSecond;
     FSessions := TKWebSessions.Create(LSessionTimeOut);
     FSessions.OnSessionStart := DoSessionStart;
     FSessions.OnSessionEnd := DoSessionEnd;
@@ -188,28 +189,34 @@ begin
         FSessionCleanupThread.WaitFor;
         FreeAndNil(FSessionCleanupThread);
       end;
-      FSessions.Clear;
+      FSessions.ClearSessions;
     end;
   end;
 end;
 
-procedure TKWebEngine.SetSessionIdIntoResponse(const ASessionId: string);
+procedure TKWebEngine.SetSessionIdIntoResponse(const ASession: TKWebSession; const ARemove: Boolean);
 begin
-  TKWebResponse.Current.SetCookie(FSessionIDCookieName, ASessionId);
+  Assert(Assigned(ASession));
+
+  if ARemove then
+    TKWebResponse.Current.SetCookie(FSessionIDCookieName, ASession.SessionId, Now - 7)
+  else
+    TKWebResponse.Current.SetCookie(FSessionIDCookieName, ASession.SessionId, Now + ASession.Timeout);
 end;
 
-procedure TKWebEngine.SimpleHandleRequest(const ARequest: TWebRequest;
-  const AResponse: TWebResponse; const ADocument: string; const AOwnsObjects: Boolean);
+function TKWebEngine.SimpleHandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse;
+  const AURLDocument: string; const AOwnsObjects: Boolean = False; const AHandleAllRequests: Boolean = False): Boolean;
 var
   LURL: TKWebURL;
 begin
-  LURL := TKWebURL.Create(ADocument);
+  LURL := TKWebURL.Create(AURLDocument);
   try
     TKWebRequest.Current := TKWebRequest.Create(ARequest, AOwnsObjects);
     try
       TKWebResponse.Current := TKWebResponse.Create(AResponse, AOwnsObjects);
       try
-        if not HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL) then
+        Result := HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL);
+        if not Result and AHandleAllRequests then
         begin
           { TODO : Fetch the appname and other data from config to display meaningful error }
           AResponse.ContentType := 'text/html';
@@ -232,37 +239,36 @@ end;
 
 procedure TKWebEngine.EnsureSession(const AURL: TKWebURL);
 var
-  LRequestSessionId: string;
+  LSessionId: string;
   LSession: TKWebSession;
+  LClientAddress: string;
 begin
-  LRequestSessionId := GetSessionIdFromRequest;
+  LSessionId := GetSessionIdFromRequest;
+  LClientAddress := TKWebRequest.Current.RemoteAddr;
 
-  MonitorEnter(FSessions);
-  try
-    // We must create a new session on page refresh, as everything on the client side is gone.
-    if TKWebRequest.Current.IsPageRefresh(AURL.Document) then
-    begin
-      if (LRequestSessionId <> '') and FSessions.SessionExists(LRequestSessionId) then
-        FSessions.DeleteSession(LRequestSessionId);
-      LSession := FSessions.CreateSession;
-    end
-    else if (LRequestSessionId <> '') and FSessions.SessionExists(LRequestSessionId) then
-      // Session is active, use it.
-      LSession := FSessions[LRequestSessionId]
-    else
-      // First request, start new session.
-      LSession := FSessions.CreateSession;
-  finally
-    MonitorExit(FSessions);
+  Assert(LClientAddress <> '');
+
+  LSession := FSessions.FindSession(LSessionId, LClientAddress);
+  if not Assigned(LSession) then
+    LSession := FSessions.NewSession(LClientAddress, LSessionId)
+  else if TKWebRequest.Current.IsPageRefresh(AURL.Document) then
+  begin
+    // Page refresh case - need to create a new session with the same
+    // id (if available), so that other requests coming from the same client
+    // before this one is served are linked to the correct session.
+    FSessions.RemoveSession(LSession);
+    LSession := FSessions.NewSession(LClientAddress, LSessionId);
   end;
+
   TKWebSession.Current := LSession;
-  LSession.SetDefaultLanguage(TKWebRequest.Current.AcceptLanguage);
-  LSession.LastRequestInfo.SetData(TKWebRequest.Current);
-  SetSessionIdIntoResponse(LSession.SessionId);
 end;
 
 procedure TKWebEngine.DoSessionEnd(ASession: TKWebSession);
 begin
+  // Clear the current session *in this thread*, as it's a threadvar...
+  if ASession = TKWebSession.Current then
+    TKWebSession.Current := nil;
+  // ...then queue the rest in the main thread.
   TThread.Queue(nil,
     procedure
     begin
@@ -292,6 +298,9 @@ begin
     Exit;
   end;
   EnsureSession(AURL);
+  TKWebSession.Current.SetDefaultLanguage(TKWebRequest.Current.AcceptLanguage);
+  TKWebSession.Current.LastRequestInfo.SetData(TKWebRequest.Current);
+
   TKWebResponse.Current.Items.Charset := FCharset;
   {$IFDEF MSWINDOWS}
   if EF.DB.IsCOMNeeded then
@@ -301,7 +310,7 @@ begin
 end;
 
 procedure TKWebEngine.AfterHandleRequest(const ARequest: TKWebRequest;
-  const AResponse: TKWebResponse; const AURL: TKWebURL);
+  const AResponse: TKWebResponse; const AURL: TKWebURL; const AIsFatalError: Boolean);
 begin
   inherited;
   if not FActive then
@@ -310,25 +319,32 @@ begin
   if EF.DB.IsCOMNeeded then
     CoUninitialize;
   {$ENDIF}
+  // Send back the session id to the client and update the expiration time.
+  // remove the cookie in case of a fatal error.
+  SetSessionIdIntoResponse(TKWebSession.Current, AIsFatalError);
+  // Make sure cookies and custom headers are passed through.
+  TKWebResponse.Current.Send;
+  // It's only after rendering the response that we can kill the session in case
+  // of fatal error.
+  if AIsFatalError then
+    FSessions.RemoveSession(TKWebSession.Current);
 end;
 
 function TKWebEngine.GetSessions: TArray<TKWebSession>;
 begin
-  MonitorEnter(FSessions);
-  try
-    Result := FSessions.Values.ToArray;
-  finally
-    MonitorExit(FSessions);
-  end;
+  Result := FSessions.GetSessions;
 end;
 
 { TKWebSessionCleanupThread }
 
-constructor TKWebSessionCleanupThread.Create(const ASessions: TKWebSessions; const AInterval: Integer);
+constructor TKWebSessionCleanupThread.Create(const ASessions: TKWebSessions; const AInterval: Double);
 begin
   inherited Create;
   FSessions := ASessions;
-  FInterval := AInterval;
+  if AInterval <> 0 then
+    FInterval := AInterval
+  else
+    FInterval := DEFAULT_INTERVAL;
 end;
 
 procedure TKWebSessionCleanupThread.Execute;
@@ -339,7 +355,7 @@ begin
     begin
       MonitorEnter(FSessions);
       try
-        //FSessions.Cleanup;
+        FSessions.CleanupExpiredSessions;
       finally
         MonitorExit(FSessions);
       end;
@@ -352,13 +368,13 @@ procedure TKWebSessionCleanupThread.WaitInterval;
 const
   STEP = 100;
 var
-  I: Integer;
+  LMilliseconds: Int64;
 begin
-  I := FInterval;
-  while (I > 0) and not Terminated do
+  LMilliseconds := MilliSecondsBetween(Now, Now + FInterval);
+  while (LMilliseconds > 0) and not Terminated do
   begin
     Sleep(STEP);
-    Dec(I, STEP);
+    Dec(LMilliseconds, STEP);
   end;
 end;
 

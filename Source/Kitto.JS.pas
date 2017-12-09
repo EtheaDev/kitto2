@@ -476,7 +476,7 @@ end;
 
 destructor TJSObject.Destroy;
 begin
-  if (TKWebResponse.Current <> nil) and TKWebResponse.Current.HasResponseItems then
+  if (TKWebResponse.Current <> nil) and TKWebResponse.Current.HasItems then
     TKWebResponse.Current.Items.ForEach(
       procedure (AItem: TJSResponseItem)
       begin

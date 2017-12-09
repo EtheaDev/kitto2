@@ -55,8 +55,7 @@ uses
 procedure TKWebModule.WebModule1DefaultHandlerAction(Sender: TObject;
   Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
 begin
-  TKWebBrokerHandler.Current.Engine.SimpleHandleRequest(Request, Response, Request.URL, False);
-  Handled := True;
+  Handled := TKWebBrokerHandler.Current.HandleRequest(Request, Response);
 end;
 
 end.

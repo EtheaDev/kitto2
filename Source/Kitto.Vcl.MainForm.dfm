@@ -429,14 +429,9 @@ object KMainForm: TKMainForm
     ActivePage = HomeTabSheet
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 680
     object HomeTabSheet: TTabSheet
       Caption = 'Home'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 672
-      ExplicitHeight = 0
       object LogMemo: TMemo
         Left = 0
         Top = 81
@@ -452,7 +447,6 @@ object KMainForm: TKMainForm
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitWidth = 672
       end
       object ControlPanel: TPanel
         Left = 0
@@ -462,7 +456,6 @@ object KMainForm: TKMainForm
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitWidth = 672
         DesignSize = (
           801
           81)
@@ -594,7 +587,6 @@ object KMainForm: TKMainForm
           'Sessions')
         TabIndex = 0
         OnChange = MainTabSetChange
-        ExplicitWidth = 664
       end
       object SessionPanel: TPanel
         Left = 0
@@ -607,7 +599,6 @@ object KMainForm: TKMainForm
         Padding.Right = 4
         Padding.Bottom = 2
         TabOrder = 3
-        ExplicitWidth = 672
         object SessionToolPanel: TPanel
           Left = 4
           Top = 0
@@ -616,7 +607,6 @@ object KMainForm: TKMainForm
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitWidth = 664
         end
         object RefreshButton: TButton
           Left = 4
@@ -695,7 +685,7 @@ object KMainForm: TKMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00140110001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00180110001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000

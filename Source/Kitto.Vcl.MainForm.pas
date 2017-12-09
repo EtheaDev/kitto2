@@ -26,7 +26,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.ToolWin, Generics.Collections,
   Vcl.ActnList, Kitto.Config, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ImgList, EF.Logger,
   Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Types, Kitto.Web.Server,
-  Kitto.Web.Application, Kitto.Web.Session;
+  Kitto.Web.Application, Kitto.Web.Session, Kitto.Web.Engine;
 
 type
   TKMainFormLogEndpoint = class(TEFLogEndpoint)
@@ -89,8 +89,8 @@ type
     FLogEndPoint: TKMainFormLogEndpoint;
     procedure ShowTabGUI(const AIndex: Integer);
     procedure UpdateSessionInfo;
-    procedure ServerSessionEnd(Sender: TIdHTTPSession);
-    procedure ServerSessionStart(Sender: TIdHTTPSession);
+    procedure SessionListUpdateHandler(AEngine: TKWebEngine;
+      ASession: TKWebSession);
     const
       TAB_LOG = 0;
       TAB_SESSIONS = 1;
@@ -236,6 +236,11 @@ end;
 
 procedure TKMainForm.UpdateSessionInfo;
 
+  procedure UpdateCount(const ACount: Integer);
+  begin
+    SessionCountLabel.Caption := Format('Active Sessions: %d', [ACount]);
+  end;
+
   procedure AddItem(const ACaption: string; const ASession: TKWebSession = nil);
   var
     LItem: TListItem;
@@ -272,7 +277,7 @@ begin
   begin
     LSessions := FServer.Engine.GetSessions;
 
-    SessionCountLabel.Caption := Format('Active Sessions: %d', [Length(LSessions)]);
+    UpdateCount(Length(LSessions));
 
     if Length(LSessions) = 0 then
       AddItem(_('None'))
@@ -283,7 +288,10 @@ begin
     end;
   end
   else
+  begin
     AddItem(_('Inactive'));
+    UpdateCount(0);
+  end;
 end;
 
 function TKMainForm.HasConfigFileName: Boolean;
@@ -306,24 +314,9 @@ begin
   StopAction.Execute;
 end;
 
-procedure TKMainForm.ServerSessionStart(Sender: TIdHTTPSession);
+procedure TKMainForm.SessionListUpdateHandler(AEngine: TKWebEngine; ASession: TKWebSession);
 begin
-  TThread.Synchronize(nil,
-    procedure
-    begin
-      UpdateSessionInfo;
-    end
-  );
-end;
-
-procedure TKMainForm.ServerSessionEnd(Sender: TIdHTTPSession);
-begin
-  TThread.Synchronize(nil,
-    procedure
-    begin
-      UpdateSessionInfo;
-    end
-  );
+  UpdateSessionInfo;
 end;
 
 procedure TKMainForm.FormCreate(Sender: TObject);
@@ -333,8 +326,8 @@ begin
 {$IFEND}
 
   FServer := TKWebServer.Create(nil);
-  FServer.OnSessionStart := ServerSessionStart;
-  FServer.OnSessionEnd := ServerSessionEnd;
+  FServer.Engine.OnSessionStart := SessionListUpdateHandler;
+  FServer.Engine.OnSessionEnd := SessionListUpdateHandler;
   FApplication := FServer.Engine.AddRoute(TKWebApplication.Create) as TKWebApplication;
 
   FLogEndPoint := TKMainFormLogEndpoint.Create;

@@ -41,6 +41,8 @@ uses
   ;
 
 type
+  TKWebSessions = class;
+
   /// <summary>
   ///  Represents the server side of a user client session.
   ///  Holds all objects and data pertaining to the user session.
@@ -70,6 +72,7 @@ type
     FLastRequestInfo: TKWebRequestInfo;
     FCreationDateTime: TDateTime;
     FObjectSpace: TJSObjectSpace;
+    FTimeout: Double;
     class threadvar FCurrent: TKWebSession;
     function GetDisplayName: string;
     procedure SetLanguage(const AValue: string);
@@ -98,11 +101,16 @@ type
 
     function GetDefaultViewportWidth: Integer;
   public
-    constructor Create(const ASessionId: string); reintroduce;
+    constructor Create(const AClientAddress, ASessionId: string; const ATimeout: Double);
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
     property CreationDateTime: TDateTime read FCreationDateTime;
+    /// <summary>
+    ///  The current session's UUID.
+    /// </summary>
+    property SessionId: string read FSessionId;
+    property Timeout: Double read FTimeout;
     property Language: string read FLanguage write SetLanguage;
 
     property ObjectSpace: TJSObjectSpace read GetObjectSpace;
@@ -129,10 +137,6 @@ type
     /// </summary>
     property StatusHost: IJSStatusHost read FStatusHost write FStatusHost;
     property ControllerHostWindow: IJSContainer read FControllerHostWindow write FControllerHostWindow;
-    /// <summary>
-    ///  The current session's UUID.
-    /// </summary>
-    property SessionId: string read FSessionId;
     property OpenControllers: TList<IJSController> read FOpenControllers;
     property HomeController: IJSController read FHomeController write FHomeController;
     property LoginController: IJSController read FLoginController write FLoginController;
@@ -173,9 +177,10 @@ type
     procedure SetDefaultLanguage(const AValue: string);
 
     /// <summary>
-    ///  True if the session has not been used in the last ATimeout minutes.
+    ///  True if the session has expired, based on the value of Timeout and
+    ///  the current time.
     /// </summary>
-    function IsStale(const ATimeout: Integer): Boolean;
+    function HasExpired: Boolean;
 
     /// <summary>
     ///  Globally accessible reference to the current thread's active session.
@@ -206,22 +211,67 @@ type
     procedure AfterConstruction; override;
   end;
 
-  TKWebSessions = class(TObjectDictionary<string, TKWebSession>)
+  TKWebSessions = class
   private type
     TKWebSessionProc = TProc<TKWebSession>;
   private
-    FTimeout: Integer;
+    FSessions: TObjectList<TKWebSession>;
+    FTimeout: Double;
     FOnSessionEnd: TKWebSessionProc;
     FOnSessionStart: TKWebSessionProc;
     function CreateNewSessionId: string;
+    function FindSessionById(const ASessionId: string): TKWebSession;
+    function FindSessionByClientAddress(const AClientAddress: string): TKWebSession;
+  protected
+    procedure SessionAdded(const ASession: TKWebSession);
+    procedure SessionRemoved(const ASession: TKWebSession);
   public
-    constructor Create(const ATimeout: Integer); reintroduce;
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+  public
+    constructor Create(const ATimeout: Double);
 
-    function CreateSession: TKWebSession;
-    function SessionExists(const ASessionId: string): Boolean;
-    procedure DeleteSession(const ASessionId: string);
+    /// <summary>
+    ///  Creates a new sessions and adds it to the list.
+    /// </summary>
+    /// <param AClientAddress>
+    ///  The IP address of the client to bind to the session. Required.
+    /// </param>
+    /// <param ASessionId>
+    ///  The new session will have the specified id, if specified. Otherwise
+    ///  a new id is generated.
+    /// </param>
+    function NewSession(const AClientAddress: string; const ASessionId: string = ''): TKWebSession;
 
-    procedure Cleanup;
+    /// <summary>
+    ///  If ASessionId is provided, looks for a session with that id returns it, otherwise returns nil.
+    ///  If ASessionId is not provided, looks for a session with the specified client address and
+    ///  returns it, otherwise returns nil. In this case, if no client address is specified, returns nil.
+    /// </summary>
+    /// <param ASessionId>
+    ///  The session id to look for (can be empty).
+    /// </param>
+    /// <param AClientAddress>
+    ///  The client address to look for if no session id is specified.
+    /// </param>
+    function FindSession(const ASessionId, AClientAddress: string): TKWebSession;
+
+    /// <summary>
+    ///  Returns all sessions as an array for reporting and diagnostic purposes.
+    /// </summary>
+    /// <remarks>
+    ///  The list can change at any time after this method returns.
+    /// </remarks>
+    function GetSessions: TArray<TKWebSession>;
+
+    /// <summary>
+    ///  Deletes and frees the specified session.
+    /// </summary>
+    procedure RemoveSession(const ASession: TKWebSession);
+
+    procedure ClearSessions;
+
+    procedure CleanupExpiredSessions;
 
     /// <summary>
     ///  Fired when a new session has started.
@@ -242,6 +292,10 @@ type
     property OnSessionEnd: TKWebSessionProc read FOnSessionEnd write FOnSessionEnd;
   end;
 
+
+//  ripristina gli event handler start/stop usando l'owner e prova scadenza naturale sessioni e cleanup
+
+
 implementation
 
 uses
@@ -259,9 +313,9 @@ begin
   Result := '';
 end;
 
-function TKWebSession.IsStale(const ATimeout: Integer): Boolean;
+function TKWebSession.HasExpired: Boolean;
 begin
-  Result := not WithinPastMinutes(Now, FLastRequestInfo.DateTime, ATimeout);
+  Result := Now > FLastRequestInfo.DateTime + FTimeout;
 end;
 
 procedure TKWebSession.BeforeHandleRequest;
@@ -278,12 +332,16 @@ begin
   end;
 end;
 
-constructor TKWebSession.Create(const ASessionId: string);
+constructor TKWebSession.Create(const AClientAddress, ASessionId: string; const ATimeout: Double);
 begin
   Assert(ASessionId <> '');
+  Assert(AClientAddress <> '');
 
   inherited Create;
   FSessionId := ASessionId;
+  FLastRequestInfo.ClearData;
+  FLastRequestInfo.ClientAddress := AClientAddress;
+  FTimeout := ATimeout;
 end;
 
 destructor TKWebSession.Destroy;
@@ -375,7 +433,6 @@ end;
 procedure TKWebSession.AfterConstruction;
 begin
   inherited;
-  FLastRequestInfo.ClearData;
   FCreationDateTime := Now;
 
   FDynamicScripts := TStringList.Create;
@@ -533,48 +590,146 @@ end;
 
 { TKWebSessions }
 
-constructor TKWebSessions.Create(const ATimeout: Integer);
+constructor TKWebSessions.Create(const ATimeout: Double);
 begin
-  inherited Create([doOwnsValues]);
+  inherited Create;
   FTimeout := ATimeout;
 end;
 
-procedure TKWebSessions.Cleanup;
-var
-  LSession: TKWebSession;
-  LStaleSessionIds: TArray<string>;
-  LSessionId: string;
+procedure TKWebSessions.AfterConstruction;
 begin
-  LStaleSessionIds := [];
-  for LSession in Values do
-    if LSession.IsStale(FTimeout) then
-      LStaleSessionIds := LStaleSessionIds + [LSession.SessionId];
-
-  for LSessionId in LStaleSessionIds do
-    DeleteSession(LSessionId);
+  inherited;
+  FSessions := TObjectList<TKWebSession>.Create;
 end;
 
-procedure TKWebSessions.DeleteSession(const ASessionId: string);
+procedure TKWebSessions.CleanupExpiredSessions;
+var
+  I: Integer;
+  LSession: TKWebSession;
+begin
+  MonitorEnter(FSessions);
+  try
+    for I := FSessions.Count - 1 downto 0 do
+    begin
+      LSession := FSessions[I];
+      if LSession.HasExpired then
+      begin
+        FSessions.Extract(LSession);
+        try
+          SessionRemoved(LSession);
+        finally
+          FreeAndNil(LSession);
+        end;
+      end;
+    end;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+procedure TKWebSessions.ClearSessions;
+begin
+  MonitorEnter(FSessions);
+  try
+    while FSessions.Count > 0 do
+      RemoveSession(FSessions[0]);
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+procedure TKWebSessions.RemoveSession(const ASession: TKWebSession);
+begin
+  MonitorEnter(FSessions);
+  try
+    FSessions.Extract(ASession);
+    try
+      SessionRemoved(ASession);
+    finally
+      ASession.Free;
+    end;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+procedure TKWebSessions.SessionAdded(const ASession: TKWebSession);
+begin
+  if Assigned(FOnSessionStart) then
+    FOnSessionStart(ASession);
+end;
+
+procedure TKWebSessions.SessionRemoved(const ASession: TKWebSession);
 begin
   if Assigned(FOnSessionEnd) then
-    FOnSessionEnd(Items[ASessionId]);
-  Remove(ASessionId);
+    FOnSessionEnd(ASession);
 end;
 
-function TKWebSessions.CreateSession: TKWebSession;
+destructor TKWebSessions.Destroy;
+begin
+  FreeAndNil(FSessions);
+  inherited;
+end;
+
+function TKWebSessions.GetSessions: TArray<TKWebSession>;
+begin
+  MonitorEnter(FSessions);
+  try
+    Result := FSessions.ToArray;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+function TKWebSessions.NewSession(const AClientAddress: string; const ASessionId: string = ''): TKWebSession;
 var
   LSessionId: string;
 begin
-  LSessionId := CreateNewSessionId;
-  Result := TKWebSession.Create(LSessionId);
-  Add(LSessionId, Result);
-  if Assigned(FOnSessionStart) then
-    FOnSessionStart(Result);
+  Assert(AClientAddress <> '');
+
+  if ASessionId <> '' then
+    LSessionId := ASessionId
+  else
+    LSessionId := CreateNewSessionId;
+
+  Result := TKWebSession.Create(AClientAddress, LSessionId, FTimeout);
+  FSessions.Add(Result);
+  SessionAdded(Result);
 end;
 
-function TKWebSessions.SessionExists(const ASessionId: string): Boolean;
+function TKWebSessions.FindSession(const ASessionId, AClientAddress: string): TKWebSession;
 begin
-  Result := ContainsKey(ASessionId);
+  MonitorEnter(FSessions);
+  try
+    if ASessionId <> '' then
+      Result := FindSessionById(ASessionId)
+    else if AClientAddress <> '' then
+      Result := FindSessionByClientAddress(AClientAddress)
+    else
+      Result := nil;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+function TKWebSessions.FindSessionById(const ASessionId: string): TKWebSession;
+var
+  I: Integer;
+begin
+  for I := 0 to FSessions.Count - 1 do
+    if FSessions[I].SessionId = ASessionId then
+      Exit(FSessions[I]);
+  Result := nil;
+end;
+
+function TKWebSessions.FindSessionByClientAddress(const AClientAddress: string): TKWebSession;
+var
+  I: Integer;
+begin
+  for I := 0 to FSessions.Count - 1 do
+    if FSessions[I].LastRequestInfo.ClientAddress = AClientAddress then
+      Exit(FSessions[I]);
+  Result := nil;
 end;
 
 function TKWebSessions.CreateNewSessionId: string;

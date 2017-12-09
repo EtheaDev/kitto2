@@ -30,8 +30,10 @@ type
   TKWebRoute = class;
 
   IKWebHandleRequestEventListener = interface
-    procedure BeforeHandleRequest(const ASender: TKWebRoute; const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL; var AIsAllowed: Boolean);
-    procedure AfterHandleRequest(const ASender: TKWebRoute; const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL);
+    procedure BeforeHandleRequest(const ASender: TKWebRoute; const ARequest: TKWebRequest;
+      const AResponse: TKWebResponse; const AURL: TKWebURL; var AIsAllowed: Boolean);
+    procedure AfterHandleRequest(const ASender: TKWebRoute; const ARequest: TKWebRequest;
+      const AResponse: TKWebResponse; const AURL: TKWebURL; const AIsFatalError: Boolean);
   end;
 
   TKWebRouteList = class;
@@ -42,10 +44,18 @@ type
   TKWebRoute = class(TEFSubjectAndObserver)
   private
     FSubscribers: TList<IKWebHandleRequestEventListener>;
-  protected
-    procedure BeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL; var AIsAllowed: Boolean); virtual;
-    procedure AfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL); virtual;
+    FIsFatalError: Boolean;
+  strict protected
+    procedure BeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
+      const AURL: TKWebURL; var AIsAllowed: Boolean); virtual;
+    procedure AfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
+      const AURL: TKWebURL; const AIsFatalError: Boolean); virtual;
+    procedure SignalFatalError;
     function DoHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL): Boolean; virtual; abstract;
+  protected
+    // This is meant to be accessed by TKWebRouteList that needs to determine if
+    // any of its contained routes fired an error.
+    property IsError: Boolean read FIsFatalError;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -203,12 +213,12 @@ begin
 end;
 
 procedure TKWebRoute.AfterHandleRequest(const ARequest: TKWebRequest;
-  const AResponse: TKWebResponse; const AURL: TKWebURL);
+  const AResponse: TKWebResponse; const AURL: TKWebURL; const AIsFatalError: Boolean);
 var
   LSubscriber: IKWebHandleRequestEventListener;
 begin
   for LSubscriber in FSubscribers do
-    LSubscriber.AfterHandleRequest(Self, ARequest, AResponse, AURL);
+    LSubscriber.AfterHandleRequest(Self, ARequest, AResponse, AURL, AIsFatalError);
 end;
 
 procedure TKWebRoute.BeforeHandleRequest(const ARequest: TKWebRequest;
@@ -233,18 +243,29 @@ var
 begin
   Result := False;
   LIsAllowed := True;
+  FIsFatalError := False;
   BeforeHandleRequest(ARequest, AResponse, AURL, LIsAllowed);
   try
-    if LIsAllowed then
-      Result := DoHandleRequest(ARequest, AResponse, AURL);
+    try
+      if LIsAllowed then
+        Result := DoHandleRequest(ARequest, AResponse, AURL);
+    except
+      SignalFatalError;
+      raise;
+    end;
   finally
-    AfterHandleRequest(ARequest, AResponse, AURL);
+    AfterHandleRequest(ARequest, AResponse, AURL, FIsFatalError);
   end;
 end;
 
 procedure TKWebRoute.RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
 begin
   FSubscribers.Remove(ASubscriber);
+end;
+
+procedure TKWebRoute.SignalFatalError;
+begin
+  FIsFatalError := True;
 end;
 
 { TKMultipleStaticWebRoute }
@@ -306,6 +327,9 @@ begin
   for LRoute in FRoutes do
   begin
     Result := LRoute.HandleRequest(ARequest, AResponse, AURL);
+    // Bubble up errors in the contained routes.
+    if LRoute.IsError then
+      SignalFatalError;
     if Result then
       Break;
   end;
