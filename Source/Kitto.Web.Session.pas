@@ -26,6 +26,7 @@ interface
 
 uses
   SysUtils
+  , DateUtils
   , Classes
   , Generics.Collections
   , gnugettext
@@ -41,8 +42,6 @@ uses
   ;
 
 type
-  TKWebSessions = class;
-
   /// <summary>
   ///  Represents the server side of a user client session.
   ///  Holds all objects and data pertaining to the user session.
@@ -97,7 +96,6 @@ type
   public
     procedure SetLanguageFromQueriesOrConfig(const AConfig: TKConfig);
     property RefreshingLanguage: Boolean read FRefreshingLanguage write FRefreshingLanguage;
-    procedure BeforeHandleRequest;
 
     function GetDefaultViewportWidth: Integer;
   public
@@ -196,7 +194,7 @@ type
   ///  former is located under the application home directory, the latter
   ///  under the system home directory.
   /// </summary>
-  TKSessionLocalizationTool = class(TEFNoRefCountObject, IInterface, IEFInterface, IEFLocalizationTool)
+  TKWebSessionLocalizationTool = class(TEFNoRefCountObject, IInterface, IEFInterface, IEFLocalizationTool)
   private const
     KITTO_TEXT_DOMAIN = 'Kitto';
   private
@@ -292,15 +290,31 @@ type
     property OnSessionEnd: TKWebSessionProc read FOnSessionEnd write FOnSessionEnd;
   end;
 
-
-//  ripristina gli event handler start/stop usando l'owner e prova scadenza naturale sessioni e cleanup
-
+  /// <summary>
+  ///  Periodically cleans up the list of active sessions by disposing of
+  ///  the stale ones. A stale session is a session that has been inactive
+  ///  for a longer time than the specified timeout.
+  /// </summary>
+  TKWebSessionCleanupThread = class(TThread)
+  private
+    FSessions: TKWebSessions;
+    FInterval: Double;
+    procedure WaitInterval;
+  protected
+    procedure Execute; override;
+  public
+    const DEFAULT_INTERVAL = 30 * OneSecond;
+    /// <summary>
+    ///  Pass the session list to clean up and an interval between
+    ///  each cleanup pass.
+    /// </summary>
+    constructor Create(const ASessions: TKWebSessions; const AInterval: Double);
+  end;
 
 implementation
 
 uses
-  DateUtils
-  , EF.StrUtils
+  EF.StrUtils
   , EF.Logger
   , Kitto.Web.Response
   , Kitto.Web.Application
@@ -316,20 +330,6 @@ end;
 function TKWebSession.HasExpired: Boolean;
 begin
   Result := Now > FLastRequestInfo.DateTime + FTimeout;
-end;
-
-procedure TKWebSession.BeforeHandleRequest;
-var
-  I: Integer;
-begin
-  if FLanguage = '' then
-  begin
-    FLanguage := TKWebRequest.Current.AcceptLanguage;
-    I := Pos('-', FLanguage);
-    if I <> 0 then
-      // Convert language code
-      FLanguage := Copy(FLanguage, I - 2, 2) + '_' + Uppercase(Copy(FLanguage, I + 1, 2));
-  end;
 end;
 
 constructor TKWebSession.Create(const AClientAddress, ASessionId: string; const ATimeout: Double);
@@ -528,9 +528,9 @@ begin
   Result := FObjectSpace;
 end;
 
-{ TKSessionLocalizationTool }
+{ TKWebSessionLocalizationTool }
 
-procedure TKSessionLocalizationTool.AfterConstruction;
+procedure TKWebSessionLocalizationTool.AfterConstruction;
 begin
   inherited;
   // Configure the global dxgettext instance.
@@ -538,12 +538,12 @@ begin
     TKConfig.SystemHomePath + 'locale');
 end;
 
-function TKSessionLocalizationTool.AsObject: TObject;
+function TKWebSessionLocalizationTool.AsObject: TObject;
 begin
   Result := Self;
 end;
 
-procedure TKSessionLocalizationTool.ForceLanguage(const ALanguageId: string);
+procedure TKWebSessionLocalizationTool.ForceLanguage(const ALanguageId: string);
 var
   LInstance: TGnuGettextInstance;
 begin
@@ -554,12 +554,12 @@ begin
   LInstance.UseLanguage(ALanguageId);
 end;
 
-function TKSessionLocalizationTool.GetCurrentLanguageId: string;
+function TKWebSessionLocalizationTool.GetCurrentLanguageId: string;
 begin
   Result := GetGnuGettextInstance.GetCurrentLanguage;
 end;
 
-function TKSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
+function TKWebSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
 begin
   if TKWebSession.Current <> nil then
     Result := TKWebSession.Current.FGettextInstance
@@ -567,7 +567,7 @@ begin
     Result := gnugettext.DefaultInstance;
 end;
 
-procedure TKSessionLocalizationTool.TranslateComponent(const AComponent: TComponent);
+procedure TKWebSessionLocalizationTool.TranslateComponent(const AComponent: TComponent);
 var
   LInstance: TGnuGettextInstance;
 begin
@@ -576,7 +576,7 @@ begin
   LInstance.TranslateComponent(AComponent, 'default');
 end;
 
-function TKSessionLocalizationTool.TranslateString(const AString,
+function TKWebSessionLocalizationTool.TranslateString(const AString,
   AIdString: string): string;
 var
   LInstance: TGnuGettextInstance;
@@ -737,8 +737,51 @@ begin
   Result := CreateCompactGuidStr;
 end;
 
+{ TKWebSessionCleanupThread }
+
+constructor TKWebSessionCleanupThread.Create(const ASessions: TKWebSessions; const AInterval: Double);
+begin
+  inherited Create;
+  FSessions := ASessions;
+  if AInterval <> 0 then
+    FInterval := AInterval
+  else
+    FInterval := DEFAULT_INTERVAL;
+end;
+
+procedure TKWebSessionCleanupThread.Execute;
+begin
+  while not Terminated do
+  begin
+    if Assigned(FSessions) then
+    begin
+      MonitorEnter(FSessions);
+      try
+        FSessions.CleanupExpiredSessions;
+      finally
+        MonitorExit(FSessions);
+      end;
+    end;
+    WaitInterval;
+  end;
+end;
+
+procedure TKWebSessionCleanupThread.WaitInterval;
+const
+  STEP = 100;
+var
+  LMilliseconds: Int64;
+begin
+  LMilliseconds := MilliSecondsBetween(Now, Now + FInterval);
+  while (LMilliseconds > 0) and not Terminated do
+  begin
+    Sleep(STEP);
+    Dec(LMilliseconds, STEP);
+  end;
+end;
+
 initialization
-  TEFLocalizationToolRegistry.RegisterTool(TKSessionLocalizationTool.Create);
+  TEFLocalizationToolRegistry.RegisterTool(TKWebSessionLocalizationTool.Create);
 
 finalization
   TEFLocalizationToolRegistry.UnregisterTool;

@@ -33,6 +33,11 @@ uses
   ;
 
 type
+  /// <summary>
+  ///  Indy-based HTTP server implementation for stand-alone Kitto applications
+  ///  (GUI, console, service, daemon modes). Encapsulates a TKWebEngine and
+  ///  a thread scheduler.
+  /// </summary>
   TKWebServer = class(TIdCustomHTTPServer)
   private
     FEngine: TKWebEngine;
@@ -72,6 +77,7 @@ var
   LThreadPoolSize: Integer;
 begin
   inherited;
+  FEngine := TKWebEngine.Create;
   // Standard config objects are per application; we need to create our own
   // instance in order to read server-wide params.
   LConfig := TKConfig.Create;
@@ -82,7 +88,6 @@ begin
     FreeAndNil(LConfig);
   end;
   InitThreadScheduler(LThreadPoolSize);
-  FEngine := TKWebEngine.Create;
 end;
 
 destructor TKWebServer.Destroy;

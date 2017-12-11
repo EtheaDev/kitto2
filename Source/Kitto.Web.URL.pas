@@ -10,10 +10,7 @@ uses
 type
   TKWebURL = class(TIdURI)
   public
-    /// <summary>
-    ///  Returns the last path segment. If the path has only one segment, returns ''.
-    /// </summary>
-    function ExtractObjectName: string;
+    function GetURI: string;
 
     /// <summary>
     ///  Adds a trailing / if not present already.
@@ -26,20 +23,13 @@ implementation
 uses
   SysUtils
   , StrUtils
-  , EF.StrUtils
   ;
 
 { TWebKURL }
 
-function TKWebURL.ExtractObjectName: string;
-var
-  LPathSegments: TArray<string>;
+function TKWebURL.GetURI: string;
 begin
-  LPathSegments := StripPrefix(Path, '/').Split(['/']);
-  if Length(LPathSegments) > 1 then
-    Result := LPathSegments[High(LPathSegments)]
-  else
-    Result := '';
+  Result := Path + Document;
 end;
 
 class function TKWebURL.IncludeTrailingPathDelimiter(const APath: string): string;

@@ -34,27 +34,6 @@ uses
 
 type
   /// <summary>
-  ///  Periodically cleans up the list of active sessions by disposing of
-  ///  the stale ones. A stale session is a session that has been inactive
-  ///  for a longer time than the specified timeout.
-  /// </summary>
-  TKWebSessionCleanupThread = class(TThread)
-  private
-    FSessions: TKWebSessions;
-    FInterval: Double;
-    procedure WaitInterval;
-  protected
-    procedure Execute; override;
-  public
-    const DEFAULT_INTERVAL = 30 * OneSecond;
-    /// <summary>
-    ///  Pass the session list to clean up and an interval between
-    ///  each cleanup pass.
-    /// </summary>
-    constructor Create(const ASessions: TKWebSessions; const AInterval: Double);
-  end;
-
-  /// <summary>
   ///  Kitto engine route. Handles sub-routes (such as the application route)
   ///  and manages a list of active sessions. Also keeps the current session
   ///  in TKWebSession updated. It is normally embedded in a TKWebServer but can
@@ -225,6 +204,7 @@ begin
             '<head><title>Web Server Application</title></head>' +
             '<body>Unknown request: ' + ARequest.PathInfo + '</body>' +
             '</html>';
+          AResponse.SendResponse;
         end;
       finally
         TKWebResponse.ClearCurrent;
@@ -292,6 +272,7 @@ end;
 procedure TKWebEngine.BeforeHandleRequest(const ARequest: TKWebRequest;
   const AResponse: TKWebResponse; const AURL: TKWebURL; var AIsAllowed: Boolean);
 begin
+  TEFLogger.Instance.LogDebug('BeforeHandleRequest: ' + AURL.GetURI);
   if not FActive then
   begin
     AIsAllowed := False;
@@ -313,6 +294,7 @@ procedure TKWebEngine.AfterHandleRequest(const ARequest: TKWebRequest;
   const AResponse: TKWebResponse; const AURL: TKWebURL; const AIsFatalError: Boolean);
 begin
   inherited;
+  TEFLogger.Instance.LogDebug('AfterHandleRequest: ' + AURL.GetURI);
   if not FActive then
     Exit;
   {$IFDEF MSWINDOWS}
@@ -333,49 +315,6 @@ end;
 function TKWebEngine.GetSessions: TArray<TKWebSession>;
 begin
   Result := FSessions.GetSessions;
-end;
-
-{ TKWebSessionCleanupThread }
-
-constructor TKWebSessionCleanupThread.Create(const ASessions: TKWebSessions; const AInterval: Double);
-begin
-  inherited Create;
-  FSessions := ASessions;
-  if AInterval <> 0 then
-    FInterval := AInterval
-  else
-    FInterval := DEFAULT_INTERVAL;
-end;
-
-procedure TKWebSessionCleanupThread.Execute;
-begin
-  while not Terminated do
-  begin
-    if Assigned(FSessions) then
-    begin
-      MonitorEnter(FSessions);
-      try
-        FSessions.CleanupExpiredSessions;
-      finally
-        MonitorExit(FSessions);
-      end;
-    end;
-    WaitInterval;
-  end;
-end;
-
-procedure TKWebSessionCleanupThread.WaitInterval;
-const
-  STEP = 100;
-var
-  LMilliseconds: Int64;
-begin
-  LMilliseconds := MilliSecondsBetween(Now, Now + FInterval);
-  while (LMilliseconds > 0) and not Terminated do
-  begin
-    Sleep(STEP);
-    Dec(LMilliseconds, STEP);
-  end;
 end;
 
 end.

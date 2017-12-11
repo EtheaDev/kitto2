@@ -105,10 +105,19 @@ type
     ///  then the suffix is added before the _.
     /// </summary>
     class function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
+    /// <summary>
+    ///  Extract the object name from the URL path; if the path does not represent a method call,
+    ///  returns ''.
+    /// </summary>
+    function ExtractObjectName(const AURLPath: string): string;
   protected
     function DoHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL): Boolean; override;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
+    /// <summary>
+    ///  The name of the segment of the URL's path enclusing all method calls.
+    /// </summary>
+    const APP_NAMESPACE = 'app';
     class constructor Create;
     class destructor Destroy;
     procedure AfterConstruction; override;
@@ -223,7 +232,9 @@ type
     ///  to ensure that additional javascript or css files are included.
     /// </summary>
     procedure AddAdditionalRef(const APath: string);
+
     function GetMethodURL(const AObjectName, AMethodName: string): string;
+
     /// <summary>
     ///  Returns the Home URL of the Kitto application assuming the URL is
     ///  visited from localhost.
@@ -306,11 +317,24 @@ end;
 
 { TWebKApplication }
 
+function TKWebApplication.ExtractObjectName(const AURLPath: string): string;
+var
+  LPathSegments: TArray<string>;
+begin
+  LPathSegments := StripPrefix(AURLPath, '/').Split(['/']);
+  // Path segments are in the form appname/os/objectname, where "app" is the
+  // object space itself (as opposed to "res" which is for static content).
+  if (Length(LPathSegments) > 2) and (LPathSegments[High(LPathSegments) - 1] = APP_NAMESPACE) then
+    Result := LPathSegments[High(LPathSegments)]
+  else
+    Result := '';
+end;
+
 function TKWebApplication.GetObjectFromURL(const AURL: TKWebURL): TObject;
 var
   LJSName: string;
 begin
-  LJSName := AURL.ExtractObjectName;
+  LJSName := ExtractObjectName(AURL.Path);
   if LJSName = '' then
     Result := Self
   else
@@ -388,7 +412,7 @@ begin
   // only resort to this hack in order to serve the file correctly for the time being.
   // Reusing AIndex means we add the routes in reverse order.
   AList.AddRoute(TKStaticWebRoute.Create(
-    FPath + '/Ext/ux/*',
+    FPath + '/' +  APP_NAMESPACE +'/Ext/ux/*',
     TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'js\Ext\ux'))), AIndex);
 
 //  AList.AddRoute(TKStaticWebRoute.Create(
@@ -791,7 +815,7 @@ end;
 
 function TKWebApplication.GetMethodURL(const AObjectName, AMethodName: string): string;
 begin
-  Result := FPath + '/' + IfThen(AObjectName <> '',  AObjectName + '/', '') + AMethodName;
+  Result := FPath + '/' + APP_NAMESPACE + '/' + IfThen(AObjectName <> '',  AObjectName + '/', '') + AMethodName;
 end;
 
 procedure TKWebApplication.ActivateInstance;
