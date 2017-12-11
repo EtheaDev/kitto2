@@ -141,8 +141,8 @@ uses
 
 function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
 begin
-  if Session <> nil then
-    Result := Session.ObjectSpace.GetSingleton<TExtMenuMenuMgrSingleton>(TExtMenuMenuMgrSingleton.JSClassName)
+  if TKWebSession.Current <> nil then
+    Result := TKWebSession.Current.ObjectSpace.GetSingleton<TExtMenuMenuMgrSingleton>(TExtMenuMenuMgrSingleton.JSClassName)
   else
     Result := nil;
 end;

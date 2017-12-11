@@ -153,11 +153,11 @@ end;
 procedure TKExtTabPanel.SetAsControllerContainer;
 begin
   Assert(Assigned(Config));
-  Assert(Session <> nil);
+  Assert(TKWebSession.Current <> nil);
 
   if Config.GetBoolean('IsControllerContainer', True) then
-    if (Session.ControllerContainer = nil) then
-      Session.ControllerContainer := Self;
+    if (TKWebSession.Current.ControllerContainer = nil) then
+      TKWebSession.Current.ControllerContainer := Self;
 end;
 
 function TKExtTabPanel.AsExtContainer: TExtContainer;
@@ -179,8 +179,8 @@ end;
 
 destructor TKExtTabPanel.Destroy;
 begin
-  if (Session <> nil) and Assigned(Session.ControllerContainer) and (Session.ControllerContainer.AsJSObject = Self) then
-    Session.ControllerContainer := nil;
+  if (TKWebSession.Current <> nil) and Assigned(TKWebSession.Current.ControllerContainer) and (TKWebSession.Current.ControllerContainer.AsJSObject = Self) then
+    TKWebSession.Current.ControllerContainer := nil;
   inherited;
 end;
 

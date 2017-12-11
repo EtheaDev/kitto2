@@ -564,9 +564,9 @@ type
     procedure UnregisterDBAdapter(const AId: string);
 
     ///	<summary>
-    ///	  Returns an adapter by its Id. If you pass '' and only one adapter is
-    ///	  registered, then the method returns a reference to that adapter,
-    ///	  otherwise an exception is raised.
+    ///	 Returns an adapter by its Id. If you pass '' and only one adapter is
+    ///	 registered, then the method returns a reference to that adapter,
+    ///	 otherwise an exception is raised.
     ///	</summary>
     property DBAdapters[const AId: string]: TEFDBAdapter read GetDBAdapter; default;
 
@@ -575,6 +575,16 @@ type
 
     class property Instance: TEFDBAdapterRegistry read GetInstance;
   end;
+
+{$IFDEF MSWINDOWS}
+///	<summary>
+///	 Windows-only DB adapter units (such as ADO) should set this variable to True
+///	 in the initialization section to signal that they need COM initialization
+///	 on a per-thread basis. Higher layers should query this variable and
+///  initialize COM as needed.
+///	</summary>
+var IsCOMNeeded: Boolean = False;
+{$ENDIF}
 
 implementation
 

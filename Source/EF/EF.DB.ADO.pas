@@ -15,7 +15,7 @@
 -------------------------------------------------------------------------------}
 
 ///	<summary>
-///	  ADO-based database access layer.
+///	 ADO-based database access layer.
 ///	</summary>
 unit EF.DB.ADO;
 
@@ -727,6 +727,9 @@ begin
 end;
 
 initialization
+{$IFDEF MSWINDOWS}
+  EF.DB.IsCOMNeeded := True;
+{$ENDIF}
   TEFDBAdapterRegistry.Instance.RegisterDBAdapter(TEFDBADOAdapter.GetClassId, TEFDBADOAdapter.Create);
 
 finalization

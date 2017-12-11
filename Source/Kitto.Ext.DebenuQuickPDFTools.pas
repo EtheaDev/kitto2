@@ -405,7 +405,7 @@ begin
         LWidth := LNode.GetInteger('Width');
         LHeight := LNode.GetInteger('Height');
         //Add an image
-        LImageFileName := TKWebApplication.Current.Config.FindResourcePathName(LImageFileName);
+        LImageFileName := TKWebApplication.Current.FindResourcePathName(LImageFileName);
         AddImage(LImageFileName,LLeft,LTop,LWidth,LHeight);
       end
       else if SameText(LNode.Name,'Text') then

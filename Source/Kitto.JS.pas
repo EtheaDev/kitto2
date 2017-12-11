@@ -271,15 +271,6 @@ type
     property Count: Integer read GetCount;
   end;
 
-  /// <summary>
-  ///  Keeps track of some request data to be accessed after the request is destroyed.
-  /// </summary>
-  TJSRequestInfo = class
-    UserAgent: string;
-    ClientAddress: string;
-    DateTime: TDateTime;
-  end;
-
 implementation
 
 uses
@@ -485,7 +476,7 @@ end;
 
 destructor TJSObject.Destroy;
 begin
-  if (TKWebResponse.Current <> nil) and TKWebResponse.Current.HasResponseItems then
+  if (TKWebResponse.Current <> nil) and TKWebResponse.Current.HasItems then
     TKWebResponse.Current.Items.ForEach(
       procedure (AItem: TJSResponseItem)
       begin
@@ -521,11 +512,11 @@ end;
 
 constructor TJSObject.Create(const AOwner: TJSBase);
 begin
-  Assert(Session <> nil);
+  Assert(TKWebSession.Current <> nil);
   Assert(Assigned(AOwner));
   inherited Create(AOwner);
   FJSConfig := TJSValues.Create(Self);
-  JSName := Session.ObjectSpace.GetNextJSName(GetObjectNamePrefix);
+  JSName := TKWebSession.Current.ObjectSpace.GetNextJSName(GetObjectNamePrefix);
   TKWebResponse.Current.Items.CreateObject(Self);
   InitDefaults;
 end;
@@ -541,7 +532,7 @@ begin
   if (Owner.JSName <> '') and (FAttributeName <> '') then
     JSName := Owner.JSName + '.' + FAttributeName
   else
-    JSName := Session.ObjectSpace.GetNextJSName(GetObjectNamePrefix);
+    JSName := TKWebSession.Current.ObjectSpace.GetNextJSName(GetObjectNamePrefix);
   InitDefaults;
 end;
 
@@ -734,7 +725,7 @@ end;
 
 function TJSObject.ParamAsObject(const AParamName: string): TJSObject;
 begin
-  Result := TJSObject(Session.ObjectSpace.FindChildByJSName(TKWebRequest.Current.GetQueryField(AParamName)));
+  Result := TJSObject(TKWebSession.Current.ObjectSpace.FindChildByJSName(TKWebRequest.Current.GetQueryField(AParamName)));
 end;
 
 function TJSObject.ParamAsString(const AParamName: string): string;

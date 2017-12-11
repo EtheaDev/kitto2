@@ -33,7 +33,6 @@ uses
   , FmtBcd
   , Generics.Collections
   , Generics.Defaults
-  , SyncObjs
   , Rtti
   , EF.Types
   , EF.Macros
@@ -347,7 +346,6 @@ type
   /// </summary>
   TEFTree = class
   strict private
-    FCriticalSection: TCriticalSection;
     FNodes: TEFNodes;
     FAnnotations: TStrings;
     class var FRttiContext: TRttiContext;
@@ -370,8 +368,6 @@ type
         function Compare(const Left, Right: TEFNode): Integer; override;
       end;
     function GetChildClass(const AName: string): TEFNodeClass; virtual;
-    procedure EnterCS; virtual;
-    procedure LeaveCS; virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -2196,7 +2192,6 @@ destructor TEFTree.Destroy;
 begin
   FreeAndNil(FNodes);
   FreeAndNil(FAnnotations);
-  FreeAndNil(FCriticalSection);
   inherited;
 end;
 
@@ -2376,7 +2371,7 @@ begin
     Result := nil
   else
   begin
-    EnterCS;
+    MonitorEnter(Self);
     try
       LChild := FindChild(LPath[0], ACreateMissingNodes);
       if Assigned(LChild) then
@@ -2389,7 +2384,7 @@ begin
       else
         Result := nil;
     finally
-      LeaveCS;
+      MonitorExit(Self);
     end;
   end;
 end;
@@ -2738,13 +2733,6 @@ begin
   Result := -1;
 end;
 
-procedure TEFTree.EnterCS;
-begin
-  if not Assigned(FCriticalSection) then
-    FCriticalSection := TCriticalSection.Create;
-  FCriticalSection.Enter;
-end;
-
 procedure TEFTree.EnumChildren(const AProc: TNodeProc; const APredicate: TNodePredicate);
 var
   I: Integer;
@@ -2756,12 +2744,6 @@ begin
     if not Assigned(APredicate) or APredicate(Children[I]) then
       AProc(Children[I]);
   end;
-end;
-
-procedure TEFTree.LeaveCS;
-begin
-  Assert(Assigned(FCriticalSection));
-  FCriticalSection.Leave;
 end;
 
 procedure TEFTree.CopyChildValues(

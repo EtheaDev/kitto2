@@ -1,3 +1,19 @@
+{-------------------------------------------------------------------------------
+   Copyright 2012-2017 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------}
+
 unit Kitto.Web.Application;
 
 interface
@@ -18,7 +34,7 @@ uses
   , Kitto.Metadata.Views
   , Kitto.JS.Base
   , Kitto.JS
-  , Kitto.Web.Server
+  , Kitto.Web.Routes
   , Kitto.Web.URL
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -27,9 +43,15 @@ uses
   ;
 
 type
-  TKSessionMacroExpander = class(TEFTreeMacroExpander)
+  TKWebApplication = class;
+
+  TKApplicationMacroExpander = class(TEFTreeMacroExpander)
+  private
+    FApplication: TKWebApplication;
   strict protected
     function InternalExpand(const AString: string): string; override;
+  public
+    constructor Create(const AApplication: TKWebApplication); reintroduce;
   end;
 
   TKWebApplication = class(TKWebRoute)
@@ -41,9 +63,9 @@ type
     FOwnsLoginNode: Boolean;
     FTheme: string;
     FExtJSPath: string;
-    FExtJSLocalPath: string;
+//    FExtJSLocalPath: string;
     FAdditionalRefs: TList<string>;
-    FSessionMacroExpander: TKSessionMacroExpander;
+    FMacroExpander: TKApplicationMacroExpander;
     FResourcePath: string;
     FResourceLocalPath1: string;
     FResourceLocalPath2: string;
@@ -67,16 +89,24 @@ type
 
     procedure DeactivateInstance;
     procedure Reload;
-    function GetObjectFromURL(const AURL: TKURL): TObject;
+    function GetObjectFromURL(const AURL: TKWebURL): TObject;
     class function GetCurrent: TKWebApplication; static;
     class procedure SetCurrent(const AValue: TKWebApplication); static;
     function CallObjectMethod(const AObject: TObject; const AMethodName: string): Boolean;
-    procedure AddConfigRoutes(const AServer: TKWebServer);
     function GetViewportWidthInInches: TJSExpression;
     class function CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer; static;
     function GetAuthenticator: TKAuthenticator;
     function GetAccessController: TKAccessController;
     procedure InitConfig;
+    /// <summary>
+    ///  Adds a .png extension to the resource name.
+    ///  ASuffix, if specified, is added before the file extension.
+    ///  If the image name ends with _ and a two-digit number among 16, 24, 32, and 48,
+    ///  then the suffix is added before the _.
+    /// </summary>
+    class function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
+  protected
+    function DoHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL): Boolean; override;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
@@ -84,9 +114,8 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
-    function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean; override;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-    procedure AddedToServer(const AServer: TKWebServer); override;
+    procedure AddedTo(const AList: TKWebRouteList; const AIndex: Integer); override;
 
     property Config: TKConfig read FConfig;
     procedure ReloadConfig;
@@ -99,12 +128,59 @@ type
     function DisplayNewController(const AView: TKView; const AForceModal: Boolean = False;
       const AAfterCreateWindow: TProc<IJSContainer> = nil;
       const AAfterCreate: TProc<IJSController> = nil): IJSController;
-    property Theme: string read FTheme write FTheme;
-    property ExtJSPath: string read FExtJSPath write FExtJSPath;
+    property Path: string read FPath;
+    property Theme: string read FTheme;
+    property ExtJSPath: string read FExtJSPath;
 
     class property Current: TKWebApplication read GetCurrent write SetCurrent;
 
     class property OnCreateHostWindow: TFunc<TJSBase, IJSControllerContainer> read FOnCreateHostWindow write FOnCreateHostWindow;
+
+    /// <summary>
+    ///  Returns the URL for the specified resource, based on the first
+    ///  existing file in the ordered list of resource folders. If no existing
+    ///  file is found, an exception is raised.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///  Resource file name relative to the resource folder. Examples:
+    ///  some_image.png, js\some_library.js.
+    /// </param>
+    function GetResourceURL(const AResourceFileName: string): string;
+
+    /// <summary>Returns the URL for the specified resource, based on the first
+    /// existing file in the ordered list of resource folders. If no existing
+    /// file is found, returns ''.</summary>
+    /// <param name="AResourceFileName">Resource file name relative to the
+    /// resource folder. Examples: some_image.png, js\some_library.js.</param>
+    function FindResourceURL(const AResourceFileName: string): string;
+
+    /// <summary>
+    ///   Returns the full pathname for the specified resource, based on the first
+    ///   existing file in the ordered list of resource folders. If no existing
+    ///   file is found, an exception is raised.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///   Resource file name relative to the resource folder. Examples:
+    ///   some_image.png, js\some_library.js.
+    /// </param>
+    function GetResourcePathName(const AResourceFileName: string): string;
+
+    /// <summary>
+    ///  Returns the full pathname for the specified resource, based on
+    ///  the first existing file in the ordered list of resource folders. If no
+    ///  existing file is found, returns ''.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///  Resource file name relative to the resource folder.
+    ///  Examples: some_image.png, js\some_library.js.
+    /// </param>
+    function FindResourcePathName(const AResourceFileName: string): string;
+
+    function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+
+    function GetImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
 
     procedure ReloadOrDisplayHomeView;
     function GetLoginView: TKView;
@@ -147,9 +223,6 @@ type
     ///  to ensure that additional javascript or css files are included.
     /// </summary>
     procedure AddAdditionalRef(const APath: string);
-    procedure MethodCallError(const AMessage, AMethodName, AParams: string);
-    procedure MethodNotFoundError(const AMethodName: string);
-    procedure Error(const AMessage: string);
     function GetMethodURL(const AObjectName, AMethodName: string): string;
     /// <summary>
     ///  Returns the Home URL of the Kitto application assuming the URL is
@@ -177,29 +250,63 @@ uses
   , EF.Localization
   , EF.Types
   , Ext.Base
+  , Kitto.Types
   , Kitto.JS.Formatting
   , Kitto.Web.Types
   , Kitto.Web.Session
   ;
 
-{ TKSessionMacroExpander }
+{ TKApplicationMacroExpander }
 
-function TKSessionMacroExpander.InternalExpand(const AString: string): string;
+constructor TKApplicationMacroExpander.Create(const AApplication: TKWebApplication);
+begin
+  Assert(Assigned(AApplication));
 
+  // We will pass Session.AuthData dynamically as needed, so we initialize the
+  // expander with nil. We inherit from TEFTreeExpander only to inherit its
+  // functionality.
+  inherited Create(nil, 'Auth');
+  FApplication := AApplication;
+end;
+
+function TKApplicationMacroExpander.InternalExpand(const AString: string): string;
+const
+  IMAGE_MACRO_HEAD = '%IMAGE(';
+  MACRO_TAIL = ')%';
+var
+  LPosHead: Integer;
+  LPosTail: Integer;
+  LName: string;
 begin
   Result := inherited InternalExpand(AString);
-  if Session <> nil then
+  if TKWebSession.Current <> nil then
   begin
-    Result := ExpandMacros(Result, '%SESSION_ID%', Session.SessionId);
-    Result := ExpandMacros(Result, '%LANGUAGE_ID%', Session.Language);
+    Result := ExpandMacros(Result, '%SESSION_ID%', TKWebSession.Current.SessionId);
+    Result := ExpandMacros(Result, '%LANGUAGE_ID%', TKWebSession.Current.Language);
     // Expand %Auth:*%.
-    Result := ExpandTreeMacros(Result, Session.AuthData);
+    Result := ExpandTreeMacros(Result, TKWebSession.Current.AuthData);
+  end;
+
+  if FApplication <> nil then
+  begin
+    LPosHead := Pos(IMAGE_MACRO_HEAD, Result);
+    if LPosHead > 0 then
+    begin
+      LPosTail := PosEx(MACRO_TAIL, Result, LPosHead + 1);
+      if LPosTail > 0 then
+      begin
+        LName := Copy(Result, LPosHead + Length(IMAGE_MACRO_HEAD),
+          LPosTail - (LPosHead + Length(IMAGE_MACRO_HEAD)));
+        Result := Copy(Result, 1, LPosHead - 1) + FApplication.GetImageURL(LName)
+          + InternalExpand(Copy(Result, LPosTail + Length(MACRO_TAIL), MaxInt));
+      end;
+    end;
   end;
 end;
 
 { TWebKApplication }
 
-function TKWebApplication.GetObjectFromURL(const AURL: TKURL): TObject;
+function TKWebApplication.GetObjectFromURL(const AURL: TKWebURL): TObject;
 var
   LJSName: string;
 begin
@@ -207,9 +314,15 @@ begin
   if LJSName = '' then
     Result := Self
   else
-    Result := Session.ObjectSpace.FindChildByJSName(LJSName);
+    Result := TKWebSession.Current.ObjectSpace.FindChildByJSName(LJSName);
   if not Assigned(Result) then
-    raise Exception.CreateFmt('Handler object %s for method %s not found in session.', [LJSName, AURL.Document]);
+  begin
+    {$IFDEF DEBUG}
+    raise Exception.CreateFmt('Handler object %s for method %s not found in session. The session might have expired. Please refresh the page.', [LJSName, AURL.Document]);
+    {$ELSE}
+    raise Exception.Create('Your session has expired. Please refresh the page to start a new session.');
+    {$ENDIF}
+  end;
 end;
 
 procedure TKWebApplication.AfterConstruction;
@@ -218,8 +331,6 @@ begin
   FOwnsLoginNode := False;
   FRttiContext := TRttiContext.Create;
   FAdditionalRefs := TList<string>.Create;
-  FExtJSPath := '/ext';
-  FResourcePath := '/res';
   InitConfig;
 end;
 
@@ -236,14 +347,13 @@ end;
 procedure TKWebApplication.InitConfig;
 begin
   FConfig := TKConfig.Create;
-  // We will pass Session.AuthData dynamically as needed, so we initialize the
-  // expander with nil. It is inherited from TEFTreeExpander only to inherit its
-  // functionality.
-  FSessionMacroExpander := TKSessionMacroExpander.Create(nil, 'Auth');
-  FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
-  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
+  FMacroExpander := TKApplicationMacroExpander.Create(Self);
+  FConfig.MacroExpansionEngine.AddExpander(FMacroExpander);
   FTheme := FConfig.Config.GetString('ExtJS/Theme', 'triton');
-  FExtJSLocalPath := FConfig.Config.GetString('ExtJS/Path', TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'ext')));
+  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
+  FResourcePath := FPath + '/res';
+  FExtJSPath := FResourcePath + '/ext';
+//  FExtJSLocalPath := FConfig.Config.GetString('ExtJS/Path', TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'ext')));
   FResourceLocalPath1 := TPath.Combine(FConfig.AppHomePath, 'Resources');
   FResourceLocalPath2 := TPath.Combine(FConfig.SystemHomePath, 'Resources');
 end;
@@ -262,25 +372,28 @@ begin
   FAdditionalRefs.Add(APath);
 end;
 
-procedure TKWebApplication.AddedToServer(const AServer: TKWebServer);
+procedure TKWebApplication.AddedTo(const AList: TKWebRouteList; const AIndex: Integer);
 begin
   inherited;
-  AddConfigRoutes(AServer);
-end;
-
-procedure TKWebApplication.AddConfigRoutes(const AServer: TKWebServer);
-begin
-  // This route needs to be added before all others, as some URLs generated by
-  // ExtJS's "requires" system may be misinterpreted by the application as method calls.
-  AServer.AddRoute(TKStaticWebRoute.Create(
-    FPath + '/Ext/ux/*',
-    TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'js'))), 0);
-  AServer.AddRoute(TKStaticWebRoute.Create(
-    FExtJSPath + '/*',
-    FExtJSLocalPath));
-  AServer.AddRoute(TKMultipleStaticWebRoute.Create(
+  // Resources now share the application's path, so they must be resolved before application calls.
+  AList.AddRoute(TKMultipleStaticWebRoute.Create(
     FResourcePath + '/',
-    [FResourceLocalPath1, FResourceLocalPath2]));
+    [FResourceLocalPath1, FResourceLocalPath2]), AIndex);
+
+  // This route needs to be added before all others, as some URLs generated by
+  // Ext.Loader may be misinterpreted by the application as method calls.
+  // Case in point: the DateTimeField.js has a Ext.define() call that includes
+  // requires: ['Ext.ux.DateTimePicker']. Since they are using the Ext namespace,
+  // and Ext.Loader does not appear to support remapping sub-namespaces, we can
+  // only resort to this hack in order to serve the file correctly for the time being.
+  // Reusing AIndex means we add the routes in reverse order.
+  AList.AddRoute(TKStaticWebRoute.Create(
+    FPath + '/Ext/ux/*',
+    TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'js\Ext\ux'))), AIndex);
+
+//  AList.AddRoute(TKStaticWebRoute.Create(
+//    FExtJSPath + '/*',
+//    FExtJSLocalPath));
 end;
 
 procedure TKWebApplication.FreeLoginNode;
@@ -306,10 +419,10 @@ function TKWebApplication.GetHomeView(const AViewportWidthInInches: Integer): TK
 var
   LNodeNames: TStringDynArray;
 begin
-  if Session.HomeViewNodeName <> '' then
+  if TKWebSession.Current.HomeViewNodeName <> '' then
   begin
     SetLength(LNodeNames,1);
-    LNodeNames[0] := Session.HomeViewNodeName;
+    LNodeNames[0] := TKWebSession.Current.HomeViewNodeName;
   end
   else
     LNodeNames := GetDefaultHomeViewNodeNames(AViewportWidthInInches, 'View');
@@ -383,30 +496,30 @@ begin
   Assert(Assigned(AView));
 
   // If there's no view host, we treat all views as windows.
-  LIsModal := AForceModal or not Assigned(Session.ControllerContainer) or AView.GetBoolean('Controller/IsModal');
-  if Assigned(Session.ControllerHostWindow) then
+  LIsModal := AForceModal or not Assigned(TKWebSession.Current.ControllerContainer) or AView.GetBoolean('Controller/IsModal');
+  if Assigned(TKWebSession.Current.ControllerHostWindow) then
   begin
-    Session.ControllerHostWindow.AsJSObject.Delete;
-    Session.ControllerHostWindow.AsObject.Free;
-    Session.ControllerHostWindow := nil;
+    TKWebSession.Current.ControllerHostWindow.AsJSObject.Delete;
+    TKWebSession.Current.ControllerHostWindow.AsObject.Free;
+    TKWebSession.Current.ControllerHostWindow := nil;
   end;
   { TODO :
   If we added the ability to change owner after object creation,
   this code could be simplified a lot by only creating the window if needed. }
   if LIsModal then
   begin
-    LWindow := CreateHostWindow(Session.ObjectSpace);
-    Session.ControllerHostWindow := LWindow;
+    LWindow := CreateHostWindow(TKWebSession.Current.ObjectSpace);
+    TKWebSession.Current.ControllerHostWindow := LWindow;
     if Assigned(AAfterCreateWindow) then
       AAfterCreateWindow(LWindow);
-    Result := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, AView, LWindow);
+    Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView, LWindow);
     if Assigned(AAfterCreate) then
       AAfterCreate(Result);
     if not Result.Config.GetBoolean('Sys/SupportsContainer') then
     begin
-      Session.ControllerHostWindow.AsJSObject.Delete;
-      Session.ControllerHostWindow.AsJSObject.Free;
-      Session.ControllerHostWindow := nil;
+      TKWebSession.Current.ControllerHostWindow.AsJSObject.Delete;
+      TKWebSession.Current.ControllerHostWindow.AsJSObject.Free;
+      TKWebSession.Current.ControllerHostWindow := nil;
     end
     else
     begin
@@ -424,21 +537,21 @@ begin
   end
   else
   begin
-    Assert(Assigned(Session.ControllerContainer));
-    Result := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, AView, Session.ControllerContainer);
+    Assert(Assigned(TKWebSession.Current.ControllerContainer));
+    Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView, TKWebSession.Current.ControllerContainer);
     //Assert(Result.Config.GetBoolean('Sys/SupportsContainer'));
   end;
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
-    Session.OpenControllers.Add(Result);
+    TKWebSession.Current.OpenControllers.Add(Result);
   try
     Result.Display;
-    if Assigned(Session.ControllerHostWindow) and not LIsSynchronous then
-      TKExtControllerHostWindow(Session.ControllerHostWindow).Show;
+    if Assigned(TKWebSession.Current.ControllerHostWindow) and not LIsSynchronous then
+      TKExtControllerHostWindow(TKWebSession.Current.ControllerHostWindow).Show;
   except
-    if Assigned(Session.ControllerHostWindow) and not LIsSynchronous then
-      TKExtControllerHostWindow(Session.ControllerHostWindow).Hide;
-    Session.OpenControllers.Remove(Result);
+    if Assigned(TKWebSession.Current.ControllerHostWindow) and not LIsSynchronous then
+      TKExtControllerHostWindow(TKWebSession.Current.ControllerHostWindow).Hide;
+    TKWebSession.Current.OpenControllers.Remove(Result);
     FreeAndNilEFIntf(Result);
     raise;
   end;
@@ -469,10 +582,10 @@ begin
   Assert(Assigned(AView));
 
   Result := nil;
-  for I := 0 to Session.OpenControllers.Count - 1 do
+  for I := 0 to TKWebSession.Current.OpenControllers.Count - 1 do
   begin
-    if Session.OpenControllers[I].View = AView then
-      Exit(Session.OpenControllers[I]);
+    if TKWebSession.Current.OpenControllers[I].View = AView then
+      Exit(TKWebSession.Current.OpenControllers[I]);
   end;
 end;
 
@@ -493,8 +606,8 @@ begin
         if not Assigned(LController) then
           LController := DisplayNewController(AView);
       end;
-      if Assigned(LController) and Assigned(Session.ControllerContainer) and LController.Config.GetBoolean('Sys/SupportsContainer') then
-        Session.ControllerContainer.SetActiveSubController(LController);
+      if Assigned(LController) and Assigned(TKWebSession.Current.ControllerContainer) and LController.Config.GetBoolean('Sys/SupportsContainer') then
+        TKWebSession.Current.ControllerContainer.SetActiveSubController(LController);
     finally
       ClearStatus;
     end;
@@ -515,8 +628,8 @@ end;
 
 procedure TKWebApplication.ClearStatus;
 begin
-  if Assigned(Session.StatusHost) then
-    Session.StatusHost.ClearStatus;
+  if Assigned(TKWebSession.Current.StatusHost) then
+    TKWebSession.Current.StatusHost.ClearStatus;
 end;
 
 class constructor TKWebApplication.Create;
@@ -547,7 +660,7 @@ begin
   Assert(TKWebRequest.Current.IsAjax);
 
   Result := IfThen(AImageName <> '', AImageName, ADefaultImageName);
-  LIconURL := Config.GetImageURL(Result);
+  LIconURL := GetImageURL(Result);
   Result := ACustomPrefix + Result + '_img';
   // The !important rule allows to use a non-specific selector, so that the icon
   // can be shared by different components.
@@ -591,13 +704,45 @@ end;
 
 { TKWebApplication }
 
-function TKWebApplication.HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
+function TKWebApplication.DoHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL): Boolean;
 var
   LHandlerObject: TObject;
 
   function IsHomeRequest: Boolean;
   begin
-    Result := not TKWebRequest.Current.IsAjax and ((AURL.Document = '') or (AURL.Document = 'home'));
+    Result := TKWebRequest.Current.IsPageRefresh(AURL.Document);
+  end;
+
+  procedure Error(const AMessage: string; const AIsFatal: Boolean);
+  begin
+    if AIsFatal then
+      SignalFatalError;
+    TKWebResponse.Current.Items.Clear;
+    if TKWebRequest.Current.IsAjax then
+      TKWebResponse.Current.Items.ExecuteJSCode(Format(
+        'showErrorMessage({title: "%s", msg: %s});'
+        , [_('Error'), TJS.StrToJS(AMessage, True)]))
+    else
+      TKWebResponse.Current.Items.AddHTML(TNetEncoding.HTML.Encode(AMessage).Replace(sLineBreak, '<br/>'));
+  end;
+
+  procedure MethodCallError(const AMessage, AMethodName, AParams: string);
+  var
+    LMessage: string;
+  begin
+    {$IFDEF DEBUG}
+      LMessage := AMessage +
+        sLineBreak + 'Method: ' + IfThen(AMethodName = '', 'Home', AMethodName)
+        + IfThen(AParams = '', '', sLineBreak + 'Params:' + sLineBreak + AnsiReplaceStr(AParams, '&', sLineBreak));
+    {$ELSE}
+      LMessage := AMessage;
+    {$ENDIF}
+    Error(LMessage, False);
+  end;
+
+  procedure MethodNotFoundError(const AMethodName: string);
+  begin
+    Error(Format('Method: ''%s'' not found', [AMethodName]), True);
   end;
 
 begin
@@ -631,12 +776,10 @@ begin
         end;
         if not Result then
           MethodNotFoundError(AURL.Path + '/' + AURL.Document);
-        AResponse.Render;
       except
         on E: Exception do
         begin
-          Error(E.Message);
-          AResponse.Render;
+          Error(E.Message, True);
           Result := True;
         end;
       end;
@@ -674,21 +817,21 @@ end;
 procedure TKWebApplication.DelayedHome;
 begin
   if TKWebRequest.Current.IsBrowserIPhone then
-    Session.ViewportWidthInInches := 4
+    TKWebSession.Current.ViewportWidthInInches := 4
   else if TKWebRequest.Current.IsBrowserIPad then
-    Session.ViewportWidthInInches := 8
+    TKWebSession.Current.ViewportWidthInInches := 8
   else
-    Session.ViewportWidthInInches := StrToIntDef(TKWebRequest.Current.GetQueryField('vpWidthInches'), 0);
+    TKWebSession.Current.ViewportWidthInInches := StrToIntDef(TKWebRequest.Current.GetQueryField('vpWidthInches'), 0);
 
-  Session.ViewportWidth := Session.GetDefaultViewportWidth();
-  TKWebResponse.Current.Items.ExecuteJSCode(Session.ObjectSpace, 'setViewportWidth(' + IntToStr(Session.ViewportWidth) + ');');
+  TKWebSession.Current.ViewportWidth := TKWebSession.Current.GetDefaultViewportWidth();
+  TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.ObjectSpace, 'setViewportWidth(' + IntToStr(TKWebSession.Current.ViewportWidth) + ');');
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
   if Authenticate then
     DisplayHomeView
   else
     DisplayLoginView;
-  Session.RefreshingLanguage := False;
+  TKWebSession.Current.RefreshingLanguage := False;
 end;
 
 function TKWebApplication.Authenticate: Boolean;
@@ -724,11 +867,11 @@ procedure TKWebApplication.ReloadOrDisplayHomeView;
 var
   LNewLanguageId: string;
 begin
-  LNewLanguageId := TKWebRequest.Current.QueryFields.Values['Language'];
-  if (LNewLanguageId <> '') and (LNewLanguageId <> Session.Language) then
+  LNewLanguageId := TKWebRequest.Current.Language;
+  if (LNewLanguageId <> '') and (LNewLanguageId <> TKWebSession.Current.Language) then
   begin
-    Session.RefreshingLanguage := True;
-    Session.Language := LNewLanguageId;
+    TKWebSession.Current.RefreshingLanguage := True;
+    TKWebSession.Current.Language := LNewLanguageId;
   end;
   DisplayHomeView;
 end;
@@ -742,26 +885,26 @@ procedure TKWebApplication.DisplayHomeView;
 var
   LHomeView: TKView;
 begin
-  if Assigned(Session.HomeController) then
+  if Assigned(TKWebSession.Current.HomeController) then
   begin
-    Session.HomeController.AsObject.Free;
-    Session.HomeController := nil;
+    TKWebSession.Current.HomeController.AsObject.Free;
+    TKWebSession.Current.HomeController := nil;
   end;
-  LHomeView := GetHomeView(Session.ViewportWidthInInches);
+  LHomeView := GetHomeView(TKWebSession.Current.ViewportWidthInInches);
 
-  Session.HomeController := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, LHomeView, nil);
-  TKWebResponse.Current.Items.ExecuteJSCode(Session.HomeController.AsJSObject, 'var kittoHomeContainer = ' + Session.HomeController.AsJSObject.JSName + ';');
-  Session.HomeController.Display;
+  TKWebSession.Current.HomeController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, LHomeView, nil);
+  TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.HomeController.AsJSObject, 'var kittoHomeContainer = ' + TKWebSession.Current.HomeController.AsJSObject.JSName + ';');
+  TKWebSession.Current.HomeController.Display;
 
-  if Session.AutoOpenViewName <> '' then
+  if TKWebSession.Current.AutoOpenViewName <> '' then
   begin
-    DisplayView(Session.AutoOpenViewName);
-    Session.AutoOpenViewName := '';
+    DisplayView(TKWebSession.Current.AutoOpenViewName);
+    TKWebSession.Current.AutoOpenViewName := '';
   end;
 
   { TODO : remove dependency }
-  if Session.HomeController is TExtContainer then
-    TExtContainer(Session.HomeController).UpdateLayout;
+  if TKWebSession.Current.HomeController is TExtContainer then
+    TExtContainer(TKWebSession.Current.HomeController).UpdateLayout;
 end;
 
 procedure TKWebApplication.DisplayLoginView;
@@ -769,22 +912,22 @@ var
   LLoginView: TKView;
   LType: string;
 begin
-  if Assigned(Session.LoginController) then
+  if Assigned(TKWebSession.Current.LoginController) then
   begin
-    Session.LoginController.AsObject.Free;
-    Session.LoginController := nil;
+    TKWebSession.Current.LoginController.AsObject.Free;
+    TKWebSession.Current.LoginController := nil;
   end;
   LLoginView := TKWebApplication.Current.GetLoginView;
   if LLoginView.ControllerType = '' then
     LType := 'Login'
   else
     LType := '';
-  Session.LoginController := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, LLoginView, nil, nil, Self, LType);
-  Session.LoginController.Display;
+  TKWebSession.Current.LoginController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, LLoginView, nil, nil, Self, LType);
+  TKWebSession.Current.LoginController.Display;
 
   { TODO : remove dependency }
-  if Session.LoginController is TExtContainer then
-    TExtContainer(Session.LoginController).UpdateLayout;
+  if TKWebSession.Current.LoginController is TExtContainer then
+    TExtContainer(TKWebSession.Current.LoginController).UpdateLayout;
 end;
 
 procedure TKWebApplication.Home;
@@ -795,33 +938,33 @@ procedure TKWebApplication.Home;
   begin
     LTimeout := Config.Config.FindNode('ExtJS/AjaxTimeout');
     if Assigned(LTimeout) then
-      TKWebResponse.Current.Items.ExecuteJSCode(Session.ObjectSpace, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
+      TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.ObjectSpace, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
   end;
 
 begin
   if TKWebRequest.Current.IsAjax then
     raise Exception.Create('Cannot call Home page in an Ajax request.');
 
-  if not Session.RefreshingLanguage then
+  if not TKWebSession.Current.RefreshingLanguage then
     GetAuthenticator.Logout;
 
-  Session.HomeViewNodeName := TKWebRequest.Current.QueryFields.Values['home'];
+  TKWebSession.Current.HomeViewNodeName := TKWebRequest.Current.GetQueryField('home');
   SetViewportContent;
-  TKWebResponse.Current.Items.ExecuteJSCode(Session.ObjectSpace, 'kittoInit();');
+  TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.ObjectSpace, 'kittoInit();');
   SetAjaxTimeout;
   if TooltipsEnabled then
     ExtQuickTips.Init(True)
   else
     ExtQuickTips.Disable;
 
-  if not Session.RefreshingLanguage then
-    Session.SetLanguageFromQueriesOrConfig(Config);
+  if not TKWebSession.Current.RefreshingLanguage then
+    TKWebSession.Current.SetLanguageFromQueriesOrConfig(Config);
 
-  Session.AutoOpenViewName := TKWebRequest.Current.QueryFields.Values['view'];
+  TKWebSession.Current.AutoOpenViewName := TKWebRequest.Current.GetQueryField('view');
 //  if FAutoOpenViewName <> '' then
 //    Query['view'] := '';
 
-  TKWebResponse.Current.Items.AjaxCallMethod(Session.ObjectSpace).SetMethod(DelayedHome)
+  TKWebResponse.Current.Items.AjaxCallMethod(TKWebSession.Current.ObjectSpace).SetMethod(DelayedHome)
     .AddParam('vpWidthInches', GetViewportWidthInInches);
 
   ServeHomePage;
@@ -829,38 +972,8 @@ end;
 
 function TKWebApplication.GetViewportWidthInInches: TJSExpression;
 begin
-  Result := TJSExpression.Create(Session.ObjectSpace);
+  Result := TJSExpression.Create(TKWebSession.Current.ObjectSpace);
   Result.Text := 'getViewportWidthInInches()';
-end;
-
-procedure TKWebApplication.Error(const AMessage: string);
-begin
-  TKWebResponse.Current.Items.Clear;
-  if TKWebRequest.Current.IsAjax then
-    TKWebResponse.Current.Items.ExecuteJSCode(Format(
-      'showErrorMessage({title: "%s", msg: %s});'
-      , [_('Error'), TJS.StrToJS(AMessage, True)]))
-  else
-    TKWebResponse.Current.Items.AddHTML(TNetEncoding.HTML.Encode(AMessage).Replace(sLineBreak, '<br/>'));
-end;
-
-procedure TKWebApplication.MethodCallError(const AMessage, AMethodName, AParams: string);
-var
-  LMessage: string;
-begin
-  {$IFDEF DEBUG}
-    LMessage := AMessage +
-      sLineBreak + 'Method: ' + IfThen(AMethodName = '', 'Home', AMethodName)
-      + IfThen(AParams = '', '', sLineBreak + 'Params:' + sLineBreak + AnsiReplaceStr(AParams, '&', sLineBreak));
-  {$ELSE}
-    LMessage := AMessage;
-  {$ENDIF}
-  Error(LMessage);
-end;
-
-procedure TKWebApplication.MethodNotFoundError(const AMethodName: string);
-begin
-  Error(Format('Method: ''%s'' not found', [AMethodName]));
 end;
 
 function TKWebApplication.GetLibraryTags: string;
@@ -870,13 +983,13 @@ var
   procedure AddReference(const APathName: string; const AIsRequired: Boolean = False);
   var
     LURL: string;
-    LPathName: string;
+    LLocalPathName: string;
   begin
-    LPathName := APathName.Replace('{ext}', FExtJSPath.Replace('/', PathDelim));
+    LLocalPathName := APathName.Replace('/', PathDelim);
     if AIsRequired then
-      LURL := Config.GetResourceURL(LPathName)
+      LURL := GetResourceURL(LLocalPathName)
     else
-      LURL := Config.FindResourceURL(LPathName);
+      LURL := FindResourceURL(LLocalPathName);
     if LURL <> '' then
     begin
       if LURL.EndsWith('.js', True) then
@@ -894,27 +1007,27 @@ begin
 Find a way to reference optional libraries only if the controllers that need
 them are linked in; maybe a global repository fed by initialization sections.
 Duplicates must be handled/ignored. }
-  AddReference('{ext}\build\packages\ux\classic\ux'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
-  AddReference('{ext}\build\packages\ux\classic\' + FTheme + '\resources\ux-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
-  AddReference('{ext}\build\packages\charts\classic\charts'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
-  AddReference('{ext}\build\packages\charts\classic\' + FTheme + '\resources\charts-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
-  AddReference('js\DateTimeField.js', True);
+  AddReference('ext/build/packages/ux/classic/ux'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
+  AddReference('ext/build/packages/ux/classic/' + FTheme + '/resources/ux-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
+  AddReference('ext/build/packages/charts/classic/charts'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
+  AddReference('ext/build/packages/charts/classic/' + FTheme + '/resources/charts-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
+  AddReference('js/DateTimeField.js', True);
 
-  AddReference('js\kitto-core.js', True);
-  AddReference('js\kitto-core.css', True);
+  AddReference('js/kitto-core.js', True);
+  AddReference('js/kitto-core.css', True);
   if TKWebRequest.Current.IsMobileBrowser then
   begin
-    AddReference('js\kitto-core-mobile.js', True);
-    AddReference('js\kitto-core-mobile.css', True);
+    AddReference('js/kitto-core-mobile.js', True);
+    AddReference('js/kitto-core-mobile.css', True);
   end
   else
   begin
-    AddReference('js\kitto-core-desktop.js', True);
-    AddReference('js\kitto-core-desktop.css', True);
+    AddReference('js/kitto-core-desktop.js', True);
+    AddReference('js/kitto-core-desktop.css', True);
   end;
-  AddReference('js\kitto-init.js', True);
-  AddReference('js\application.js');
-  AddReference('js\application.css');
+  AddReference('js/kitto-init.js', True);
+  AddReference('js/application.js');
+  AddReference('js/application.css');
 
   for LRef in FAdditionalRefs do
     AddReference(LRef, True);
@@ -976,13 +1089,13 @@ begin
     '  var defWidth = ' + IntToStr(DEFAULT_VIEWPORT_WIDTH) + ';' + sLineBreak +
     '  var mvp = document.getElementById("viewport");' + sLineBreak +
     '  if (w != defWidth)' + sLineBreak +
-    '    mvp.setAttribute("content", "' + ReplaceStr(Session.ViewportContent, '{width}', '" + w + "') + '");' + sLineBreak +
+    '    mvp.setAttribute("content", "' + ReplaceStr(TKWebSession.Current.ViewportContent, '{width}', '" + w + "') + '");' + sLineBreak +
     '}';
 end;
 
 function TKWebApplication.GetViewportContent: string;
 begin
-  Result := ReplaceStr(Session.ViewportContent, '{width}', IntToStr(DEFAULT_VIEWPORT_WIDTH));
+  Result := ReplaceStr(TKWebSession.Current.ViewportContent, '{width}', IntToStr(DEFAULT_VIEWPORT_WIDTH));
 end;
 
 procedure TKWebApplication.SetViewportContent;
@@ -993,24 +1106,24 @@ var
   function GetSeparator: string;
   begin
     // IE on Windows Phone wants comma, others want space.
-    if string(TKWebRequest.Current.UserAgent).Contains('Windows Phone') then
+    if TKWebRequest.Current.IsBrowserWindowsPhone then
       Result := ', '
     else
       Result := ' ';
   end;
 
 begin
-  Session.ViewportContent := '';
+  TKWebSession.Current.ViewportContent := '';
   SetLength(LPairs, 2);
   LPairs[0] := TEFPair.Create('width', '{width}');
   LPairs[1] := TEFPair.Create('user-scalable', '0');
-  LPairs := GetHomeView(Session.ViewportWidthInInches).GetChildrenAsPairs('MobileSettings/ViewportContent', True, LPairs);
+  LPairs := GetHomeView(TKWebSession.Current.ViewportWidthInInches).GetChildrenAsPairs('MobileSettings/ViewportContent', True, LPairs);
   for LPair in LPairs do
   begin
-    if Session.ViewportContent = '' then
-      Session.ViewportContent := LPair.Key + '=' + LPair.Value
+    if TKWebSession.Current.ViewportContent = '' then
+      TKWebSession.Current.ViewportContent := LPair.Key + '=' + LPair.Value
     else
-      Session.ViewportContent := Session.ViewportContent + GetSeparator + LPair.Key + '=' + LPair.Value;
+      TKWebSession.Current.ViewportContent := TKWebSession.Current.ViewportContent + GetSeparator + LPair.Key + '=' + LPair.Value;
   end;
 end;
 
@@ -1022,7 +1135,7 @@ end;
 procedure TKWebApplication.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 begin
   inherited;
-  if (ASubject.AsObject = Session.LoginController.AsObject) and SameText(AContext, 'LoggedIn') then
+  if (ASubject.AsObject = TKWebSession.Current.LoginController.AsObject) and SameText(AContext, 'LoggedIn') then
     ReloadOrDisplayHomeView;
 end;
 
@@ -1038,20 +1151,20 @@ begin
   LHtml := ReplaceText(LHtml, '<%ViewportContent%>', GetViewportContent);
   LHtml := ReplaceText(LHtml, '<%ApplicationTitle%>', Config.AppTitle);
   LHtml := ReplaceText(LHtml, '<%ApplicationIconLink%>',
-    IfThen(Config.AppIcon = '', '', '<link rel="shortcut icon" href="' + Config.GetImageURL(Config.AppIcon) + '"/>'));
+    IfThen(Config.AppIcon = '', '', '<link rel="shortcut icon" href="' + GetImageURL(Config.AppIcon) + '"/>'));
   LHtml := ReplaceText(LHtml, '<%AppleIconLink%>',
-    IfThen(Config.AppIcon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + Config.GetImageURL(Config.AppIcon) + '"/>'));
+    IfThen(Config.AppIcon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + GetImageURL(Config.AppIcon) + '"/>'));
   LHtml := ReplaceText(LHtml, '<%CharSet%>', TKWebResponse.Current.Items.Charset);
   LHtml := ReplaceText(LHtml, '<%ExtJSPath%>', FExtJSPath);
-  LHtml := ReplaceText(LHtml, '<%DebugSuffix%>', {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+  LHtml := ReplaceText(LHtml, '<%ResourcePath%>', FResourcePath);
   LHtml := ReplaceText(LHtml, '<%ManifestLink%>', IfThen(GetManifestFileName = '', '',
     Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
   LHtml := ReplaceText(LHtml, '<%ThemeLink%>',
-    IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtJSPath + '/build/classic/theme-' + Theme +
+    IfThen(Theme = '', '', '<link rel=stylesheet href="' + FExtJSPath + '/build/classic/theme-' + Theme +
       '/resources/theme-' + Theme + '-all.css" />'));
   LHtml := ReplaceText(LHtml, '<%LanguageLink%>',
-    IfThen((Session.Language = 'en') or (Session.Language = ''), '',
-      '<script src="' + ExtJSPath + '/build/classic/locale/locale-' + Session.Language + '.js"></script>'));
+    IfThen((TKWebSession.Current.Language = 'en') or (TKWebSession.Current.Language = ''), '',
+      '<script src="' + FExtJSPath + '/build/classic/locale/locale-' + TKWebSession.Current.Language + '.js"></script>'));
   LHtml := ReplaceText(LHtml, '<%LibraryTags%>', GetLibraryTags);
   LHtml := ReplaceText(LHtml, '<%CustomJS%>', GetCustomJS);
   LHtml := ReplaceText(LHtml, '<%Response%>', TKWebResponse.Current.Items.Consume);
@@ -1069,8 +1182,8 @@ function TKWebApplication.GetManifestFileName: string;
 var
   LManifestFile, LURL: string;
 begin
-  LManifestFile := GetHomeView(Session.ViewportWidthInInches).GetString('MobileSettings/Android/Manifest', 'Manifest.json');
-  LURL := Config.FindResourceURL(LManifestFile);
+  LManifestFile := GetHomeView(TKWebSession.Current.ViewportWidthInInches).GetString('MobileSettings/Android/Manifest', 'Manifest.json');
+  LURL := FindResourceURL(LManifestFile);
   if LURL <> '' then
     Result := LURL
   else
@@ -1081,7 +1194,7 @@ function TKWebApplication.FindPageTemplate(const APageName: string): string;
 var
   LFileName: string;
 begin
-  LFileName := Config.FindResourcePathName(APageName + '.html');
+  LFileName := FindResourcePathName(APageName + '.html');
   if LFileName <> '' then
   begin
     Result := TextFileToString(LFileName, TKWebResponse.Current.Items.Encoding);
@@ -1118,6 +1231,75 @@ begin
   // the response doesn't contain any.
   TKWebResponse.Current.Items.Clear;
   TKWebResponse.Current.Items.ExecuteJSCode('window.location.reload();');
+end;
+
+function TKWebApplication.FindResourcePathName(const AResourceFileName: string): string;
+begin
+  Result := TPath.Combine(Config.AppHomePath, 'Resources') + PathDelim + StripPrefix(AResourceFileName, PathDelim);
+  if not FileExists(Result) then
+    Result := TPath.Combine(Config.SystemHomePath, 'Resources') + PathDelim + StripPrefix(AResourceFileName, PathDelim);
+  if not FileExists(Result) then
+    Result := '';
+end;
+
+function TKWebApplication.GetResourcePathName(const AResourceFileName: string): string;
+begin
+  Result := FindResourcePathName(AResourceFileName);
+  if Result = '' then
+    raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
+end;
+
+function TKWebApplication.FindResourceURL(const AResourceFileName: string): string;
+begin
+  if FindResourcePathName(AResourceFileName) = '' then
+    // File not found: no URL.
+    Result := ''
+  else
+    Result := FResourcePath + '/' + StripPrefix(AResourceFileName, PathDelim).Replace(PathDelim, '/');
+end;
+
+function TKWebApplication.GetResourceURL(const AResourceFileName: string): string;
+begin
+  Result := FindResourceURL(AResourceFileName);
+  if Result = '' then
+    raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
+end;
+
+function TKWebApplication.GetImagePathName(const AResourceName, ASuffix: string): string;
+begin
+  Result := GetResourcePathName(AdaptImageName(AResourceName, ASuffix));
+end;
+
+function TKWebApplication.GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+begin
+  Result := GetResourceURL(AdaptImageName(AResourceName, ASuffix));
+end;
+
+function TKWebApplication.FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
+begin
+  Result := FindResourcePathName(AdaptImageName(AResourceName, ASuffix));
+end;
+
+function TKWebApplication.FindImageURL(const AResourceName, ASuffix: string): string;
+begin
+  Result := FindResourceURL(AdaptImageName(AResourceName, ASuffix));
+end;
+
+class function TKWebApplication.AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
+
+  function HasSize(const AName: string): Boolean;
+  begin
+    Result := EndsStr('_16', AName) or EndsStr('_24', AName)
+      or EndsStr('_32', AName) or EndsStr('_48', AName);
+  end;
+
+begin
+  Result := AResourceName;
+  if HasSize(Result) then
+    Insert(ASuffix, Result, Length(Result) - 2)
+  else
+    Result := Result + ASuffix;
+  Result := Result + '.png';
 end;
 
 end.

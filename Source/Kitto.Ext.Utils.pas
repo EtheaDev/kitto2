@@ -187,11 +187,11 @@ begin
 
   if Assigned(AView) then
   begin
-    if Session.StatusHost <> nil then
-      //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', Session.StatusHost.ShowBusy])
+    if TKWebSession.Current.StatusHost <> nil then
+      //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', TKWebSession.Current.StatusHost.ShowBusy])
       Result := TKWebResponse.Current.Items.AjaxCallMethod(FOwner).SetMethod(FClickHandler)
         .AddParam('View', Integer(AView))
-        .AddParam('Dummy', Session.StatusHost.ShowBusy)
+        .AddParam('Dummy', TKWebSession.Current.StatusHost.ShowBusy)
         .AsFunction
     else
       //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);

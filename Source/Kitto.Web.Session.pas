@@ -25,7 +25,8 @@ unit Kitto.Web.Session;
 interface
 
 uses
-  Classes
+  SysUtils
+  , Classes
   , Generics.Collections
   , gnugettext
   , EF.Intf
@@ -36,12 +37,15 @@ uses
   , Kitto.JS
   , Kitto.Config
   , Kitto.Metadata.Views
+  , Kitto.Web.Request
   ;
 
 type
+  TKWebSessions = class;
+
   /// <summary>
   ///  Represents the server side of a user client session.
-  ///  Holds all objects pertaining to the user session.
+  ///  Holds all objects and data pertaining to the user session.
   /// </summary>
   TKWebSession = class(TEFSubjectAndObserver)
   private
@@ -65,9 +69,11 @@ type
     FDynamicScripts: TStringList;
     FDynamicStyles: TStringList;
     FDisplayName: string;
-    FLastRequestInfo: TJSRequestInfo;
+    FLastRequestInfo: TKWebRequestInfo;
     FCreationDateTime: TDateTime;
     FObjectSpace: TJSObjectSpace;
+    FTimeout: Double;
+    class threadvar FCurrent: TKWebSession;
     function GetDisplayName: string;
     procedure SetLanguage(const AValue: string);
     /// <summary>
@@ -83,6 +89,8 @@ type
     /// </summary>
     procedure EnsureDynamicScript(const AScriptBaseName: string);
     function GetObjectSpace: TJSObjectSpace;
+    class function GetCurrent: TKWebSession; static;
+    class procedure SetCurrent(const Value: TKWebSession); static;
   strict protected
     function GetViewportContent: string; virtual;
     function GetManifestFileName: string; virtual;
@@ -93,11 +101,16 @@ type
 
     function GetDefaultViewportWidth: Integer;
   public
-    constructor Create(const ASessionId: string); reintroduce;
+    constructor Create(const AClientAddress, ASessionId: string; const ATimeout: Double);
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
     property CreationDateTime: TDateTime read FCreationDateTime;
+    /// <summary>
+    ///  The current session's UUID.
+    /// </summary>
+    property SessionId: string read FSessionId;
+    property Timeout: Double read FTimeout;
     property Language: string read FLanguage write SetLanguage;
 
     property ObjectSpace: TJSObjectSpace read GetObjectSpace;
@@ -124,10 +137,6 @@ type
     /// </summary>
     property StatusHost: IJSStatusHost read FStatusHost write FStatusHost;
     property ControllerHostWindow: IJSContainer read FControllerHostWindow write FControllerHostWindow;
-    /// <summary>
-    ///  The current session's UUID.
-    /// </summary>
-    property SessionId: string read FSessionId;
     property OpenControllers: TList<IJSController> read FOpenControllers;
     property HomeController: IJSController read FHomeController write FHomeController;
     property LoginController: IJSController read FLoginController write FLoginController;
@@ -164,8 +173,19 @@ type
     procedure RemoveController(const AController: IJSController);
     property DisplayName: string read GetDisplayName write FDisplayName;
 
-    property LastRequestInfo: TJSRequestInfo read FLastRequestInfo;
+    property LastRequestInfo: TKWebRequestInfo read FLastRequestInfo;
     procedure SetDefaultLanguage(const AValue: string);
+
+    /// <summary>
+    ///  True if the session has expired, based on the value of Timeout and
+    ///  the current time.
+    /// </summary>
+    function HasExpired: Boolean;
+
+    /// <summary>
+    ///  Globally accessible reference to the current thread's active session.
+    /// </summary>
+    class property Current: TKWebSession read GetCurrent write SetCurrent;
   end;
 
   /// <summary>
@@ -191,29 +211,111 @@ type
     procedure AfterConstruction; override;
   end;
 
-function Session: TKWebSession;
+  TKWebSessions = class
+  private type
+    TKWebSessionProc = TProc<TKWebSession>;
+  private
+    FSessions: TObjectList<TKWebSession>;
+    FTimeout: Double;
+    FOnSessionEnd: TKWebSessionProc;
+    FOnSessionStart: TKWebSessionProc;
+    function CreateNewSessionId: string;
+    function FindSessionById(const ASessionId: string): TKWebSession;
+    function FindSessionByClientAddress(const AClientAddress: string): TKWebSession;
+  protected
+    procedure SessionAdded(const ASession: TKWebSession);
+    procedure SessionRemoved(const ASession: TKWebSession);
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+  public
+    constructor Create(const ATimeout: Double);
+
+    /// <summary>
+    ///  Creates a new sessions and adds it to the list.
+    /// </summary>
+    /// <param AClientAddress>
+    ///  The IP address of the client to bind to the session. Required.
+    /// </param>
+    /// <param ASessionId>
+    ///  The new session will have the specified id, if specified. Otherwise
+    ///  a new id is generated.
+    /// </param>
+    function NewSession(const AClientAddress: string; const ASessionId: string = ''): TKWebSession;
+
+    /// <summary>
+    ///  If ASessionId is provided, looks for a session with that id returns it, otherwise returns nil.
+    ///  If ASessionId is not provided, looks for a session with the specified client address and
+    ///  returns it, otherwise returns nil. In this case, if no client address is specified, returns nil.
+    /// </summary>
+    /// <param ASessionId>
+    ///  The session id to look for (can be empty).
+    /// </param>
+    /// <param AClientAddress>
+    ///  The client address to look for if no session id is specified.
+    /// </param>
+    function FindSession(const ASessionId, AClientAddress: string): TKWebSession;
+
+    /// <summary>
+    ///  Returns all sessions as an array for reporting and diagnostic purposes.
+    /// </summary>
+    /// <remarks>
+    ///  The list can change at any time after this method returns.
+    /// </remarks>
+    function GetSessions: TArray<TKWebSession>;
+
+    /// <summary>
+    ///  Deletes and frees the specified session.
+    /// </summary>
+    procedure RemoveSession(const ASession: TKWebSession);
+
+    procedure ClearSessions;
+
+    procedure CleanupExpiredSessions;
+
+    /// <summary>
+    ///  Fired when a new session has started.
+    /// </summary>
+    /// <remarks>
+    ///  This event is handled by the Kitto Engine. Applications should use
+    ///  the equivalent engine event.
+    /// </remarks>
+    property OnSessionStart: TKWebSessionProc read FOnSessionStart write FOnSessionStart;
+    /// <summary>
+    ///  Fired just before a session ends, either prematurely or when cleaned up due to
+    ///  timeout.
+    /// </summary>
+    /// <remarks>
+    ///  This event is handled by the Kitto Engine. Applications should use
+    ///  the equivalent engine event.
+    /// </remarks>
+    property OnSessionEnd: TKWebSessionProc read FOnSessionEnd write FOnSessionEnd;
+  end;
+
+
+//  ripristina gli event handler start/stop usando l'owner e prova scadenza naturale sessioni e cleanup
+
 
 implementation
 
 uses
-  SysUtils
+  DateUtils
+  , EF.StrUtils
   , EF.Logger
-  , Kitto.Web.Server
-  , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Web.Application
   ;
 
-function Session: TKWebSession;
-begin
-  Result := TKWebServer.CurrentKSession as TKWebSession;
-end;
-
-{ TJSSession }
+{ TKWebSession }
 
 function TKWebSession.GetViewportContent: string;
 begin
   Result := '';
+end;
+
+function TKWebSession.HasExpired: Boolean;
+begin
+  Result := Now > FLastRequestInfo.DateTime + FTimeout;
 end;
 
 procedure TKWebSession.BeforeHandleRequest;
@@ -222,7 +324,7 @@ var
 begin
   if FLanguage = '' then
   begin
-    FLanguage := TKWebRequest.Current.GetFieldByName('Accept-Language');
+    FLanguage := TKWebRequest.Current.AcceptLanguage;
     I := Pos('-', FLanguage);
     if I <> 0 then
       // Convert language code
@@ -230,12 +332,16 @@ begin
   end;
 end;
 
-constructor TKWebSession.Create(const ASessionId: string);
+constructor TKWebSession.Create(const AClientAddress, ASessionId: string; const ATimeout: Double);
 begin
   Assert(ASessionId <> '');
+  Assert(AClientAddress <> '');
 
   inherited Create;
   FSessionId := ASessionId;
+  FLastRequestInfo.ClearData;
+  FLastRequestInfo.ClientAddress := AClientAddress;
+  FTimeout := ATimeout;
 end;
 
 destructor TKWebSession.Destroy;
@@ -251,9 +357,13 @@ begin
   FreeAndNil(FGettextInstance);
   FreeAndNil(FDynamicScripts);
   FreeAndNil(FDynamicStyles);
-  FreeAndNil(FLastRequestInfo);
   FreeAndNil(FObjectSpace);
   inherited;
+end;
+
+class procedure TKWebSession.SetCurrent(const Value: TKWebSession);
+begin
+  FCurrent := Value;
 end;
 
 procedure TKWebSession.SetDefaultLanguage(const AValue: string);
@@ -270,6 +380,11 @@ begin
       LNewLanguage := Copy(LNewLanguage, I - 2, 2) + '_' + Uppercase(Copy(LNewLanguage, I + 1, 2));
     Language := LNewLanguage;
   end;
+end;
+
+class function TKWebSession.GetCurrent: TKWebSession;
+begin
+  Result := FCurrent;
 end;
 
 function TKWebSession.GetDefaultViewportWidth: Integer;
@@ -318,7 +433,6 @@ end;
 procedure TKWebSession.AfterConstruction;
 begin
   inherited;
-  FLastRequestInfo := TJSRequestInfo.Create;
   FCreationDateTime := Now;
 
   FDynamicScripts := TStringList.Create;
@@ -339,16 +453,16 @@ procedure TKWebSession.EnsureDynamicScript(const AScriptBaseName: string);
 var
   LIndex: Integer;
   LURL: string;
-  LResourceName: string;
-  LPathName: string;
+  LResourceFileName: string;
+  LResourcePathName: string;
 begin
   if not FDynamicScripts.Find(AScriptBaseName, LIndex) then
   begin
-    LResourceName := IncludeTrailingPathDelimiter('js') + AScriptBaseName + '.js';
-    LPathName := TKWebApplication.Current.Config.FindResourcePathName(LResourceName);
-    if LPathName <> '' then
+    LResourceFileName := IncludeTrailingPathDelimiter('js') + AScriptBaseName + '.js';
+    LResourcePathName := TKWebApplication.Current.FindResourcePathName(LResourceFileName);
+    if LResourcePathName <> '' then
     begin
-      LURL := TKWebApplication.Current.Config.FindResourceURL(LResourceName);
+      LURL := TKWebApplication.Current.FindResourceURL(LResourceFileName);
       TKWebResponse.Current.Items.ExecuteJSCode(Format('addScriptRef("%s");', [LURL]));
       FDynamicScripts.Add(AScriptBaseName);
     end;
@@ -359,16 +473,16 @@ procedure TKWebSession.EnsureDynamicStyle(const AStyleBaseName: string);
 var
   LIndex: Integer;
   LURL: string;
-  LResourceName: string;
-  LPathName: string;
+  LResourceFileName: string;
+  LResourcePathName: string;
 begin
   if not FDynamicStyles.Find(AStyleBaseName, LIndex) then
   begin
-    LResourceName := IncludeTrailingPathDelimiter('js') + AStyleBaseName + '.css';
-    LPathName := TKWebApplication.Current.Config.FindResourcePathName(LResourceName);
-    if LPathName <> '' then
+    LResourceFileName := IncludeTrailingPathDelimiter('js') + AStyleBaseName + '.css';
+    LResourcePathName := TKWebApplication.Current.FindResourcePathName(LResourceFileName);
+    if LResourcePathName <> '' then
     begin
-      LURL := TKWebApplication.Current.Config.FindResourceURL(LResourceName);
+      LURL := TKWebApplication.Current.FindResourceURL(LResourceFileName);
       TKWebResponse.Current.Items.ExecuteJSCode(Format('addLinkRef("%s");', [LURL]));
       FDynamicStyles.Add(AStyleBaseName);
     end;
@@ -447,8 +561,8 @@ end;
 
 function TKSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
 begin
-  if Session <> nil then
-    Result := Session.FGettextInstance
+  if TKWebSession.Current <> nil then
+    Result := TKWebSession.Current.FGettextInstance
   else
     Result := gnugettext.DefaultInstance;
 end;
@@ -472,6 +586,155 @@ begin
   Result := LInstance.dgettext(KITTO_TEXT_DOMAIN, AString);
   if Result = AString then
     Result := LInstance.dgettext('default', AString);
+end;
+
+{ TKWebSessions }
+
+constructor TKWebSessions.Create(const ATimeout: Double);
+begin
+  inherited Create;
+  FTimeout := ATimeout;
+end;
+
+procedure TKWebSessions.AfterConstruction;
+begin
+  inherited;
+  FSessions := TObjectList<TKWebSession>.Create;
+end;
+
+procedure TKWebSessions.CleanupExpiredSessions;
+var
+  I: Integer;
+  LSession: TKWebSession;
+begin
+  MonitorEnter(FSessions);
+  try
+    for I := FSessions.Count - 1 downto 0 do
+    begin
+      LSession := FSessions[I];
+      if LSession.HasExpired then
+      begin
+        FSessions.Extract(LSession);
+        try
+          SessionRemoved(LSession);
+        finally
+          FreeAndNil(LSession);
+        end;
+      end;
+    end;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+procedure TKWebSessions.ClearSessions;
+begin
+  MonitorEnter(FSessions);
+  try
+    while FSessions.Count > 0 do
+      RemoveSession(FSessions[0]);
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+procedure TKWebSessions.RemoveSession(const ASession: TKWebSession);
+begin
+  MonitorEnter(FSessions);
+  try
+    FSessions.Extract(ASession);
+    try
+      SessionRemoved(ASession);
+    finally
+      ASession.Free;
+    end;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+procedure TKWebSessions.SessionAdded(const ASession: TKWebSession);
+begin
+  if Assigned(FOnSessionStart) then
+    FOnSessionStart(ASession);
+end;
+
+procedure TKWebSessions.SessionRemoved(const ASession: TKWebSession);
+begin
+  if Assigned(FOnSessionEnd) then
+    FOnSessionEnd(ASession);
+end;
+
+destructor TKWebSessions.Destroy;
+begin
+  FreeAndNil(FSessions);
+  inherited;
+end;
+
+function TKWebSessions.GetSessions: TArray<TKWebSession>;
+begin
+  MonitorEnter(FSessions);
+  try
+    Result := FSessions.ToArray;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+function TKWebSessions.NewSession(const AClientAddress: string; const ASessionId: string = ''): TKWebSession;
+var
+  LSessionId: string;
+begin
+  Assert(AClientAddress <> '');
+
+  if ASessionId <> '' then
+    LSessionId := ASessionId
+  else
+    LSessionId := CreateNewSessionId;
+
+  Result := TKWebSession.Create(AClientAddress, LSessionId, FTimeout);
+  FSessions.Add(Result);
+  SessionAdded(Result);
+end;
+
+function TKWebSessions.FindSession(const ASessionId, AClientAddress: string): TKWebSession;
+begin
+  MonitorEnter(FSessions);
+  try
+    if ASessionId <> '' then
+      Result := FindSessionById(ASessionId)
+    else if AClientAddress <> '' then
+      Result := FindSessionByClientAddress(AClientAddress)
+    else
+      Result := nil;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+function TKWebSessions.FindSessionById(const ASessionId: string): TKWebSession;
+var
+  I: Integer;
+begin
+  for I := 0 to FSessions.Count - 1 do
+    if FSessions[I].SessionId = ASessionId then
+      Exit(FSessions[I]);
+  Result := nil;
+end;
+
+function TKWebSessions.FindSessionByClientAddress(const AClientAddress: string): TKWebSession;
+var
+  I: Integer;
+begin
+  for I := 0 to FSessions.Count - 1 do
+    if FSessions[I].LastRequestInfo.ClientAddress = AClientAddress then
+      Exit(FSessions[I]);
+  Result := nil;
+end;
+
+function TKWebSessions.CreateNewSessionId: string;
+begin
+  Result := CreateCompactGuidStr;
 end;
 
 initialization

@@ -38,8 +38,7 @@ type
     procedure CreateAndInitChart;
     procedure CreateAndInitSeries(const AConfigNode: TEFNode);
     function GetLabelRenderer(const AFieldName: string): string;
-    function CreateAndInitChartAxis(const AFieldName: string;
-      const AConfigNode: TEFNode): TExtChartAxis;
+//    function CreateAndInitChartAxis(const AFieldName: string; const AConfigNode: TEFNode): TExtChartAxis;
     function CreateAndInitAxis(const AConfigNode: TEFNode): TExtChartAxis;
     function GetDefaultSeriesType(const AChartType: string): string;
     procedure InitLegend(const AConfigNode: TEFNode);
@@ -124,52 +123,51 @@ begin
     Result := '';
 end;
 
-function TKExtChartPanel.CreateAndInitChartAxis(const AFieldName: string;
-  const AConfigNode: TEFNode): TExtChartAxis;
-var
-  LDataType: TEFDataType;
-begin
-  Assert(AFieldName <> '');
-
-  LDataType := ViewTable.FieldByName(AFieldName).GetActualDataType;
-
-  if LDataType is TEFDateTimeDataTypeBase then
-  begin
-    Result := TExtChartTimeAxis.Create(Self);
-    TExtChartTimeAxis(Result).StackingEnabled := True;
-    if Assigned(AConfigNode) then
-    begin
-      if AConfigNode.HasChild('MajorTimeUnit') then
-        TExtChartTimeAxis(Result).MajorTimeUnit := AConfigNode.GetString('MajorTimeUnit');
-      if AConfigNode.HasChild('MajorUnit') then
-        TExtChartTimeAxis(Result).MajorUnit := AConfigNode.GetInteger('MajorUnit');
-      if AConfigNode.HasChild('MinorUnit') then
-        TExtChartTimeAxis(Result).MinorUnit := AConfigNode.GetInteger('MinorUnit');
-      if AConfigNode.HasChild('Max') then
-        TExtChartTimeAxis(Result).Maximum := AConfigNode.GetInteger('Max');
-      if AConfigNode.HasChild('Min') then
-        TExtChartTimeAxis(Result).Minimum := AConfigNode.GetInteger('Min');
-    end;
-  end
-  else if LDataType is TEFNumericDataTypeBase then
-  begin
-    Result := TExtChartNumericAxis.Create(Self);
-    TExtChartNumericAxis(Result).StackingEnabled := True;
-    if Assigned(AConfigNode) then
-    begin
-      if AConfigNode.HasChild('Max') then
-        TExtChartNumericAxis(Result).Maximum := AConfigNode.GetInteger('Max');
-      if AConfigNode.HasChild('Min') then
-        TExtChartNumericAxis(Result).Minimum := AConfigNode.GetInteger('Min');
-      if AConfigNode.HasChild('MajorUnit') then
-        TExtChartNumericAxis(Result).MajorUnit := AConfigNode.GetInteger('MajorUnit');
-      if AConfigNode.HasChild('MinorUnit') then
-        TExtChartNumericAxis(Result).MinorUnit := AConfigNode.GetInteger('MinorUnit');
-    end;
-  end
-  else
-    Result := TExtChartCategoryAxis.Create(Self);
-end;
+//function TKExtChartPanel.CreateAndInitChartAxis(const AFieldName: string; const AConfigNode: TEFNode): TExtChartAxis;
+//var
+//  LDataType: TEFDataType;
+//begin
+//  Assert(AFieldName <> '');
+//
+//  LDataType := ViewTable.FieldByName(AFieldName).GetActualDataType;
+//
+//  if LDataType is TEFDateTimeDataTypeBase then
+//  begin
+//    Result := TExtChartTimeAxis.Create(Self);
+//    TExtChartTimeAxis(Result).StackingEnabled := True;
+//    if Assigned(AConfigNode) then
+//    begin
+//      if AConfigNode.HasChild('MajorTimeUnit') then
+//        TExtChartTimeAxis(Result).MajorTimeUnit := AConfigNode.GetString('MajorTimeUnit');
+//      if AConfigNode.HasChild('MajorUnit') then
+//        TExtChartTimeAxis(Result).MajorUnit := AConfigNode.GetInteger('MajorUnit');
+//      if AConfigNode.HasChild('MinorUnit') then
+//        TExtChartTimeAxis(Result).MinorUnit := AConfigNode.GetInteger('MinorUnit');
+//      if AConfigNode.HasChild('Max') then
+//        TExtChartTimeAxis(Result).Maximum := AConfigNode.GetInteger('Max');
+//      if AConfigNode.HasChild('Min') then
+//        TExtChartTimeAxis(Result).Minimum := AConfigNode.GetInteger('Min');
+//    end;
+//  end
+//  else if LDataType is TEFNumericDataTypeBase then
+//  begin
+//    Result := TExtChartNumericAxis.Create(Self);
+//    TExtChartNumericAxis(Result).StackingEnabled := True;
+//    if Assigned(AConfigNode) then
+//    begin
+//      if AConfigNode.HasChild('Max') then
+//        TExtChartNumericAxis(Result).Maximum := AConfigNode.GetInteger('Max');
+//      if AConfigNode.HasChild('Min') then
+//        TExtChartNumericAxis(Result).Minimum := AConfigNode.GetInteger('Min');
+//      if AConfigNode.HasChild('MajorUnit') then
+//        TExtChartNumericAxis(Result).MajorUnit := AConfigNode.GetInteger('MajorUnit');
+//      if AConfigNode.HasChild('MinorUnit') then
+//        TExtChartNumericAxis(Result).MinorUnit := AConfigNode.GetInteger('MinorUnit');
+//    end;
+//  end
+//  else
+//    Result := TExtChartCategoryAxis.Create(Self);
+//end;
 
 function TKExtChartPanel.GetDefaultSeriesType(const AChartType: string): string;
 begin

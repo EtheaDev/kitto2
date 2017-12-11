@@ -8,16 +8,17 @@ uses
   ;
 
 type
-  TKURL = class(TIdURI)
-  private
-    FParsedParams: TStrings;
+  TKWebURL = class(TIdURI)
   public
-    constructor Create(const AURI: string; const AParams: TStrings); reintroduce;
-    function ParamByName(const AName: string): string;
-    destructor Destroy; override;
-
-    // Returns the last path segment. If the path has only one segment, returns ''.
+    /// <summary>
+    ///  Returns the last path segment. If the path has only one segment, returns ''.
+    /// </summary>
     function ExtractObjectName: string;
+
+    /// <summary>
+    ///  Adds a trailing / if not present already.
+    /// </summary>
+    class function IncludeTrailingPathDelimiter(const APath: string): string;
   end;
 
 implementation
@@ -25,26 +26,12 @@ implementation
 uses
   SysUtils
   , StrUtils
-  , IdGlobal
   , EF.StrUtils
   ;
 
-{ TKURL }
+{ TWebKURL }
 
-constructor TKURL.Create(const AURI: string; const AParams: TStrings);
-begin
-  inherited Create(AURI);
-  FParsedParams := TStringList.Create;
-  FParsedParams.Assign(AParams);
-end;
-
-destructor TKURL.Destroy;
-begin
-  FreeAndNil(FParsedParams);
-  inherited;
-end;
-
-function TKURL.ExtractObjectName: string;
+function TKWebURL.ExtractObjectName: string;
 var
   LPathSegments: TArray<string>;
 begin
@@ -55,9 +42,20 @@ begin
     Result := '';
 end;
 
-function TKURL.ParamByName(const AName: string): string;
+class function TKWebURL.IncludeTrailingPathDelimiter(const APath: string): string;
+const
+  PATH_DELIMITER = '/';
+
+  function IsPathDelimiter(const AString: string; AIndex: Integer): Boolean;
+  begin
+    Result := (AIndex >= Low(string)) and (AIndex <= High(AString)) and (AString[AIndex] = PATH_DELIMITER)
+      and (ByteType(AString, AIndex) = mbSingleByte);
+  end;
+
 begin
-  Result := FParsedParams.Values[AName];
+  Result := APath;
+  if not IsPathDelimiter(Result, High(Result)) then
+    Result := Result + PATH_DELIMITER;
 end;
 
 end.

@@ -14,21 +14,20 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.Start;
+unit Kitto.Vcl.Start;
+
+{$I Kitto.Defines.inc}
 
 interface
 
 type
-  TKExtStart = class
+  TKStart = class
   private
-  class var
-    FServiceName: string;
-    FServiceDisplayName: string;
-    class procedure Configure;
+    class var FIsService: Boolean;
   public
-    class property ServiceName: string read FServiceName write FServiceName;
-    class property ServiceDisplayName: string read FServiceDisplayName write FServiceDisplayName;
     class procedure Start;
+
+    class property IsService: Boolean read FIsService;
   end;
 
 implementation
@@ -36,51 +35,45 @@ implementation
 uses
   SysUtils
   , Classes
+  , EF.Logger
+  , Kitto.Config
   {$IFDEF MSWINDOWS}
   , Vcl.Forms
   , Vcl.SvcMgr
-  , ShlObj
   , Vcl.Themes
   , Vcl.Styles
-  {$ENDIF}
-  , EF.Logger
-  , EF.Localization
-  , Kitto.Config
-  {$IFDEF MSWINDOWS}
-  , Kitto.Ext.MainFormUnit
-  , Kitto.Ext.Service
+  , Kitto.Vcl.MainForm
+  , Kitto.Vcl.Service
   {$ENDIF}
   ;
 
-{ TKExtStart }
+{ TKStart }
 
-class procedure TKExtStart.Configure;
-var
-  LConfig: TKConfig;
-begin
-  LConfig := TKConfig.Create;
-  try
-    TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
-    FServiceName := TKConfig.AppName;
-    FServiceDisplayName := _(LConfig.AppTitle);
-  finally
-    FreeAndNil(LConfig);
+class procedure TKStart.Start;
+
+  procedure Configure;
+  var
+    LConfig: TKConfig;
+  begin
+    LConfig := TKConfig.Create;
+    try
+      TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
+    finally
+      FreeAndNil(LConfig);
+    end;
   end;
-end;
 
-class procedure TKExtStart.Start;
 begin
   Configure;
 
-  if not FindCmdLineSwitch('a') then
+  FIsService := not FindCmdLineSwitch('a');
+  if FIsService then
   begin
     {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as service.');
     if not Vcl.SvcMgr.Application.DelayInitialize or Vcl.SvcMgr.Application.Installing then
       Vcl.SvcMgr.Application.Initialize;
-    Vcl.SvcMgr.Application.CreateForm(TKExtService, KExtService);
-    KExtService.Name := FServiceName;
-    KExtService.DisplayName := FServiceDisplayName;
+    Vcl.SvcMgr.Application.CreateForm(TKService, KService);
     Vcl.SvcMgr.Application.Run;
     {$ELSE}
     TEFLogger.Instance.Log('Services not yet supported on this platform.');
@@ -91,7 +84,7 @@ begin
     {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as application.');
     Vcl.Forms.Application.Initialize;
-    Vcl.Forms.Application.CreateForm(TKExtMainForm, KExtMainForm);
+    Vcl.Forms.Application.CreateForm(TKMainForm, KMainForm);
     Vcl.Forms.Application.Run;
     {$ELSE}
     TEFLogger.Instance.Log('GUI applications not yet supported on this platform.');

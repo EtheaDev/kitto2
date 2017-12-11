@@ -212,7 +212,7 @@ begin
 
   PerformBeforeExecute;
   LController := TKExtControllerFactory.Instance.CreateController(
-    Session.ObjectSpace, View, nil, nil, ActionObserver);
+    TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
   if LController.Config.GetBoolean('RequireSelection', True) then
     FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
   else
@@ -406,7 +406,7 @@ begin
     FreeAndNil(FEditHostWindow);
   end;
   FEditHostWindow := TKExtModalWindow.Create(Self);
-//  FEditHostWindow.OwnerCt := Session.HomeController.AsJSObject as TExtContainer;
+//  FEditHostWindow.OwnerCt := TKWebSession.Current.HomeController.AsJSObject as TExtContainer;
 
   //FEditHostWindow.ResizeHandles := 'n s';
   FEditHostWindow.Layout := lyFit;
@@ -628,7 +628,7 @@ begin
       if not LVIewTableField.IsNull then
         LImageField.AsString := AddParamsToURL(GetMethodURL(GetImage), 'fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString)
       else
-        LImageField.AsString := TKWebApplication.Current.Config.GetImageURL(
+        LImageField.AsString := TKWebApplication.Current.GetImageURL(
           LImageField.ViewField.GetString('EmptyImageName', 'empty'));
     end;
   end;
@@ -785,7 +785,7 @@ begin
       LImageField.ViewField.GetInteger('IsPicture/Thumbnail/Height', 100));
   end
   else
-    TKWebApplication.Current.DownloadFile(TKWebApplication.Current.Config.GetImagePathName(
+    TKWebApplication.Current.DownloadFile(TKWebApplication.Current.GetImagePathName(
       LImageField.ViewField.GetString('EmptyImageName', 'empty')), 'test.png');
 end;
 

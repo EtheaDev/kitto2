@@ -1,4 +1,22 @@
-﻿unit Kitto.Web.Response;
+﻿{-------------------------------------------------------------------------------
+   Copyright 2012-2017 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------}
+
+unit Kitto.Web.Response;
+
+{$I Kitto.Defines.inc}
 
 interface
 
@@ -6,7 +24,7 @@ uses
   Classes
   , Generics.Collections
   , SysUtils
-  , IdHTTPWebBrokerBridge
+  , HTTPApp
   , Kitto.JS.Types
   , Kitto.JS.Base
   , Kitto.JS.Formatting
@@ -16,13 +34,18 @@ uses
 type
   TJSResponseItems = class;
 
-  TKWebResponse = class(TIdHTTPAppResponse)
+  TKWebResponse = class
   private
-    FResponseItemsStack: TStack<TJSResponseItems>;
+    FResponse: TWebResponse;
+    FItems: TStack<TJSResponseItems>;
+    FOwnsResponse: Boolean;
     class threadvar FCurrent: TKWebResponse;
     class function GetCurrent: TKWebResponse; static;
     class procedure SetCurrent(const AValue: TKWebResponse); static;
     function GetItems: TJSResponseItems;
+    function GetContentType: string;
+    procedure SetContentType(const Value: string);
+    function GetCustomHeaders: TStrings;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -30,14 +53,27 @@ type
     class property Current: TKWebResponse read GetCurrent write SetCurrent;
     class procedure ClearCurrent;
 
-    function HasResponseItems: Boolean;
-    function BranchResponseItems: TJSResponseItems;
-    procedure UnbranchResponseItems(const AResponseItems: TJSResponseItems; const AConsolidate: Boolean);
-    property Items: TJSResponseItems read GetItems;
-    // Generates code for all the Items and sets Content/ContentStream and ContentType accordingly.
-    procedure Render;
+    constructor Create(const AResponse: TWebResponse; const AOwnsResponse: Boolean = True);
 
-    // Takes care of freeing a previous content stream, if any, before assigning a new one.
+    property ContentType: string read GetContentType write SetContentType;
+    procedure SetCustomHeader(const AName, AValue: string);
+    property CustomHeaders: TStrings read GetCustomHeaders;
+    procedure SetCookie(const AName, AValue: string; const AExpires: TDateTime);
+
+    function HasItems: Boolean;
+    function BranchItems: TJSResponseItems;
+    procedure UnbranchItems(const AItems: TJSResponseItems; const AConsolidate: Boolean);
+    property Items: TJSResponseItems read GetItems;
+    /// <summary>
+    ///  Generates code for all the Items and sets Content/ContentStream and ContentType accordingly.
+    ///  Then finalizes the response. Called as a final act after all request handlers
+    ///  have had a chance at contributing to it.
+    /// </summary>
+    procedure Send;
+
+    /// <summary>
+    ///  Takes care of freeing a previous content stream, if any, before assigning a new one.
+    /// </summary>
     procedure ReplaceContentStream(const AStream: TStream);
 
     function GetJSCode(const AMethod: TProc; const ASilent: Boolean = False): string;
@@ -300,7 +336,8 @@ type
 implementation
 
 uses
-  Kitto.Web.Application
+  DateUtils
+  , Kitto.Web.Application
   ;
 
 { TKWebResponse }
@@ -310,12 +347,27 @@ begin
   FreeAndNil(FCurrent);
 end;
 
+constructor TKWebResponse.Create(const AResponse: TWebResponse; const AOwnsResponse: Boolean);
+begin
+  Assert(Assigned(AResponse));
+  inherited Create;
+  FResponse := AResponse;
+  FOwnsResponse := AOwnsResponse;
+end;
+
 destructor TKWebResponse.Destroy;
 begin
-  Assert(FResponseItemsStack.Count = 1);
-  FResponseItemsStack.Pop.Free;
-  FreeAndNil(FResponseItemsStack);
+  Assert(FItems.Count = 1);
+  FItems.Pop.Free;
+  FreeAndNil(FItems);
+  if FOwnsResponse then
+    FreeAndNil(FResponse);
   inherited;
+end;
+
+function TKWebResponse.GetContentType: string;
+begin
+  Result := FResponse.ContentType;
 end;
 
 class function TKWebResponse.GetCurrent: TKWebResponse;
@@ -323,41 +375,63 @@ begin
   Result := FCurrent;
 end;
 
+function TKWebResponse.GetCustomHeaders: TStrings;
+begin
+  Result := FResponse.CustomHeaders;
+end;
+
 function TKWebResponse.GetItems: TJSResponseItems;
 begin
-  Assert(FResponseItemsStack.Count > 0);
+  Assert(FItems.Count > 0);
 
-  Result := FResponseItemsStack.Peek;
+  Result := FItems.Peek;
 end;
 
-function TKWebResponse.HasResponseItems: Boolean;
+function TKWebResponse.HasItems: Boolean;
 begin
-  Result := Assigned(FResponseItemsStack);
+  Result := Assigned(FItems);
 end;
 
-procedure TKWebResponse.Render;
+procedure TKWebResponse.Send;
 begin
-  // Don't overwrite custom responses.
 { TODO : tunnel all responses (including downloads) through the response items? }
+  // Don't overwrite custom responses.
   if Items.Count > 0 then
   begin
     //Content := Items.Consume;
     ReplaceContentStream(TStringStream.Create(Items.Consume, Items.Encoding));
     ContentType := Items.GetContentType;
   end;
+  FResponse.SendResponse;
 end;
 
 procedure TKWebResponse.ReplaceContentStream(const AStream: TStream);
 var
   LContentStream: TStream;
 begin
-  if Assigned(ContentStream) then
+  if Assigned(FResponse.ContentStream) then
   begin
-    LContentStream := ContentStream;
-    ContentStream := nil; // propagates to response info object.
+    LContentStream := FResponse.ContentStream;
+    FResponse.ContentStream := nil;
     FreeAndNil(LContentStream);
   end;
-  ContentStream := AStream;
+  FResponse.ContentStream := AStream;
+end;
+
+procedure TKWebResponse.SetContentType(const Value: string);
+begin
+  FResponse.ContentType := Value;
+end;
+
+procedure TKWebResponse.SetCookie(const AName, AValue: string; const AExpires: TDateTime);
+var
+  LCookie: TCookie;
+begin
+  LCookie := FResponse.Cookies.Add;
+  LCookie.Name := AName;
+  LCookie.Value := AValue;
+  LCookie.Path := '/';
+  LCookie.Expires := AExpires;
 end;
 
 class procedure TKWebResponse.SetCurrent(const AValue: TKWebResponse);
@@ -365,58 +439,63 @@ begin
   FCurrent := AValue;
 end;
 
+procedure TKWebResponse.SetCustomHeader(const AName, AValue: string);
+begin
+  FResponse.SetCustomHeader(AName, AValue);
+end;
+
 procedure TKWebResponse.AfterConstruction;
 begin
   inherited;
-  FResponseItemsStack := TStack<TJSResponseItems>.Create;
-  FResponseItemsStack.Push(TJSResponseItems.Create(nil));
+  FItems := TStack<TJSResponseItems>.Create;
+  FItems.Push(TJSResponseItems.Create(nil));
 end;
 
-function TKWebResponse.BranchResponseItems: TJSResponseItems;
+function TKWebResponse.BranchItems: TJSResponseItems;
 begin
   Result := TJSResponseItems.Create(nil);
-  FResponseItemsStack.Push(Result);
+  FItems.Push(Result);
 
-  Assert(FResponseItemsStack.Count > 0);
+  Assert(FItems.Count > 0);
 end;
 
-procedure TKWebResponse.UnbranchResponseItems(const AResponseItems: TJSResponseItems; const AConsolidate: Boolean);
+procedure TKWebResponse.UnbranchItems(const AItems: TJSResponseItems; const AConsolidate: Boolean);
 var
   LSender: TJSBase;
   LBranch: TJSResponseItems;
   LInitialCount: Integer;
 begin
-  Assert(Assigned(AResponseItems));
-  Assert(FResponseItemsStack.Count > 1);
-  Assert(AResponseItems = FResponseItemsStack.Peek);
+  Assert(Assigned(AItems));
+  Assert(FItems.Count > 1);
+  Assert(AItems = FItems.Peek);
 
-  LInitialCount := FResponseItemsStack.Count;
-  LBranch := FResponseItemsStack.Pop;
+  LInitialCount := FItems.Count;
+  LBranch := FItems.Pop;
   if AConsolidate then
   begin
     if LBranch.Count > 0 then
     begin
       LSender := LBranch.Items[0].Sender;
-      FResponseItemsStack.Peek.ExecuteJSCode(LSender, LBranch.Consume);
+      FItems.Peek.ExecuteJSCode(LSender, LBranch.Consume);
     end;
   end;
   FreeAndNil(LBranch);
 
-  Assert(FResponseItemsStack.Count = LInitialCount - 1);
+  Assert(FItems.Count = LInitialCount - 1);
 end;
 
 function TKWebResponse.GetJSCode(const AMethod: TProc; const ASilent: Boolean): string;
 var
   LResponseItemBranch: TJSResponseItems;
 begin
-  LResponseItemBranch := BranchResponseItems;
+  LResponseItemBranch := BranchItems;
   try
     AMethod;
     Result := LResponseItemBranch.Consume;
     if ASilent then
       Result := 'try { ' + Result + ' } catch(e) {};';
   finally
-    UnbranchResponseItems(LResponseItemBranch, False);
+    UnbranchItems(LResponseItemBranch, False);
   end;
 end;
 

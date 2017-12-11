@@ -25,7 +25,6 @@ uses
   , Classes
   , Generics.Collections
   , Types
-  , SyncObjs
   , EF.Types
   , EF.Tree
   , EF.YAML
@@ -130,7 +129,6 @@ type
     FDisposedObjects: TList<TKMetadata>;
     FNonpersistentObjects: TDictionary<TEFNode, TKMetadata>;
     FDynamicObjects: TDictionary<string, TKMetadata>;
-    class var FCriticalSection: TCriticalSection;
     procedure RefreshIndex;
     function GetObjectCount: Integer;
     function GetReader: TEFYAMLReader;
@@ -164,8 +162,6 @@ type
     function GetMetadataRegistry: TKMetadataRegistry; virtual; abstract;
     procedure Synchronize(const AProc: TProc);
   public
-    class constructor Create;
-    class destructor Destroy;
     procedure AfterConstruction; override;
     destructor Destroy; override;
     function FindNonpersistentObject(const ANode: TEFNode): TKMetadata;
@@ -301,11 +297,6 @@ begin
   FDynamicObjects := TDictionary<string, TKMetadata>.Create;
 end;
 
-class constructor TKMetadataCatalog.Create;
-begin
-  FCriticalSection := TCriticalSection.Create;
-end;
-
 procedure TKMetadataCatalog.CreateIndex;
 begin
   FIndex := TStringList.Create;
@@ -424,11 +415,6 @@ begin
       ObjectRemoved(LFileName);
     end
   );
-end;
-
-class destructor TKMetadataCatalog.Destroy;
-begin
-  FreeAndNil(FCriticalSection);
 end;
 
 procedure TKMetadataCatalog.RemoveObject(const AObject: TKMetadata);
@@ -893,11 +879,11 @@ procedure TKMetadataCatalog.Synchronize(const AProc: TProc);
 begin
   if Assigned(AProc) then
   begin
-    FCriticalSection.Enter;
+    MonitorEnter(Self);
     try
       AProc;
     finally
-      FCriticalSection.Leave;
+      MonitorExit(Self);
     end;
   end;
 end;

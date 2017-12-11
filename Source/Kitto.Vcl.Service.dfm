@@ -1,7 +1,10 @@
-object KExtService: TKExtService
+object KService: TKService
   OldCreateOrder = False
+  OnCreate = ServiceCreate
+  OnDestroy = ServiceDestroy
   AllowPause = False
   DisplayName = 'KittoService'
+  AfterInstall = ServiceAfterInstall
   OnShutdown = ServiceShutdown
   OnStart = ServiceStart
   OnStop = ServiceStop

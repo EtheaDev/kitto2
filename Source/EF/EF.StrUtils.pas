@@ -65,18 +65,23 @@ function StripSuffix(const AString, ASuffix: string): string;
 function GetRandomString(const ALength: Integer): string;
 
 ///	<summary>
-///	  Returns True if APattern matches AString. APattern may contain the
-///	  following jolly characters: ? matches any one character. * matches any
-///	  sequence of zero or more characters. Everything else is compared
-///	  literally in a case sensitive manner.
+///	 Returns True if APattern matches AString. APattern may contain the
+///	 following jolly characters: ? matches any one character. * matches any
+///	 sequence of zero or more characters. Everything else is compared
+///	 literally in a case sensitive manner.
 ///	</summary>
 function StrMatches(const AString, APattern: string): Boolean;
 
 ///	<summary>
-///	  Interprets a ~ character at the beginning of a pattern as a negation
-///	  symbol. Otherwise it's identical to StrMatches.
+///	 Interprets a ~ character at the beginning of a pattern as a negation
+///	 symbol. Otherwise it's identical to StrMatches.
 ///	</summary>
 function StrMatchesEx(const AString, APattern: string): Boolean;
+
+///	<summary>
+///	 Strips any jolly characters used by StrMatches and StrMatchesEx from AString.
+///	</summary>
+function StripJollyCharacters(const AString: string): string;
 
 ///	<summary>
 ///	  Returns the number of occurences of ASubstring in AString.
@@ -431,6 +436,11 @@ begin
     Result := not StrMatches(AString, Copy(APattern, 2, MaxInt))
   else
     Result := StrMatches(AString, APattern);
+end;
+
+function StripJollyCharacters(const AString: string): string;
+begin
+  Result := AString.Replace('*', '').Replace('?', '').Replace('', '~');
 end;
 
 function CountSubstrings(const AString, ASubstring: string): Integer;

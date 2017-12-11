@@ -328,7 +328,7 @@ var
         SetLength(LTriples, LImages.ChildCount);
         for I := 0 to LImages.ChildCount - 1 do
         begin
-          LTriples[I].Value1 := TKWebApplication.Current.Config.GetImageURL(LImages.Children[I].Name);
+          LTriples[I].Value1 := TKWebApplication.Current.GetImageURL(LImages.Children[I].Name);
           LTriples[I].Value2 := LImages.Children[I].AsExpandedString;
           LTriples[I].Value3 := LImages.Children[I].GetExpandedString('DisplayTemplate');
           if LTriples[I].Value3 = '' then

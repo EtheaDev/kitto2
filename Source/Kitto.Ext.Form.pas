@@ -1119,7 +1119,7 @@ begin
   if Assigned(FViewTable) then
   begin
     Text := _(FViewTable.PluralDisplayLabel);
-    Icon := TKWebApplication.Current.Config.GetImageURL(FViewTable.ImageName);
+    Icon := TKWebApplication.Current.GetImageURL(FViewTable.ImageName);
     //Handler := Ajax(ShowDetailWindow, []);
     Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ShowDetailWindow).AsFunction;
   end;

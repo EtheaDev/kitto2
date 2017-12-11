@@ -28,6 +28,8 @@ type
 
   EKError = class(EEFError);
 
+  TKLogEvent = procedure (const AString: string) of object;
+
 implementation
 
 end.
