@@ -67,13 +67,16 @@ begin
     ValidateTree(AConfig);
 
     if AConfig.GetString('AppTitle') = '' then
-      LogError('Missing AppTitle.');
+      LogWarning('Missing AppTitle.');
 
     if AConfig.FindNode('Databases') = nil then
-      LogError('Missing Databases Node: at least one Database Connection must be configured.');
+      LogWarning('Missing Databases Node: at least one Database Connection must be configured to access data.');
 
-    if AConfig.GetString('FastCGI/TCPPort') = '' then
-      LogError('Missing FastCGI/TCPPort: for any kitto application you must define a TCPPort.');
+    if AConfig.GetString('Server/Port') = '' then
+      LogWarning('Missing Server/Port: any kitto application uses a different Server/Port: if not defined default port 8080 is used.');
+
+    if AConfig.GetString('ExtJS/Theme') = '' then
+      LogWarning('Missing ExtJS/Theme: any kitto application can use a specific theme: if not defined default theme "triton" is used.');
 
   finally
     LogOutdent;

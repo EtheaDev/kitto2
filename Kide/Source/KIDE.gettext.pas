@@ -82,7 +82,7 @@ procedure ExtractdxTranslatableStrings(const ADirectory, AOutputFileName: string
 var
   LCmdLine: string;
 begin
-  Exit;
+  //Exit;
   LCmdLine := '"'+IncludeTrailingPathDelimiter(GetdxgettextDirectory) + 'dxgettext.exe" -q -b "' +
     ADirectory + '" --delphi --so "' + AOutputFileName + '" --nonascii';
   ExecuteApplication(LCmdLine, AOutput);
@@ -93,7 +93,7 @@ procedure MergePOFiles(const AInputFileName, AOutputFileName: string;
 var
   LCmdLine: string;
 begin
-  Exit;
+  //Exit;
   LCmdLine := '"'+IncludeTrailingPathDelimiter(GetdxgettextDirectory) + 'msgcat.exe" "' +
     AInputFileName + '" "' + AOutputFileName + '" -o "' + AOutputFileName + '" --no-wrap';
   ExecuteApplication(LCmdLine, AOutput);
@@ -190,16 +190,20 @@ var
   LStringLine: string;
 begin
   LStringLine := FormatString(AString);
-  I := IndexOf(LStringLine);
-  if I < 0 then
+  I := Pos(LStringLine,Self.Text);
+  if I <= 0 then
   begin
-    // Add empty line only if needed.
-    if (Count > 0) and (Strings[Count - 1] <> '') then
-      Add('');
-    Add('#: ' + AReference);
-    Add(LStringLine);
-    Add(FormatTranslation(''));
-    FIsChanged := True;
+    I := Pos(FormatString(StringReplace(AString, '"', '\"', [rfReplaceAll, rfIgnoreCase])),Self.Text);  //verify case with string with " saved in .po file as \"
+    if I <= 0 then
+    begin
+      // Add empty line only if needed.
+      if (Count > 0) and (Strings[Count - 1] <> '') then
+        Add('');
+      Add('#: ' + AReference);
+      Add(FormatString(AString));
+      Add(FormatTranslation(''));
+      FIsChanged := True;
+    end;
   end;
 end;
 
