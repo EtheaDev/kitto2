@@ -504,3 +504,8 @@ function linesToPixels(lines)
   return (TextMetrics.getHeight("g") * lines);
   //return TextMetrics.getHeight("g") * lines;
 }
+
+function finishedLoadingHomeView()
+{
+  Ext.get("loading").remove();
+}
