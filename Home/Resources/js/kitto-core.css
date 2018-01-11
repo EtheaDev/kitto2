@@ -1,26 +1,39 @@
 .x-form-invalid 
 {
-  background-color: #cc7777;
+	background-color: #cc7777;
 }
 
 .x-form-readonly
 {
-  color: #666666;
+	color: #666666;
 }
 
 .x-form-empty-field
 {
-  font-style: italic;
-  color: #333333;
+	font-style: italic;
+	color: #333333;
 }
 
 .ext-el-mask {
-  /* .ext-el-mask-msg has 20001 */
-  z-index: 20000;
+	/* .ext-el-mask-msg has 20001 */
+	z-index: 20000;
 }
 
 .x-form-text-field-body-default
 {
-  /* prevents remote combos to be rendered one pixel off with certain themes */
-  vertical-align: top;
+	/* prevents remote combos to be rendered one pixel off with certain themes */
+	vertical-align: top;
+}
+
+.k-loading {
+	text-align: center;
+	font-size: 200%;
+	width: 600px;
+	height: 100px;
+	position: absolute;
+	top:0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
 }
