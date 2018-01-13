@@ -138,16 +138,24 @@ var
   LControllerClass: TClass;
   LContext: TRttiContext;
   LMethod: TRttiMethod;
+  LType: string;
 begin
   Assert(Assigned(AView));
   Assert(AMethodName <> '');
 
-  LControllerClass := TKExtControllerRegistry.Instance.GetClass(AView.ControllerType);
-  LMethod := LContext.GetType(LControllerClass).GetMethod(AMethodName);
-  if Assigned(LMethod) then
-    Result := LMethod.Invoke(LControllerClass, []).AsString
-  else
-    Result := ADefaultValue;
+  Result := ADefaultValue;
+
+  LType := AView.ControllerType;
+  if LType <> '' then
+  begin
+    LControllerClass := TKExtControllerRegistry.Instance.FindClass(LType);
+    if Assigned(LControllerClass) then
+    begin
+      LMethod := LContext.GetType(LControllerClass).GetMethod(AMethodName);
+      if Assigned(LMethod) then
+        Result := LMethod.Invoke(LControllerClass, []).AsString;
+    end;
+  end;
 end;
 
 function GetDisplayLabelFromNode(const ANode: TKTreeViewNode; const AViews: TKViews): string;
