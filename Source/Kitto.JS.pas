@@ -268,6 +268,7 @@ type
     function AddInternal(const AObject: TJSObject): Integer;
     function Remove(const AObject: TJSObject): Integer;
     function IndexOf(const AObject: TJSObject): Integer;
+    function HasObject(const AObject: TJSObject): Boolean;
     property Count: Integer read GetCount;
   end;
 
@@ -334,6 +335,11 @@ begin
   Result := FObjects[I];
 end;
 
+function TJSObjectArray.HasObject(const AObject: TJSObject): Boolean;
+begin
+  Result := IndexOf(AObject) >= 0;
+end;
+
 function TJSObjectArray.IndexOf(const AObject: TJSObject): Integer;
 begin
   Result := FObjects.IndexOf(AObject);
@@ -397,9 +403,12 @@ end;
 
 procedure TJSObject.AddItem(const AItems: TJSObjectArray; const AItem: TJSObject);
 begin
-  AItems.Add(AItem);
-  if FJSConfig.IsReadOnly then
-    TKWebResponse.Current.Items.CallMethod(Self, 'add').AddParam(AItem);
+  if not AItems.HasObject(AItem) then
+  begin
+    AItems.Add(AItem);
+    if FJSConfig.IsReadOnly then
+      TKWebResponse.Current.Items.CallMethod(Self, 'add').AddParam(AItem);
+  end;
 end;
 
 class function TJSObject.AddParamsToURL(const AURL, AParams: string): string;
