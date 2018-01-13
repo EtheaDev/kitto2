@@ -115,7 +115,9 @@ de-registration gracefully. }
 implementation
 
 uses
-  System.Rtti;
+  System.Rtti
+  , EF.Localization
+  ;
 
 { TKExtControllerRegistry }
 
@@ -195,7 +197,7 @@ begin
     LType := AView.ControllerType;
 
   if LType = '' then
-    raise EKError.Create('Cannot create controller. Unspecified type.');
+    raise EKError.CreateFmt(_('Cannot create controller for view %s. Unspecified type.'), [AView.PersistentName]);
 
   LClass := TExtObjectClass(TKExtControllerRegistry.Instance.GetClass(LType));
   LSupportsContainer := InvokeBooleanStaticMethod(LClass, 'SupportsContainer', True);
