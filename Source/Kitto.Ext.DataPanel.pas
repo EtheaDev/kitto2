@@ -87,6 +87,7 @@ type
     FDeleteButton: TKExtButton;
     FDupButton: TKExtButton;
     FUsedViewFields: TArray<TKViewField>;
+    FEditItems: TKEditItemList;
     function GetView: TKDataView;
     function GetMaxRecords: Integer;
     function GetDefaultAutoOpen: Boolean;
@@ -94,9 +95,9 @@ type
     procedure SetFieldValue(const AField: TKViewTableField; const ANode: TEFNode);
     function GetFieldFilterFunc: TKFieldFilterFunc;
     procedure ExecuteDeferredFileOps(const ARecord: TKViewTableRecord; const AEvent: TKFileOpEvent);
+    function GetEditItems: TKEditItemList;
   strict protected
     FButtonsRequiringSelection: TList<TExtObject>;
-    FEditItems: TKEditItemList;
     procedure CheckCanRead;
     function GetOrderByClause: string; virtual;
     procedure SetViewTable(const AValue: TKViewTable); virtual;
@@ -153,6 +154,7 @@ type
     function InitEditController(const AContainer: IJSControllerContainer;
       const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IJSController;
     function GetDefaultEditControllerType: string; virtual;
+    property EditItems: TKEditItemList read GetEditItems;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -759,6 +761,13 @@ begin
   Result := False;
 end;
 
+function TKExtDataPanelController.GetEditItems: TKEditItemList;
+begin
+  if not Assigned(FEditItems) then
+    FEditItems := TKEditItemList.Create;
+  Result := FEditItems;
+end;
+
 function TKExtDataPanelController.GetExplicitDefaultAction: string;
 begin
   Result := ViewTable.GetExpandedString('Controller/DefaultAction');
@@ -1121,7 +1130,7 @@ begin
         var
           LNode: TEFNode;
           LField: TKViewTableField;
-    I: Integer;
+          I: Integer;
         begin
           // Modify record value(s).
           if AFieldName <> '' then
