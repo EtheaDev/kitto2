@@ -129,7 +129,7 @@ Server:
 Engine:
   Session:
     # Minutes after which an inactive session is cleaned up. Defaults to 10.
-    TimeOut: 1
+    TimeOut: 10
     # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
     CleanupInterval: 30
 
