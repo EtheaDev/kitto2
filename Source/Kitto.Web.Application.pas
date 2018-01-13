@@ -1163,9 +1163,6 @@ var
 begin
   LHtml := GetMainPageTemplate;
   // Replace template macros in main page code.
-  LHtml := ReplaceText(LHtml, '<%HTMLDeclaration%>', '<?xml version=1.0?>' + sLineBreak +
-    '<!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">' + sLineBreak +
-    '<html xmlns=http://www.w3org/1999/xthml>' + sLineBreak);
   LHtml := ReplaceText(LHtml, '<%ViewportContent%>', GetViewportContent);
   LHtml := ReplaceText(LHtml, '<%ApplicationTitle%>', _(Config.AppTitle));
   LHtml := ReplaceText(LHtml, '<%ApplicationIconLink%>',

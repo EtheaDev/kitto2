@@ -26,14 +26,20 @@
 }
 
 .k-loading {
+	/* make the title stand out by placing it over the loading mask */
+	z-index: 20001;
+	color: black;
+	background-color: white;
 	text-align: center;
 	font-size: 200%;
 	width: 600px;
-	height: 100px;
+	height: 200px;
 	position: absolute;
 	top:0;
 	bottom: 0;
 	left: 0;
 	right: 0;
 	margin: auto;
+	padding-top: 40px;
+	border-radius: 25px;
 }
