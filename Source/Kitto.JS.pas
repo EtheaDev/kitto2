@@ -47,9 +47,7 @@ uses
   ;
 
 type
-  TJSExpression = class;
   TJSObjectArray = class;
-  TJSFunction = class;
   TJSObject = class;
   TJSObjectClass = class of TJSObject;
 
@@ -230,25 +228,6 @@ type
     ['{90737203-A4D9-4C31-AFD7-FDBCF5A7B7D2}']
     function ShowBusy: TJSExpression;
     function ClearStatus: TJSExpression;
-  end;
-
-  TJSExpression = class(TJSBase)
-  private
-    FText: string;
-    FIsExtracted: Boolean;
-    procedure SetText(const AValue: string);
-  strict protected
-    function InternalExtractText: string; virtual;
-  public
-    property Text: string read FText write SetText;
-
-    function ExtractText: string;
-    property IsExtracted: Boolean read FIsExtracted;
-  end;
-
-  TJSFunction = class(TJSExpression)
-  strict protected
-    function InternalExtractText: string; override;
   end;
 
   TJSObjectArray = class(TJSObject)
@@ -460,6 +439,7 @@ function TJSObject.AsJSObject: TJSObject;
 begin
   Result := Self;
 end;
+
 
 function TJSObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): TJSExpression;
 begin
@@ -864,33 +844,6 @@ end;
 function TJSObject.GenerateAnonymousFunction(const ABody: string): TJSExpression;
 begin
   Result := GenerateAnonymousFunction('', ABody, '');
-end;
-
-{ TJSExpression }
-
-procedure TJSExpression.SetText(const AValue: string);
-begin
-  FText := AValue;
-  FIsExtracted := False;
-end;
-
-function TJSExpression.ExtractText: string;
-begin
-  Assert(not FIsExtracted);
-  Result := InternalExtractText;
-  FIsExtracted := True;
-end;
-
-function TJSExpression.InternalExtractText: string;
-begin
-  Result := TJS.RemoveLastJSTerminator(Text);
-end;
-
-{ TJSFunction }
-
-function TJSFunction.InternalExtractText: string;
-begin
-  Result := Text;
 end;
 
 initialization

@@ -22,6 +22,7 @@ interface
 
 uses
   Ext.Base
+  , Kitto.JS.Base
   , Kitto.JS
   , Kitto.Ext.Base
   , Kitto.Metadata.Views

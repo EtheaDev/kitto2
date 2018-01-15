@@ -5,6 +5,7 @@ interface
 uses
   Classes
   , StrUtils
+  , Kitto.JS.Base
   , Kitto.JS
   , Kitto.JS.Types
   ;
@@ -393,6 +394,7 @@ type
     FToggleGroup: string;
     FTooltip: string;
     FBtnEl: TExtElement;
+    FDisabledFunc: TExtExpression;
     procedure SetAllowDepress(const AValue: Boolean);
     procedure SetDisabled(const AValue: Boolean);
     procedure SetEnableToggle(const AValue: Boolean);
@@ -408,6 +410,7 @@ type
     procedure SetToggleGroup(const AValue: string);
     procedure _SetTooltip(const AValue: string);
     procedure SetMinWidth(const AValue: Integer);
+    procedure SetDisabledFunc(const AValue: TExtExpression);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -426,6 +429,7 @@ type
     function SetTooltip(const ATooltip: TExtObject): TExtExpression; overload;
     property AllowDepress: Boolean read FAllowDepress write SetAllowDepress;
     property Disabled: Boolean read FDisabled write SetDisabled;
+    property DisabledFunc: TExtExpression read FDisabledFunc write SetDisabledFunc;
     property EnableToggle: Boolean read FEnableToggle write SetEnableToggle;
     property FormBind: Boolean read FFormBind write SetFormBind;
     property Handler: TExtExpression read FHandler write _SetHandler;
@@ -1392,7 +1396,12 @@ end;
 
 procedure TExtButton.SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := SetConfigItem('disabled', AValue);
+  FDisabled := SetConfigItem('disabled', 'setDisabled', AValue);
+end;
+
+procedure TExtButton.SetDisabledFunc(const AValue: TExtExpression);
+begin
+  FDisabledFunc := TKWebResponse.Current.Items.CallMethod(Self, 'setDisabled').AddParam(AValue).AsExpression;
 end;
 
 procedure TExtButton.SetEnableToggle(const AValue: Boolean);

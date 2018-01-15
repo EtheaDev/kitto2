@@ -28,7 +28,6 @@ uses
   , Kitto.JS.Types
   , Kitto.JS.Base
   , Kitto.JS.Formatting
-  , Kitto.JS
   ;
 
 type
@@ -337,6 +336,7 @@ implementation
 
 uses
   DateUtils
+  , Kitto.JS
   , Kitto.Web.Application
   ;
 
@@ -1159,7 +1159,10 @@ end;
 function TJSMethodCall.AddParam(const AValue: TJSExpression): TJSMethodCall;
 begin
   if Assigned(AValue) then
-    FParams.SetRawValue(FParams.Values.ChildCount.ToString, AValue.ExtractText)
+  begin
+    AddDependency(FRoot.FindObjectCreateItem(AValue.Owner));
+    FParams.SetRawValue(FParams.Values.ChildCount.ToString, AValue.ExtractText);
+  end
   else
     FParams.SetRawValue(FParams.Values.ChildCount.ToString, 'null');
   Result := Self;
@@ -1289,7 +1292,6 @@ end;
 
 destructor TJSExpressionResponseItem.Destroy;
 begin
-//  if HasExpression and not FExpression.FExtracted then
   FreeAndNil(FExpression);
   inherited;
 end;
@@ -1298,7 +1300,7 @@ function TJSExpressionResponseItem.GetAsExpression: TJSExpression;
 begin
   if not Assigned(FExpression) then
   begin
-    FExpression := TJSExpression.Create(nil);
+    FExpression := TJSExpression.Create(Sender);
     FExpression.Text := GetFormattedCode;
   end;
   Result := FExpression;
@@ -1308,7 +1310,7 @@ function TJSExpressionResponseItem.GetAsFunction: TJSFunction;
 begin
   if not Assigned(FExpression) then
   begin
-    FExpression := TJSFunction.Create(nil);
+    FExpression := TJSFunction.Create(Sender);
     FExpression.Text := TJS.WrapInAnonymousFunction(FFunctionArgs, GetFormattedCode, FFunctionReturn);
   end;
   Result := TJSFunction(FExpression);

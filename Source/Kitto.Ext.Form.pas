@@ -28,6 +28,7 @@ uses
   , Ext.Form
   , EF.ObserverIntf
   , EF.Tree
+  , Kitto.JS.Base
   , Kitto.JS
   , Kitto.JS.Types
   , Kitto.Metadata.Views
@@ -123,6 +124,7 @@ type
       const ADetailIndex: Integer);
     function CreateLayoutProcessor: TKExtLayoutProcessor;
     procedure SetConfirmButtonHandlers;
+    procedure EnableConfirmButtons;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -313,6 +315,22 @@ begin
       LDetailPanel.ViewTable := ViewTable.DetailTables[I];
     end;
   end;
+end;
+
+procedure TKExtFormPanelController.EnableConfirmButtons;
+
+  procedure EnableButton(const AButton: TKExtButton);
+  begin
+    if Assigned(AButton) then
+      AButton.DisabledFunc := FFormPanel.HasInvalidField;
+  end;
+
+begin
+  Assert(Assigned(FFormPanel));
+
+  EnableButton(FApplyButton);
+  EnableButton(FCloneButton);
+  EnableButton(FConfirmButton);
 end;
 
 procedure TKExtFormPanelController.EnsureDetailController(const AContainer: IJSControllerContainer;
@@ -553,6 +571,8 @@ begin
     RefreshEditorValues;
 
     FocusFirstField;
+
+    EnableConfirmButtons;
   except
     on E: EKValidationError do
     begin
@@ -741,7 +761,7 @@ begin
       FApplyButton.Text := LApplyButtonNode.GetString('Caption', _('Apply'));
     FApplyButton.Tooltip := LApplyButtonNode.GetString('Tooltip', _('Apply changes and keep editing'));
     FApplyButton.Hidden := FIsReadOnly or IsViewMode;
-    FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FApplyButton.JSName + '.setDisabled(!valid);'));
+    FFormPanel.On('validitychange', GenerateAnonymousFunction('form, valid', FApplyButton.JSName + '.setDisabled(!valid);'));
   end;
 
   // Clone button
@@ -756,7 +776,7 @@ begin
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
       FCloneButton.Hidden := FIsReadOnly or IsViewMode;
-      FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
+      FFormPanel.On('validitychange', GenerateAnonymousFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
     end;
   end;
 
@@ -782,7 +802,7 @@ begin
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
 
   FConfirmButton.Hidden := FIsReadOnly or IsViewMode;
-  FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FConfirmButton.JSName+'.setDisabled(!valid);'));
+  FFormPanel.On('validitychange', GenerateAnonymousFunction('form, valid', FConfirmButton.JSName+'.setDisabled(!valid);'));
 
   FEditButton := nil;
   if IsViewMode then

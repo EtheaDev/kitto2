@@ -31,6 +31,7 @@ uses
   , EF.Tree
   , EF.ObserverIntf
   , EF.Classes
+  , Kitto.JS.Base
   , Kitto.JS
   , Kitto.JS.Types
   , Kitto.Ext.Controller
@@ -388,7 +389,6 @@ uses
   , EF.Localization
   , EF.Macros
   , Kitto.AccessControl
-  , Kitto.JS.Base
   , Kitto.Web.Application
   , Kitto.Web.Session
   , Kitto.Web.Request

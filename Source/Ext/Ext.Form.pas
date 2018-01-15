@@ -399,6 +399,7 @@ type
     property LabelSeparator: string read FLabelSeparator write SetLabelSeparator;
     property MonitorValid: Boolean read FMonitorValid write SetMonitorValid;
     property FileUpload: Boolean read FFileUpload write SetFileUpload;
+    function HasInvalidField: TExtExpression;
   end;
 
   // Procedural types for events TExtFormRadioGroup
@@ -1252,6 +1253,11 @@ end;
 class function TExtFormFormPanel.JSClassName: string;
 begin
   Result := 'Ext.form.FormPanel';
+end;
+
+function TExtFormFormPanel.HasInvalidField: TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'hasInvalidField').AsExpression;
 end;
 
 procedure TExtFormFormPanel.InitDefaults;

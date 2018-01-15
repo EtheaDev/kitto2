@@ -53,6 +53,25 @@ type
     function GetSingleton<T: TJSBase>(const AName: string): T;
   end;
 
+  TJSExpression = class(TJSBase)
+  private
+    FText: string;
+    FIsExtracted: Boolean;
+    procedure SetText(const AValue: string);
+  strict protected
+    function InternalExtractText: string; virtual;
+  public
+    property Text: string read FText write SetText;
+
+    function ExtractText: string;
+    property IsExtracted: Boolean read FIsExtracted;
+  end;
+
+  TJSFunction = class(TJSExpression)
+  strict protected
+    function InternalExtractText: string; override;
+  end;
+
   // Represents a config object or a set of method parameters.
   TJSValues = class(TJSBase)
   private
@@ -447,6 +466,33 @@ begin
     Result := TJSObjectClass(T).CreateSingleton(Self, AName) as T;
     FSingletons.Add(AName, Result);
   end;
+end;
+
+{ TJSExpression }
+
+procedure TJSExpression.SetText(const AValue: string);
+begin
+  FText := AValue;
+  FIsExtracted := False;
+end;
+
+function TJSExpression.ExtractText: string;
+begin
+  Assert(not FIsExtracted);
+  Result := InternalExtractText;
+  FIsExtracted := True;
+end;
+
+function TJSExpression.InternalExtractText: string;
+begin
+  Result := TJS.RemoveLastJSTerminator(Text);
+end;
+
+{ TJSFunction }
+
+function TJSFunction.InternalExtractText: string;
+begin
+  Result := Text;
 end;
 
 end.
