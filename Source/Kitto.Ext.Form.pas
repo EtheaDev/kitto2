@@ -401,25 +401,16 @@ end;
 procedure TKExtFormPanelController.SetConfirmButtonHandlers;
 begin
   if Assigned(FApplyButton) then
-  begin
     FApplyButton.Handler := GetConfirmJSCode(ApplyChanges);
-    FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FApplyButton.JSName + '.setDisabled(!valid);'));
-  end;
 
   if Assigned(FConfirmButton) then
-  begin
     FConfirmButton.Handler := GetConfirmJSCode(ConfirmChanges);
-    FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FConfirmButton.JSName+'.setDisabled(!valid);'));
-  end;
 
   if Assigned(FEditButton) then
     FEditButton.Handler := GetConfirmJSCode(SwitchToEditMode);
 
   if Assigned(FCloneButton) then
-  begin
     FCloneButton.Handler := GetConfirmJSCode(ConfirmChangesAndClone);
-    FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
-  end;
 end;
 
 function TKExtFormPanelController.GetDetailBottomPanelHeight: Integer;
@@ -730,6 +721,8 @@ var
   LApplyButtonNode: TEFNode;
   LToolbar: TKExtToolbar;
 begin
+  Assert(Assigned(FFormPanel));
+
   LToolbar := TKExtToolbar.Create(Self);
   TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
   Fbar := LToolbar;
@@ -748,9 +741,11 @@ begin
       FApplyButton.Text := LApplyButtonNode.GetString('Caption', _('Apply'));
     FApplyButton.Tooltip := LApplyButtonNode.GetString('Tooltip', _('Apply changes and keep editing'));
     FApplyButton.Hidden := FIsReadOnly or IsViewMode;
+    FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FApplyButton.JSName + '.setDisabled(!valid);'));
   end;
 
   // Clone button
+  FCloneButton := nil;
   if not FIsReadOnly then
   begin
     LCloneButtonNode := Config.FindNode('CloneButton');
@@ -761,9 +756,8 @@ begin
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
       FCloneButton.Hidden := FIsReadOnly or IsViewMode;
-    end
-    else
-      FCloneButton := nil;
+      FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
+    end;
   end;
 
   // Confirm button
@@ -788,7 +782,9 @@ begin
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
 
   FConfirmButton.Hidden := FIsReadOnly or IsViewMode;
+  FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FConfirmButton.JSName+'.setDisabled(!valid);'));
 
+  FEditButton := nil;
   if IsViewMode then
   begin
     FEditButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
