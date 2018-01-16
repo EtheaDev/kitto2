@@ -36,7 +36,8 @@ type
     FControllers: array[TExtBoxComponentRegion] of TObject;
     procedure CreateController(const ARegion: TExtBoxComponentRegion);
   strict protected
-    function FindRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode; virtual;
+    function FindRegionControllerConfig(
+  const ARegion: TExtBoxComponentRegion; out AFreeIt: Boolean): TEFNode; virtual;
   protected
     procedure DoDisplay; override;
     function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; virtual;
@@ -80,11 +81,12 @@ begin
 end;
 
 function TKExtBorderPanelController.FindRegionControllerConfig(
-  const ARegion: TExtBoxComponentRegion): TEFNode;
+  const ARegion: TExtBoxComponentRegion; out AFreeIt: Boolean): TEFNode;
 var
   LRegionControllerNodeName: string;
   LRegionDefaultControllerClass: string;
 begin
+  AFreeIt := False;
   LRegionControllerNodeName := GetRegionControllerNodeName(ARegion);
   Assert(LRegionControllerNodeName <> '');
   LRegionDefaultControllerClass := GetRegionDefaultControllerClass(ARegion);
@@ -92,7 +94,10 @@ begin
   if not Assigned(Result) then
   begin
     if LRegionDefaultControllerClass <> '' then
+    begin
       Result := TEFNode.Create(LRegionControllerNodeName, LRegionDefaultControllerClass);
+      AFreeIt := True;
+    end;
   end
   else
   begin
@@ -106,26 +111,32 @@ var
   LSubView: TKView;
   LControllerConfig: TEFNode;
   LIntf: IJSController;
+  LFreeIt: Boolean;
 begin
   Assert(Assigned(View));
 
   // If subcontrollers are specified, they inherit this controller's view.
   // If no subcontroller is configured for a given region, look for a subview.
-  LControllerConfig := FindRegionControllerConfig(ARegion);
-  if Assigned(LControllerConfig) then
-  begin
-    LSubView := View;
-  end
-  else
-    LSubView := TKWebApplication.Current.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
-  if LSubView <> nil then
-  begin
-    FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig).AsObject;
-    Assert(FControllers[ARegion] is TExtBoxComponent);
-    TExtBoxComponent(FControllers[ARegion]).Region := ARegion;
-    if Supports(FControllers[ARegion], IJSController, LIntf) then
-      InitSubController(LIntf);
-    LIntf.Display;
+  LControllerConfig := FindRegionControllerConfig(ARegion, LFreeIt);
+  try
+    if Assigned(LControllerConfig) then
+    begin
+      LSubView := View;
+    end
+    else
+      LSubView := TKWebApplication.Current.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
+    if LSubView <> nil then
+    begin
+      FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig).AsObject;
+      Assert(FControllers[ARegion] is TExtBoxComponent);
+      TExtBoxComponent(FControllers[ARegion]).Region := ARegion;
+      if Supports(FControllers[ARegion], IJSController, LIntf) then
+        InitSubController(LIntf);
+      LIntf.Display;
+    end;
+  finally
+    if LFreeIt then
+      FreeAndNil(LControllerConfig);
   end;
 end;
 
