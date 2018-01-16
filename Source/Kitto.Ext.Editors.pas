@@ -806,10 +806,11 @@ begin
   if AViewTableField.ViewField.FileNameField <> '' then
     // Uploads always need the change handler.
     Result := True
-  else if AViewTableField.ViewField.HasRules then
-    Result := True
   else if AViewTableField.ViewField.DerivedFieldsExist then
     // Derived fields must be updated when source field changes.
+    Result := True
+  else if AViewTableField.ViewField.HasServerSideRules then
+    // Server-side rules need the change handler in order to be applied.
     Result := True
   else if AViewTableField.ViewField.GetBoolean('NotifyChange') then
     // Temporary, for cases not handled by this detector and setup manually.
@@ -2845,11 +2846,12 @@ begin
     end;
 
     if not AIsReadOnly then
-      AViewField.ApplyRules(
-        procedure (ARuleImpl: TKRuleImpl)
+      AViewField.EnumRules(
+        function (ARuleImpl: TKRuleImpl): Boolean
         begin
           if ARuleImpl is TKExtRuleImpl then
             TKExtRuleImpl(ARuleImpl).ApplyToFormField(LFormField);
+          Result := True;
         end);
 
     if AIsReadOnly then

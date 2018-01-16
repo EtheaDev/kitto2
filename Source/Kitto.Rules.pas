@@ -138,6 +138,12 @@ type
     property Rule: TKRule read FRule write SetRule;
 
     /// <summary>
+    ///  Client-side (Javascript) rules return True. The default implementation
+    ///  returns False, assuming it is a server-side rule.
+    /// </summary>
+    function IsClientSide: Boolean; virtual;
+
+    /// <summary>
     ///  Called when creating a new record before showing it in the
     ///  user interface. Descendants may set computed default values
     ///  (declarative default values are already applied when this method is
@@ -485,6 +491,11 @@ end;
 function TKRuleImpl.InternalGetErrorMessage: string;
 begin
   Result := Format(_('Rule %s failed.'), [GetClassId]);
+end;
+
+function TKRuleImpl.IsClientSide: Boolean;
+begin
+  Result := False;
 end;
 
 procedure TKRuleImpl.NewRecord(const ARecord: TKRecord);

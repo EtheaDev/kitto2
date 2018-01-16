@@ -275,8 +275,21 @@ type
     property DisplayTemplate: string read GetDisplayTemplate;
 
     property Rules: TKRules read GetRules;
-    procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
-    function HasRules: Boolean;
+    /// <summary>
+    ///  Calls the specified function once for each view-level and then each
+    ///  model-level rule that is not overridden at the view level.
+    ///  The function should do something with the rule implementation object
+    ///  it receives (most commonly apply the rule) and return True as long as
+    ///  the call chain should proceed, or False to stop the rule enumeration.
+    ///  Generally the function will return True in the most common cases.
+    /// </summary>
+    procedure EnumRules(const AEnumFunc: TFunc<TKRuleImpl, Boolean>);
+    /// <summary>
+    ///  True if the either the view or the model field has at least one
+    ///  server-side rule. Used to decide whether to make an async call
+    ///  or not when the field changes on the client.
+    /// </summary>
+    function HasServerSideRules: Boolean;
 
     /// <summary>
     ///  If the field is a reference field, creates and returns an array
@@ -1475,14 +1488,16 @@ begin
   end;
 end;
 
-procedure TKViewField.ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
+procedure TKViewField.EnumRules(const AEnumFunc: TFunc<TKRuleImpl, Boolean>);
 var
   I: Integer;
   LRuleImpl: TKRuleImpl;
   LRule: TKRule;
+  LInterrupted: Boolean;
 begin
-  Assert(Assigned(AApplyProc));
+  Assert(Assigned(AEnumFunc));
 
+  LInterrupted := False;
   // Apply rules at the View level.
   for I := 0 to Rules.RuleCount - 1 do
   begin
@@ -1490,26 +1505,34 @@ begin
     LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
     try
       LRuleImpl.Rule := LRule;
-      AApplyProc(LRuleImpl);
+      LInterrupted := AEnumFunc(LRuleImpl);
+      if LInterrupted then
+        Break;
     finally
       FreeAndNil(LRuleImpl);
     end;
   end;
-  // Apply rules at the model level that are not overwritten in the view.
-  // A field-level rule of given type (such as Maxlength) generally cannot
-  // be applied twice, and we don't have a way yet to avoid setting config
-  // options twice on a rule-by-rule basis.
-  for I := 0 to ModelField.Rules.RuleCount - 1 do
+
+  if not LInterrupted then
   begin
-    LRule := ModelField.Rules[I];
-    if not Rules.HasRule(LRule) then
+    // Apply rules at the model level that are not overwritten in the view.
+    // A field-level rule of given type (such as Maxlength) generally cannot
+    // be applied twice, and we don't have a way yet to avoid setting config
+    // options twice on a rule-by-rule basis.
+    for I := 0 to ModelField.Rules.RuleCount - 1 do
     begin
-      LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
-      try
-        LRuleImpl.Rule := LRule;
-        AApplyProc(LRuleImpl);
-      finally
-        FreeAndNil(LRuleImpl);
+      LRule := ModelField.Rules[I];
+      if not Rules.HasRule(LRule) then
+      begin
+        LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
+        try
+          LRuleImpl.Rule := LRule;
+          LInterrupted := AEnumFunc(LRuleImpl);
+          if LInterrupted then
+            Break;
+        finally
+          FreeAndNil(LRuleImpl);
+        end;
       end;
     end;
   end;
@@ -1708,9 +1731,22 @@ begin
   Result := Assigned(LModelField);
 end;
 
-function TKViewField.HasRules: Boolean;
+function TKViewField.HasServerSideRules: Boolean;
+var
+  LServerSideRuleFound: Boolean;
 begin
   Result := (Rules.RuleCount > 0) or (ModelField.Rules.RuleCount > 0);
+  if Result then
+  begin
+    LServerSideRuleFound := False;
+    EnumRules(
+      function (ARuleImpl: TKRuleImpl): Boolean
+      begin
+        LServerSideRuleFound := not ARuleImpl.IsClientSide;
+        Result := not LServerSideRuleFound;
+      end);
+    Result := LServerSideRuleFound;
+  end;
 end;
 
 function TKViewField.FindNode(const APath: string;
@@ -2787,10 +2823,11 @@ begin
   LOldValue := AOldValue;
   LNewValue := ANewValue;
   LDoIt := ADoIt;
-  LField.ViewField.ApplyRules(
-    procedure (ARuleImpl: TKRuleImpl)
+  LField.ViewField.EnumRules(
+    function (ARuleImpl: TKRuleImpl): Boolean
     begin
       ARuleImpl.BeforeFieldChange(AField, LOldValue, LNewValue, LDoIt);
+      Result := True;
     end);
   ADoIt := LDoIt;
   if ADoIt then

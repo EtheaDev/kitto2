@@ -9,7 +9,6 @@ Fields:
   Doll_Name: String(40) not null
     DisplayLabel: _(Name)
     Rules:
-      #ForceUpperCase:
       SubType: alpha_space
   Date_Bought: Date
     DisplayLabel: _(Birth Date)

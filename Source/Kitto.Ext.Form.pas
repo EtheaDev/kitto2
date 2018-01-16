@@ -1090,10 +1090,11 @@ begin
 
   LOldValue := AOldValue;
   LNewValue := ANewValue;
-  LField.ViewField.ApplyRules(
-    procedure (ARuleImpl: TKRuleImpl)
+  LField.ViewField.EnumRules(
+    function (ARuleImpl: TKRuleImpl): Boolean
     begin
       ARuleImpl.AfterFieldChange(AField, LOldValue, LNewValue);
+      Result := True;
     end);
 
   { TODO :

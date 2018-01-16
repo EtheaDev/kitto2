@@ -27,22 +27,30 @@ uses
 
 type
   ///	<summary>
-  ///   Base class for all ext-specific rule implementation classes.
+  ///  Base class for all ext-specific rule implementation classes.
   ///	</summary>
   TKExtRuleImpl = class(TKRuleImpl)
   protected
     class function GetClassId: string; override;
   public
-    ///	<summary>Rules that work by setting properties or events in a form
-    ///	field do that in this method.</summary>
+    function IsClientSide: Boolean; override;
+
+    ///	<summary>
+    ///  Rules that work by setting properties or events in a form
+    ///	 field do that in this method.
+    /// </summary>
     procedure ApplyToFormField(const AField: TExtFormField); virtual;
 
-    ///	<summary>Client side validation before submit.</summary>
+    ///	<summary>
+    ///  Client side validation before submit.
+    /// </summary>
     procedure BeforeSubmit; virtual;
   end;
 
-  ///	<summary>Enforces a minimum allowed value for numeric fields. Can be used
-  ///	as a field-level rule.</summary>
+  ///	<summary>
+  ///  Enforces a minimum allowed value for numeric fields. Can be used
+  ///	 as a field-level rule.
+  /// </summary>
   ///	<example>
   ///	  <code lang="Delphi">
   ///	Rules:
@@ -142,10 +150,12 @@ type
     procedure ApplyToFormField(const AField: TExtFormField); override;
   end;
 
-  ///	<summary>Constrains a field's input to a mask or other validity predicate
-  ///	using ExtJs's <c>vtype</c> config option. Among the available vtypes:
-  ///	alpha, alpha_space, alphanum, email, url. Others can be added in
-  ///	application.js.</summary>
+  ///	<summary>
+  ///  Constrains a field's input to a mask or other validity predicate
+  ///	 using ExtJs's <c>vtype</c> config option. Among the available vtypes:
+  ///	 alpha, alpha_space, alphanum, email, url. Others can be added in
+  ///	 application.js.
+  /// </summary>
   ///	<example>
   ///	  <code lang="Delphi">
   ///	Rules:
@@ -299,6 +309,11 @@ end;
 class function TKExtRuleImpl.GetClassId: string;
 begin
   Result := StripPrefix(inherited GetClassId, 'Ext');
+end;
+
+function TKExtRuleImpl.IsClientSide: Boolean;
+begin
+  Result := True;
 end;
 
 { TKExtMinValue }

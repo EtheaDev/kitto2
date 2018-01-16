@@ -44,16 +44,17 @@ type
 
   TKRules = class(TKMetadataItem)
   private
-    function GetRule(I: Integer): TKRule;
+    function GetRule(const AIndex: Integer): TKRule;
     function GetRuleCount: Integer;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     property RuleCount: Integer read GetRuleCount;
-    property Rules[I: Integer]: TKRule read GetRule; default;
+    property Rules[const AIndex: Integer]: TKRule read GetRule; default;
 
-    /// <summary>Returns True if there's a rule of the same type as the passed
-    /// one.</summary>
+    /// <summary>
+    ///  Returns True if there's a rule of the same type as the passed one.
+    /// </summary>
     function HasRule(const ARule: TKRule): Boolean;
   end;
 
@@ -2045,9 +2046,9 @@ begin
   Result := TKRule;
 end;
 
-function TKRules.GetRule(I: Integer): TKRule;
+function TKRules.GetRule(const AIndex: Integer): TKRule;
 begin
-  Result := Children[I] as TKRule;
+  Result := Children[AIndex] as TKRule;
 end;
 
 function TKRules.GetRuleCount: Integer;
