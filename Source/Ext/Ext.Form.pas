@@ -465,7 +465,7 @@ type
     FForceSelection: Boolean;
     FListConfig: TExtObject;
     FHiddenValue: string;
-    FMode: string;
+    FQueryMode: string;
     FListWidth: Integer;
     FTypeAhead: Boolean;
     FMinHeight: Integer;
@@ -494,7 +494,7 @@ type
     procedure SetMinChars(const AValue: Integer);
     procedure SetMinHeight(const AValue: Integer);
     procedure SetMinListWidth(const AValue: Integer);
-    procedure SetMode(const AValue: string);
+    procedure SetQueryMode(const AValue: string);
     procedure SetPageSize(const AValue: Integer);
     procedure SetQueryDelay(const AValue: Integer);
     procedure SetQueryParam(const AValue: string);
@@ -536,7 +536,7 @@ type
     property MinHeight: Integer read FMinHeight write SetMinHeight;
     property MinHeightFunc: TExtExpression read FMinHeightFunc write SetMinHeightFunc;
     property MinListWidth: Integer read FMinListWidth write SetMinListWidth;
-    property Mode: string read FMode write SetMode;
+    property QueryMode: string read FQueryMode write SetQueryMode;
     property PageSize: Integer read FPageSize write SetPageSize;
     property QueryDelay: Integer read FQueryDelay write SetQueryDelay;
     property QueryParam: string read FQueryParam write SetQueryParam;
@@ -1435,9 +1435,9 @@ begin
   FMinListWidth := SetConfigItem('minListWidth', AValue);
 end;
 
-procedure TExtFormComboBox.SetMode(const AValue: string);
+procedure TExtFormComboBox.SetQueryMode(const AValue: string);
 begin
-  FMode := SetConfigItem('mode', AValue);
+  FQueryMode := SetConfigItem('queryMode', AValue);
 end;
 
 procedure TExtFormComboBox.SetPageSize(const AValue: Integer);

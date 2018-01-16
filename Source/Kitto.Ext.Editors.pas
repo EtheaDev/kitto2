@@ -723,7 +723,6 @@ uses
   {$ENDIF}
   , Variants
   , DateUtils
-  , System.JSON
   , Rtti
   , EF.StrUtils
   , EF.Localization
@@ -2046,7 +2045,7 @@ var
   LKeyFieldNames: string;
   LValue: string;
 begin
-  if Mode = 'local' then
+  if QueryMode = 'local' then
     SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)))
   else
   begin
@@ -2109,7 +2108,7 @@ begin
   LNewValues := TKWebRequest.Current.JSONContentTree.ChildByName('new');
   if LNewValues.ChildCount > 0 then
   begin
-    if Mode = 'local' then
+    if QueryMode = 'local' then
       FRecordField.SetAsJSONValue(LNewValues.GetString(HiddenName), False, TKWebApplication.Current.Config.UserFormatSettings)
     else
     begin
@@ -2158,7 +2157,7 @@ begin
     // Now both small and large referenced models use a remote combobox.
     if AViewField.IsReference {and AViewField.ModelField.ReferencedModel.IsLarge} then
     begin
-      Mode := 'remote';
+      QueryMode := 'remote';
       FreeAndNil(FServerStore);
       FServerStore := AViewField.CreateReferenceStore;
       Store := TExtDataStore.CreateInline(Self);
@@ -2183,7 +2182,7 @@ begin
   end
   else
   begin
-    Mode := 'local';
+    QueryMode := 'local';
     FListMode := Fixed;
     LAllowedValues := AViewField.GetChildrenAsPairs('AllowedValues', True);
     Assert(Length(LAllowedValues) > 0); // see SupportsViewField method.

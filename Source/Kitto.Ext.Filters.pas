@@ -641,7 +641,7 @@ begin
   SelectOnFocus := True;
   AutoSelect := False;
   AllowBlank := True;
-  Mode := 'remote';
+  QueryMode := 'remote';
   FServerStore := TKStore.Create;
   Store := TExtDataStore.Create(Owner);
   FServerStore.Header.AddField('Id');
