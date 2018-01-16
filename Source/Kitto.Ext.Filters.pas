@@ -164,6 +164,8 @@ type
     FViewTable: TKViewTable;
     FServerStore: TKStore;
   public
+    destructor Destroy; override;
+  public
     procedure SetConfig(const AConfig: TEFNode); virtual;
     function AsExtObject: TExtObject;
     procedure SetViewTable(const AViewTable: TKViewTable);
@@ -597,6 +599,12 @@ end;
 function TKListFilterBase.AsExtObject: TExtObject;
 begin
   Result := Self;
+end;
+
+destructor TKListFilterBase.Destroy;
+begin
+  FreeAndNil(FServerStore);
+  inherited;
 end;
 
 function TKListFilterBase.GetId: string;
