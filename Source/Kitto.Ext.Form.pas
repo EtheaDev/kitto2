@@ -513,14 +513,9 @@ var
       LDefaultValues.Merge(LCallerDefaultValues);
   end;
 
-  function IsCloned: Boolean;
-  begin
-    Result := SameText(FOperation, 'Add') and Assigned(FCloneValues);
-  end;
-
   procedure SwitchChangeNotificationsForDupAndClone(const AOn: Boolean);
   begin
-    if SameText(FOperation, 'Dup') or IsCloned then
+    if SameText(FOperation, 'Dup') or Assigned(FCloneValues) then
     begin
       if AOn then
         StoreRecord.Store.EnableChangeNotifications
@@ -562,7 +557,7 @@ begin
         finally
           SwitchChangeNotificationsForDupAndClone(True);
         end;
-        StoreRecord.ApplyNewRecordRulesAndFireEvents(ViewTable, IsCloned);
+        StoreRecord.ApplyNewRecordRulesAndFireEvents(ViewTable, Assigned(FCloneValues));
       finally
         FreeAndNil(LDefaultValues);
       end;
@@ -708,6 +703,7 @@ begin
 
   if LError = '' then
   begin
+    FreeAndNil(FCloneValues);
     FCloneValues := TEFNode.Clone(StoreRecord);
     StoreRecord := ServerStore.AppendRecord(nil);
     FOperation := 'Add';
