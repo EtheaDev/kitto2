@@ -85,6 +85,8 @@ type
     FFormPanel: TKExtEditPanel;
     FMainPage: TKExtEditPage;
     FIsReadOnly: Boolean;
+    FPreviousButton: TKExtButton;
+    FNextButton: TKExtButton;
     FConfirmButton: TKExtButton;
     FApplyButton: TKExtButton;
     FEditButton: TKExtButton;
@@ -736,13 +738,49 @@ var
   LHostWindow: TExtWindow;
   LApplyButtonNode: TEFNode;
   LToolbar: TKExtToolbar;
+  LPreviousButtonNode: TEFNode;
+  LNextButtonNode: TEFNode;
 begin
   Assert(Assigned(FFormPanel));
 
   LToolbar := TKExtToolbar.Create(Self);
-  TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
   Fbar := LToolbar;
 
+  // Navigation buttons
+  FPreviousButton := nil;
+  FNextButton := nil;
+  if Assigned(FTabPanel) and Config.GetBoolean('ShowNavigationButtons') then
+  begin
+    FPreviousButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+    FPreviousButton.SetIconAndScale('previous', Config.GetString('ButtonScale', 'medium'));
+    LPreviousButtonNode := ViewTable.FindNode('Controller/FormController/PreviousButton');
+    if Assigned(LPreviousButtonNode) then
+    begin
+      FPreviousButton.Text := LPreviousButtonNode.GetString('Caption');
+      FPreviousButton.Tooltip := LPreviousButtonNode.GetString('Tooltip', _('Previous page'));
+    end
+    else
+    begin
+      FPreviousButton.Tooltip := _('Previous page');
+    end;
+    FPreviousButton.Handler := GenerateAnonymousFunction(FTabPanel.JSName + '.goPrevious();');
+
+    FNextButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+    FNextButton.SetIconAndScale('next', Config.GetString('ButtonScale', 'medium'));
+    LNextButtonNode := ViewTable.FindNode('Controller/FormController/NextButton');
+    if Assigned(LNextButtonNode) then
+    begin
+      FNextButton.Text := LNextButtonNode.GetString('Caption');
+      FNextButton.Tooltip := LNextButtonNode.GetString('Tooltip', _('Next page'));
+    end
+    else
+    begin
+      FNextButton.Tooltip := _('Next page');
+    end;
+    FNextButton.Handler := GenerateAnonymousFunction(FTabPanel.JSName + '.goNext();');
+  end;
+
+  TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
   // Apply button
   FApplyButton := nil;
   LApplyButtonNode := ViewTable.FindNode('Controller/FormController/ApplyButton');
@@ -1002,6 +1040,14 @@ begin
 
     if Supports(ANewTab, IKExtActivable, LActivableIntf) then
       LActivableIntf.Activate;
+
+    // Enable/disable navigation buttons.
+    if Assigned(FPreviousButton) then
+      TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.setDisabled(!%s.getActiveTab().previousSibling());',
+        [FPreviousButton.JSName, ATabPanel.JSName]));
+    if Assigned(FNextButton) then
+      TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.setDisabled(!%s.getActiveTab().nextSibling());',
+        [FNextButton.JSName, ATabPanel.JSName]));
   end;
 end;
 

@@ -1012,7 +1012,8 @@ begin
   if FCurrentEditItem is TKExtFormRowField then
   begin
     TKExtFormRowField(FCurrentEditItem).LabelAlign := FCurrentLabelAlign;
-    TKExtFormRowField(FCurrentEditItem).LabelWidth := FCurrentLabelWidth;
+    if (FCurrentLabelAlign <> laTop) then
+      TKExtFormRowField(FCurrentEditItem).LabelWidth := FCurrentLabelWidth;
   end;
 
   ProcessChildNodes;
@@ -1352,7 +1353,6 @@ end;
 procedure TKExtEditPage.AddChild(const AEditItem: IKExtEditItem);
 begin
   AddItem(AEditItem.AsExtObject);
-  //Items.Add(AEditItem.AsExtObject);
 end;
 
 function TKExtEditPage.AsExtObject: TExtObject;
@@ -1382,7 +1382,7 @@ begin
 //  BodyStyle := 'background:none';
 //  Layout := lyForm;
   // Leave room for the scroll bar on the right and a small space on top before the first editor.
-  PaddingString := '15px 15px 15px 5px'; // top right bottom left
+  PaddingString := '15px 15px 15px 10px'; // top right bottom left
   AutoScroll := True;
 end;
 

@@ -1,6 +1,7 @@
 ﻿Type: Data
 
 Controller: List
+  ShowNavigationButtons: True
   Filters:
     DisplayLabel: _(Choose Mom)
     Items:
@@ -23,7 +24,7 @@ MainTable:
     PageRecordCount: 2
     AllowViewing: True
     PopupWindow:
-      Width: 480
+      Width: 520
       Height: 480
 
     Grouping:

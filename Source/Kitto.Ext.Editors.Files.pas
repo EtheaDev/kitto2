@@ -426,8 +426,9 @@ begin
   if LIsPicture then
   begin
     LPanel.Layout := lyColumn;
+    //LPanel.Frame := True;
     FPictureView := TExtPanel.CreateAndAddToArray(LPanel.Items);
-    //FPictureView.Frame := True;
+    FPictureView.Frame := True;
     FPictureView.Border := False;
     FPictureView.Loader.SetConfigItem('url', GetMethodURL(GetImageMarkup));
     FPictureView.AfterRender := PictureViewAfterRender;

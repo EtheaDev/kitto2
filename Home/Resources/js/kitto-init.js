@@ -10,6 +10,30 @@ function kittoInit()
     }
   });
 
+  Ext.override(Ext.TabPanel, {
+
+    goPrevious: function() {
+      var activeTab = this.getActiveTab();
+      if (activeTab) {
+        var previousTab = activeTab.previousSibling();
+        if (previousTab) {
+          this.setActiveTab(previousTab);
+		}
+	  }
+    },
+
+    goNext: function() {
+      var activeTab = this.getActiveTab();
+      if (activeTab) {
+	    var nextTab = activeTab.nextSibling();
+        if (nextTab) {
+          this.setActiveTab(nextTab);
+	    }
+	  }
+    }
+	
+  });
+
   // Used by TKExtForceUpperCase and siblings.
   Ext.override(Ext.form.Field, {
 
