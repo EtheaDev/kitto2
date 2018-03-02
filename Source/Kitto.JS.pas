@@ -268,7 +268,6 @@ uses
   , EF.Logger
   , Kitto.AccessControl
   , Kitto.Web.Application
-  , Kitto.Web.Server
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Web.Session

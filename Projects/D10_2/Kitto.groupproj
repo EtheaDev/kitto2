@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{4E81A2D7-2F4D-4A26-9E15-2EB23FAAB091}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="KittoCore.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\IDE\Projects\D10_2\KittoIDE.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="KittoCore">
+        <MSBuild Projects="KittoCore.dproj"/>
+    </Target>
+    <Target Name="KittoCore:Clean">
+        <MSBuild Projects="KittoCore.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="KittoCore:Make">
+        <MSBuild Projects="KittoCore.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="KittoIDE">
+        <MSBuild Projects="..\..\IDE\Projects\D10_2\KittoIDE.dproj"/>
+    </Target>
+    <Target Name="KittoIDE:Clean">
+        <MSBuild Projects="..\..\IDE\Projects\D10_2\KittoIDE.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="KittoIDE:Make">
+        <MSBuild Projects="..\..\IDE\Projects\D10_2\KittoIDE.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="KittoCore;KittoIDE"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="KittoCore:Clean;KittoIDE:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="KittoCore:Make;KittoIDE:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
