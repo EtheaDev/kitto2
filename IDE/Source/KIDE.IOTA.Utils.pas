@@ -18,7 +18,7 @@
   Based on code by David Hoyle
   http://www.davidghoyle.co.uk/
   ------------------------------------------------------------------------------- }
-unit Kitto.IDE.Utils;
+unit KIDE.IOTA.Utils;
 
 interface
 

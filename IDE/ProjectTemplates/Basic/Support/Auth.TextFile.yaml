@@ -1,0 +1,6 @@
+﻿Auth: TextFile
+  IsClearPassword: False
+  FileName: %HOME_PATH%\Auth.txt
+  Defaults:
+    UserName:
+    Password:

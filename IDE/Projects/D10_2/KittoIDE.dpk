@@ -34,13 +34,24 @@ package KittoIDE;
 requires
   rtl,
   designide,
-  KittoCore;
+  KittoCore,
+  VclSmp;
 
 contains
-  Kitto.IDE.ProjectWizard in '..\..\Source\Kitto.IDE.ProjectWizard.pas',
-  Kitto.IDE.Register in '..\..\Source\Kitto.IDE.Register.pas',
-  Kitto.IDE.ProjectCreator in '..\..\Source\Kitto.IDE.ProjectCreator.pas',
-  Kitto.IDE.Utils in '..\..\Source\Kitto.IDE.Utils.pas',
-  Kitto.IDE.MainFormCreator in '..\..\Source\Kitto.IDE.MainFormCreator.pas';
+  KIDE.IOTA.ProjectWizard in '..\..\Source\KIDE.IOTA.ProjectWizard.pas',
+  KIDE.IOTA.Register in '..\..\Source\KIDE.IOTA.Register.pas',
+  KIDE.IOTA.ProjectCreator in '..\..\Source\KIDE.IOTA.ProjectCreator.pas',
+  KIDE.IOTA.Utils in '..\..\Source\KIDE.IOTA.Utils.pas',
+  KIDE.IOTA.MainFormCreator in '..\..\Source\KIDE.IOTA.MainFormCreator.pas',
+  KIDE.BaseForm in '..\..\Source\KIDE.BaseForm.pas' {BaseForm},
+  KIDE.BaseWizardForm in '..\..\Source\KIDE.BaseWizardForm.pas' {BaseWizardForm},
+  KIDE.NewProjectWizardForm in '..\..\Source\KIDE.NewProjectWizardForm.pas' {NewProjectWizardForm},
+  KIDE.MRUOptions in '..\..\Source\KIDE.MRUOptions.pas',
+  KIDE.ProjectTemplateFrame in '..\..\Source\KIDE.ProjectTemplateFrame.pas' {ProjectTemplateFrame: TFrame},
+  KIDE.BaseFrame in '..\..\Source\KIDE.BaseFrame.pas' {BaseFrame: TFrame},
+  KIDE.ProjectTemplate in '..\..\Source\KIDE.ProjectTemplate.pas',
+  KIDE.Config in '..\..\Source\KIDE.Config.pas',
+  KIDE.Project in '..\..\Source\KIDE.Project.pas',
+  KIDE.MainDataModule in '..\..\Source\KIDE.MainDataModule.pas' {MainDataModule: TDataModule};
 
 end.

@@ -3,7 +3,7 @@
         <ProjectGuid>{245397D4-4D37-4125-9399-681D24762800}</ProjectGuid>
         <MainSource>KittoIDE.dpk</MainSource>
         <ProjectVersion>18.3</ProjectVersion>
-        <FrameworkType>None</FrameworkType>
+        <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -79,7 +79,7 @@
         <DCC_K>false</DCC_K>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
-        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1040</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_Description>Kitto IDE Design-Time Package</DCC_Description>
@@ -87,6 +87,8 @@
         <DllSuffix>250</DllSuffix>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
         <SanitizedProjectName>KittoIDE</SanitizedProjectName>
+        <DCC_SYMBOL_PLATFORM>false</DCC_SYMBOL_PLATFORM>
+        <DCC_UNIT_PLATFORM>false</DCC_UNIT_PLATFORM>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
@@ -117,10 +119,10 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <DCC_UsePackage>rtl;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>rtl;KittoCore250;KittoCore;VclSmp;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>rtl;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>rtl;VclSmp;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -148,11 +150,43 @@
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="designide.dcp"/>
         <DCCReference Include="KittoCore.dcp"/>
-        <DCCReference Include="..\..\Source\Kitto.IDE.ProjectWizard.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.IDE.Register.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.IDE.ProjectCreator.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.IDE.Utils.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.IDE.MainFormCreator.pas"/>
+        <DCCReference Include="VclSmp.dcp"/>
+        <DCCReference Include="..\..\Source\KIDE.IOTA.ProjectWizard.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.IOTA.Register.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.IOTA.ProjectCreator.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.IOTA.Utils.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.IOTA.MainFormCreator.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.BaseForm.pas">
+            <Form>BaseForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="..\..\Source\KIDE.BaseWizardForm.pas">
+            <Form>BaseWizardForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="..\..\Source\KIDE.NewProjectWizardForm.pas">
+            <Form>NewProjectWizardForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="..\..\Source\KIDE.MRUOptions.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.ProjectTemplateFrame.pas">
+            <Form>ProjectTemplateFrame</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
+        <DCCReference Include="..\..\Source\KIDE.BaseFrame.pas">
+            <Form>BaseFrame</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
+        <DCCReference Include="..\..\Source\KIDE.ProjectTemplate.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.Config.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.Project.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.MainDataModule.pas">
+            <Form>MainDataModule</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
         <RcItem Include="..\..\Templates\NewKittoProjectGUI_dpr.tpl">
             <ContainerId>ResourceItem</ContainerId>
             <ResourceType>RCDATA</ResourceType>
@@ -172,6 +206,25 @@
             <ContainerId>ResourceItem</ContainerId>
             <ResourceType>RCDATA</ResourceType>
             <ResourceId>MainForm_pas</ResourceId>
+        </RcItem>
+        <RcItem Include="..\..\Images\KittoVclApplication.ico">
+            <ResourceType>ICON</ResourceType>
+            <ResourceId>KittoVclApplication</ResourceId>
+        </RcItem>
+        <RcItem Include="..\..\Images\KittoWindowsServiceApplication.ico">
+            <ResourceType>ICON</ResourceType>
+            <ResourceId>KittoWindowsServiceApplication</ResourceId>
+        </RcItem>
+        <RcCompile Include="..\..\ProjectTemplates\Basic\Template_Basic.rc">
+            <Form>Template_Basic.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\ProjectTemplates\Empty\Template_Empty.rc">
+            <Form>Template_Empty.res</Form>
+        </RcCompile>
+        <RcItem Include="..\..\Config\Config.yaml">
+            <ContainerId>ResourceItem</ContainerId>
+            <ResourceType>RCDATA</ResourceType>
+            <ResourceId>Config_yaml</ResourceId>
         </RcItem>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

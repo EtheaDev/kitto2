@@ -48,6 +48,8 @@ type
     FLogLevel: Integer;
     FConfig: TEFComponentConfig;
     function GetConfig: TEFComponentConfig;
+  strict protected
+    function DoLoadConfig: TEFComponentConfig; virtual;
   public
     const DEFAULT_LOG_LEVEL = 1;
   protected
@@ -199,24 +201,27 @@ begin
 end;
 
 function TEFComponent.GetConfig: TEFComponentConfig;
+begin
+  if not Assigned(FConfig) then
+    FConfig := DoLoadConfig;
+  Result := FConfig;
+end;
+
+function TEFComponent.DoLoadConfig: TEFComponentConfig;
 var
   LConfigFileName: string;
 begin
-  if not Assigned(FConfig) then
+  LConfigFileName := GetConfigFileName;
+  if LConfigFileName <> '' then
   begin
-    LConfigFileName := GetConfigFileName;
-    if LConfigFileName <> '' then
-    begin
-      if FileExists(LConfigFileName) then
-        FConfig := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(LConfigFileName)
-      else
-        FConfig := TEFComponentConfig.Create;
-      FConfig.PersistentName := LConfigFileName;
-    end
+    if FileExists(LConfigFileName) then
+      Result := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(LConfigFileName)
     else
-      FConfig := TEFComponentConfig.Create;
-  end;
-  Result := FConfig;
+      Result := TEFComponentConfig.Create;
+    FConfig.PersistentName := LConfigFileName;
+  end
+  else
+    Result := TEFComponentConfig.Create;
 end;
 
 function TEFComponent.GetConfigFileName: string;

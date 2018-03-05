@@ -1,0 +1,92 @@
+Localization:
+  dxgettext:
+    .Path: C:\Program Files (x86)\dxgettext
+    URL: http://dxgettext.po.dk/
+  Yaml:
+    DefaultKeyNames:
+      Key: AppTitle
+      Key: ConfirmationMessage
+      Key: DisplayLabel
+      Key: Folder
+      Key: FreeSearch
+      Key: Hint
+      Key: PluralDisplayLabel
+Defaults:
+  Grid:
+    DefaultActions:
+      Item:
+      Item: Edit
+      Item: View
+Authentication:
+  Authenticators:
+    Item: DB
+    Item: DBServer
+    Item: OSDB
+    Item: TextFile
+AccessControl:
+  AccessControllers:
+    Item: DB
+ExtThemes:
+  Item: classic
+  Item: gray
+  Item: triton
+  Item: neptune
+  Item: crisp
+LanguageIds:
+  item: en
+  item: it
+Charsets:
+  Item: utf-8
+  Item: iso-8859-1
+DetailTablesControllerStyle:
+  item: Tabs
+  item: Popup
+  item: Bottom  
+LabelAligns:
+  Item: left
+  Item: top
+  Item: right
+ButtonScales:
+  Item: small
+  Item: medium
+  Item: large
+KittoSearchPaths:
+  Item: ..\..\..\..
+  Item: $(KITTO)
+  Item: ..\..\Externals\Kitto
+DefaultDBConnections:
+  DBX:
+    Connection:
+      DriverName: Firebird
+      DataBase: localhost:Path\to\database.fdb
+      User_Name: SYSDBA
+      Password: masterkey
+      ServerCharSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
+  FD:
+    Connection:
+      DriverID: FB
+      Database: Path\to\database.fdb
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Protocol: TCPIP
+      Isolation: ReadCommitted
+View:
+  Controller:
+    item: Viewport
+    item: Window
+    item: TabPanel
+    item: BorderPanel
+    item: TilePanel
+    item: HtmlPanel
+    item: StatusBar
+    item: TreePanel
+    item: ToolBar
+    item: ChangePassword
+    item: Logout
+    item: Login
+  

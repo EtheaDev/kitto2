@@ -1,0 +1,4 @@
+﻿Auth: DB
+  IsClearPassword: True
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: qwerty

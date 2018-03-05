@@ -1,14 +1,14 @@
-unit Kitto.IDE.MainFormCreator;
+unit KIDE.IOTA.MainFormCreator;
 
 interface
 
 uses
   ToolsAPI
-  , Kitto.IDE.Utils
+  , KIDE.IOTA.Utils
   ;
 
 type
-  TKMainFormCreator = class(TInterfacedObject, IOTACreator, IOTAModuleCreator)
+  TIOTAMainFormCreator = class(TInterfacedObject, IOTACreator, IOTAModuleCreator)
   public
     // IOTACreator
     function GetCreatorType: string;
@@ -37,84 +37,84 @@ uses
   SysUtils
   ;
 
-function TKMainFormCreator.GetCreatorType: string;
+function TIOTAMainFormCreator.GetCreatorType: string;
 begin
   Result := sForm;
 end;
 
-function TKMainFormCreator.GetExisting: Boolean;
+function TIOTAMainFormCreator.GetExisting: Boolean;
 begin
   Result := False;
 end;
 
-function TKMainFormCreator.GetFileSystem: string;
+function TIOTAMainFormCreator.GetFileSystem: string;
 begin
   Result := '';
 end;
 
-function TKMainFormCreator.GetOwner: IOTAModule;
+function TIOTAMainFormCreator.GetOwner: IOTAModule;
 begin
   Result := FindActiveProject;
 end;
 
-function TKMainFormCreator.GetUnnamed: Boolean;
+function TIOTAMainFormCreator.GetUnnamed: Boolean;
 begin
   Result := True;
 end;
 
-function TKMainFormCreator.GetAncestorName: string;
+function TIOTAMainFormCreator.GetAncestorName: string;
 begin
   Result := 'TForm';
 end;
 
-function TKMainFormCreator.GetImplFileName: string;
+function TIOTAMainFormCreator.GetImplFileName: string;
 begin
   Result := GetCurrentDir + '\MainFormUnit.pas';
 end;
 
-function TKMainFormCreator.GetIntfFileName: string;
+function TIOTAMainFormCreator.GetIntfFileName: string;
 begin
   Result := '';
 end;
 
-function TKMainFormCreator.GetFormName: string;
+function TIOTAMainFormCreator.GetFormName: string;
 begin
   Result := 'MainForm';
 end;
 
-function TKMainFormCreator.GetMainForm: Boolean;
+function TIOTAMainFormCreator.GetMainForm: Boolean;
 begin
   Result := True;
 end;
 
-function TKMainFormCreator.GetShowForm: Boolean;
+function TIOTAMainFormCreator.GetShowForm: Boolean;
 begin
   Result := True;
 end;
 
-function TKMainFormCreator.GetShowSource: Boolean;
+function TIOTAMainFormCreator.GetShowSource: Boolean;
 begin
   Result := True;
 end;
 
-function TKMainFormCreator.NewFormFile(const AFormIdent, AAncestorIdent: string): IOTAFile;
+function TIOTAMainFormCreator.NewFormFile(const AFormIdent, AAncestorIdent: string): IOTAFile;
 begin
 { TODO : macros/text replace }
   Result := TKResourceFile.Create('MainForm_dfm');
 end;
 
-function TKMainFormCreator.NewImplSource(const AModuleIdent, AFormIdent, AAncestorIdent: string): IOTAFile;
+function TIOTAMainFormCreator.NewImplSource(const AModuleIdent, AFormIdent, AAncestorIdent: string): IOTAFile;
 begin
 { TODO : macros/text replace }
   Result := TKResourceFile.Create('MainForm_pas');
 end;
 
-function TKMainFormCreator.NewIntfSource(const ModuleIdent, FormIdent, AncestorIdent: string): IOTAFile;
+function TIOTAMainFormCreator.NewIntfSource(const ModuleIdent, FormIdent, AncestorIdent: string): IOTAFile;
 begin
   Result := nil;
 end;
 
-procedure TKMainFormCreator.FormCreated(const FormEditor: IOTAFormEditor);
+procedure TIOTAMainFormCreator.FormCreated(const FormEditor: IOTAFormEditor);
 begin
 end;
 

@@ -603,15 +603,29 @@ procedure CopyAllFilesAndFoldersExcept(
 procedure CheckFileInUse(const AFileName: string);
 
 /// <summary>
-///   Returns True if two strings refer to the same directory. Both must exist
-///   for this function to work.
+///  Returns True if two strings refer to the same directory. Both must exist
+///  for this function to work.
 /// </summary>
 function SameDirectory(const ADirectory1, ADirectory2: string): Boolean;
 
 /// <summary>
-///   Returns the number of bytes in the current process' working set.
+///  Returns the number of bytes in the current process' working set.
 /// </summary>
 function GetCurrentProcessMemory: Cardinal;
+
+/// <summary>
+///  Loads a resource of the specified name and type from the specified instance
+///  handle, and returns the raw bytes. Returns nil if the resource is not found
+///  or is empty.
+/// </summary>
+function GetResourceBytes(const AInstance: THandle; const AResourceName: string; const AResourceType: PChar): TBytes; inline;
+
+/// <summary>
+///  Loads a resource of the specified name and type RCDATA from the specified instance
+///  handle, and returns the raw bytes. Returns nil if the resource is not found
+///  or is empty.
+/// </summary>
+function GetRCDATAResourceBytes(const AInstance: THandle; const AResourceName: string): TBytes;
 
 implementation
 
@@ -1578,6 +1592,37 @@ procedure ShrinkProcessWorkingSet(const AMaxMemory: Cardinal);
 begin
   if GetCurrentProcessMemory > AMaxMemory then
     EmptyWorkingSet(GetCurrentProcess);
+end;
+
+function GetResourceBytes(const AInstance: THandle; const AResourceName: string; const AResourceType: PChar): TBytes;
+var
+  LHandle: THandle;
+  LResourceStream: TResourceStream;
+  LBytesStream: TBytesStream;
+begin
+  Result := nil;
+
+  LHandle := FindResource(AInstance, PChar(AResourceName), AResourceType);
+  if LHandle <> 0 then
+  begin
+    LResourceStream := TResourceStream.Create(AInstance, AResourceName, AResourceType);
+    try
+      LBytesStream := TBytesStream.Create;
+      try
+        LBytesStream.CopyFrom(LResourceStream, LResourceStream.Size);
+        Result := Copy(LBytesStream.Bytes, 0, LBytesStream.Size);
+      finally
+        FreeAndNil(LBytesStream);
+      end;
+    finally
+      FreeAndNil(LResourceStream);
+    end;
+  end;
+end;
+
+function GetRCDATAResourceBytes(const AInstance: THandle; const AResourceName: string): TBytes;
+begin
+  Result := GetResourceBytes(AInstance, AResourceName, RT_RCDATA);
 end;
 
 initialization

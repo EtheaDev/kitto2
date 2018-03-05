@@ -89,6 +89,12 @@ function GetUniqueFileName(const APath, AExtension: string): string; overload;
 function GetUniqueFileName(const ADefaultFileName: string): string; overload;
 
 /// <summary>
+///  Returns a random directory name which doesn't exists in APath
+///  Keeps generating random names until it finds a free name.
+/// </summary>
+function GetUniqueDirectoryName(const APath: string): string;
+
+/// <summary>
 ///  Returns the randomly generated name of a non-existing file in the
 ///  system's temporary directory. You can pass a custom extension, otherwise
 ///  the file name will have .tmp extension.
@@ -194,6 +200,13 @@ begin
     LExtension := ExtractFileExt(ADefaultFileName);
     Result := ChangeFileExt(ADefaultFileName, '_' + GetRandomString(8) + LExtension);
   end;
+end;
+
+function GetUniqueDirectoryName(const APath: string): string;
+begin
+  repeat
+    Result := TPath.Combine(APath, GetRandomString(8));
+  until not DirectoryExists(Result);
 end;
 
 function GetTempFileName(const AFileExtension: string = '.tmp'): string;
