@@ -218,7 +218,7 @@ begin
       Result := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(LConfigFileName)
     else
       Result := TEFComponentConfig.Create;
-    FConfig.PersistentName := LConfigFileName;
+    Result.PersistentName := LConfigFileName;
   end
   else
     Result := TEFComponentConfig.Create;

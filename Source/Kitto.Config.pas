@@ -280,6 +280,9 @@ uses
   ;
 
 procedure TKConfig.AfterConstruction;
+var
+  LDecimalSeparator: string;
+  LThousandSeparator: string;
 begin
   inherited;
   { TODO : allow to change format settings on a per-user basis. }
@@ -298,6 +301,18 @@ begin
     FUserFormatSettings.DateSeparator := '-'
   else
     FUserFormatSettings.DateSeparator := '/';
+
+  LDecimalSeparator := Config.GetString('UserFormats/DecimalSeparator', '');
+  if LDecimalSeparator = '.' then
+    FUserFormatSettings.DecimalSeparator := '.'
+  else if LDecimalSeparator = ',' then
+    FUserFormatSettings.DecimalSeparator := ',';
+
+  LThousandSeparator := Config.GetString('UserFormats/ThousandSeparator', '');
+  if LThousandSeparator = '.' then
+    FUserFormatSettings.ThousandSeparator := '.'
+  else if LThousandSeparator = ',' then
+    FUserFormatSettings.ThousandSeparator := ',';
 end;
 
 destructor TKConfig.Destroy;

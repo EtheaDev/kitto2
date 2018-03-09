@@ -963,6 +963,10 @@ begin
   TKWebSession.Current.HomeViewNodeName := TKWebRequest.Current.GetQueryField('home');
   SetViewportContent;
   TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.ObjectSpace, 'kittoInit();');
+  TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.ObjectSpace,
+    Format('Ext.util.Format.decimalSeparator = "%s";', [Config.UserFormatSettings.DecimalSeparator]));
+  TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.ObjectSpace,
+    Format('Ext.util.Format.thousandSeparator = "%s";', [Config.UserFormatSettings.ThousandSeparator]));
   SetAjaxTimeout;
   if TooltipsEnabled then
     ExtQuickTips.Init(True)
