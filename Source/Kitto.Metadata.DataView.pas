@@ -1278,7 +1278,7 @@ function TKViewTable.GetResourceURI: string;
 begin
   Result := View.GetResourceURI;
   if Result <> '' then
-    Result := Result + Join(GetNamePath, '/');
+    Result := Result + '/' + Join(GetNamePath, '/');
 end;
 
 function TKViewTable.GetRules: TKRules;
@@ -1302,9 +1302,11 @@ begin
 end;
 
 function TKViewTable.FindLayout(const AKind: string): TKLayout;
+var
+  LDefaultLayoutName: string;
 begin
-  Result := View.Catalog.Layouts.FindLayout(
-    SmartConcat(View.PersistentName, '.', Join(GetNamePath, '.')) + '_' + AKind);
+  LDefaultLayoutName := SmartConcat(View.PersistentName, '.', Join(GetNamePath, '.')) + '_' + AKind;
+  Result := View.Catalog.Layouts.FindLayout(LDefaultLayoutName);
 end;
 
 function TKViewTable.FindNode(const APath: string;
@@ -1351,7 +1353,7 @@ begin
   begin
     Result := MasterTable.GetNamePath;
     SetLength(Result, Length(Result) + 1);
-    Result[High(Result)] := '/' + MasterTable.GetModelDetailReferenceName;
+    Result[High(Result)] := MasterTable.GetModelDetailReferenceName;
     if Result[High(Result)] = '' then
       Result[High(Result)] := ModelName;
   end
