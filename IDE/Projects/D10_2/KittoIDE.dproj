@@ -158,74 +158,30 @@
         <DCCReference Include="..\..\Source\KIDE.IOTA.MainFormCreator.pas"/>
         <DCCReference Include="..\..\Source\KIDE.BaseForm.pas">
             <Form>BaseForm</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="..\..\Source\KIDE.BaseWizardForm.pas">
             <Form>BaseWizardForm</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="..\..\Source\KIDE.NewProjectWizardForm.pas">
             <Form>NewProjectWizardForm</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="..\..\Source\KIDE.MRUOptions.pas"/>
         <DCCReference Include="..\..\Source\KIDE.ProjectTemplateFrame.pas">
             <Form>ProjectTemplateFrame</Form>
-            <FormType>dfm</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="..\..\Source\KIDE.BaseFrame.pas">
             <Form>BaseFrame</Form>
-            <FormType>dfm</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="..\..\Source\KIDE.ProjectTemplate.pas"/>
         <DCCReference Include="..\..\Source\KIDE.Config.pas"/>
         <DCCReference Include="..\..\Source\KIDE.Project.pas"/>
+        <DCCReference Include="..\..\Source\KIDE.YAMLHighlighter.pas"/>
         <DCCReference Include="..\..\Source\KIDE.MainDataModule.pas">
             <Form>MainDataModule</Form>
-            <FormType>dfm</FormType>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
-        <RcItem Include="..\..\Templates\NewKittoProjectGUI_dpr.tpl">
-            <ContainerId>ResourceItem</ContainerId>
-            <ResourceType>RCDATA</ResourceType>
-            <ResourceId>NewKittoProjectGUI_dpr</ResourceId>
-        </RcItem>
-        <RcItem Include="..\..\Templates\NewKittoProjectGUI_dproj.tpl">
-            <ContainerId>ResourceItem</ContainerId>
-            <ResourceType>RCDATA</ResourceType>
-            <ResourceId>NewKittoProjectGUI_dproj</ResourceId>
-        </RcItem>
-        <RcItem Include="..\..\Templates\Units.MainForm_dfm.tpl">
-            <ContainerId>ResourceItem</ContainerId>
-            <ResourceType>RCDATA</ResourceType>
-            <ResourceId>MainForm_dfm</ResourceId>
-        </RcItem>
-        <RcItem Include="..\..\Templates\Units.MainForm_pas.tpl">
-            <ContainerId>ResourceItem</ContainerId>
-            <ResourceType>RCDATA</ResourceType>
-            <ResourceId>MainForm_pas</ResourceId>
-        </RcItem>
-        <RcItem Include="..\..\Images\KittoVclApplication.ico">
-            <ResourceType>ICON</ResourceType>
-            <ResourceId>KittoVclApplication</ResourceId>
-        </RcItem>
-        <RcItem Include="..\..\Images\KittoWindowsServiceApplication.ico">
-            <ResourceType>ICON</ResourceType>
-            <ResourceId>KittoWindowsServiceApplication</ResourceId>
-        </RcItem>
-        <RcCompile Include="..\..\ProjectTemplates\Basic\Template_Basic.rc">
-            <Form>Template_Basic.res</Form>
-        </RcCompile>
-        <RcCompile Include="..\..\ProjectTemplates\Empty\Template_Empty.rc">
-            <Form>Template_Empty.res</Form>
-        </RcCompile>
-        <RcItem Include="..\..\Config\Config.yaml">
-            <ContainerId>ResourceItem</ContainerId>
-            <ResourceType>RCDATA</ResourceType>
-            <ResourceId>Config_yaml</ResourceId>
-        </RcItem>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -273,7 +229,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\..\..\..\..\..\Public\Documents\Embarcadero\Studio\19.0\Bpl\KittoIDE250.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\KittoIDE250.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>KittoIDE.bpl</RemoteName>
                         <Overwrite>true</Overwrite>

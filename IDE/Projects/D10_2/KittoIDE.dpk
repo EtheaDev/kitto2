@@ -52,6 +52,7 @@ contains
   KIDE.ProjectTemplate in '..\..\Source\KIDE.ProjectTemplate.pas',
   KIDE.Config in '..\..\Source\KIDE.Config.pas',
   KIDE.Project in '..\..\Source\KIDE.Project.pas',
+  KIDE.YAMLHighlighter in '..\..\Source\KIDE.YAMLHighlighter.pas',
   KIDE.MainDataModule in '..\..\Source\KIDE.MainDataModule.pas' {MainDataModule: TDataModule};
 
 end.
