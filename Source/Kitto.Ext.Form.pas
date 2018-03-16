@@ -968,7 +968,7 @@ begin
   FFormPanel.LabelWidth := FORM_LABELWIDTH;
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
-  FFormPanel.LabelAlign := LabelAlign;
+  //FFormPanel.LabelAlign := LabelAlign;
 
   LDetailStyle := GetDetailStyle;
   if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
@@ -984,6 +984,7 @@ begin
     if Config.GetBoolean('Sys/ShowIcon', True) then
       FMainPage.IconCls := TKWebApplication.Current.SetViewIconStyle(ViewTable.View);
     FMainPage.LabelAlign := LabelAlign;
+    FMainPage.MainEditPanel := FFormPanel;
     FTabPanel.OnTabChange := TabChange;
     FTabPanel.On('tabchange', FTabPanel.GenerateAnonymousFunction(FTabPanel.UpdateLayout));
     FTabPanel.SetActiveTab(0);
