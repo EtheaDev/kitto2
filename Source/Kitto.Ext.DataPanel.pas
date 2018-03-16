@@ -825,16 +825,25 @@ end;
 
 function TKExtDataPanelController.GetOrderByClause: string;
 var
+  LJSonValue: TJSonValue;
+  LJSonArray: TJSONArray;
+  LJSonParam: string;
   LFieldName: string;
   LDirection: string;
 begin
-  LFieldName := ParamAsString('sort');
-  LDirection := ParamAsString('dir');
-
-  if LFieldName <> '' then
-    Result := ServerStore.Header.FieldByName(LFieldName).ViewField.BuildSortClause(SameText(LDirection, 'desc'))
-  else
-    Result := '';
+  Result := '';
+  LJSonParam := ParamAsString('sort');
+  if LJSonParam <> '' then
+  begin
+    LJSonValue := TJSONObject.ParseJSONValue(LJSonParam);
+    Assert(LJSonValue is TJSonArray);
+    LJSonArray := TJSonArray(LJSonValue);
+    Assert(LJSonArray.Count = 1);
+    LFieldName := LJSonArray.Items[0].GetValue('property','');
+    LDirection := LJSonArray.Items[0].GetValue('direction','');
+    if LFieldName <> '' then
+      Result := ServerStore.Header.FieldByName(LFieldName).ViewField.BuildSortClause(SameText(LDirection, 'DESC'))
+  end;
 end;
 
 function TKExtDataPanelController.GetParentDataPanel: TKExtDataPanelController;

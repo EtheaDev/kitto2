@@ -71,6 +71,8 @@ type
     function CreateSubController: IJSController; virtual;
     procedure InitSubController(const ASubController: IJSController); virtual;
     procedure SetActiveSubController(const ASubController: IJSController); virtual;
+    function GetDefaultWidth: Integer;
+    function GetDefaultHeight: Integer;
   public
     destructor Destroy; override;
 
@@ -514,8 +516,8 @@ var
   LHeight: Integer;
   LFullScreen: Boolean;
 begin
-  LWidth := ATree.GetInteger(APath + 'Width', DEFAULT_WINDOW_WIDTH);
-  LHeight := ATree.GetInteger(APath + 'Height', DEFAULT_WINDOW_HEIGHT);
+  LWidth := ATree.GetInteger(APath + 'Width', GetDefaultWidth);
+  LHeight := ATree.GetInteger(APath + 'Height', Height);
   LFullScreen := ATree.GetBoolean(APath + 'FullScreen', TKWebRequest.Current.IsMobileBrowser);
 
   if LFullScreen then
@@ -549,6 +551,16 @@ end;
 function TKExtWindowControllerBase.GetControllerToRemove: IJSController;
 begin
   Result := Self;
+end;
+
+function TKExtWindowControllerBase.GetDefaultHeight: Integer;
+begin
+  Result := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Height', DEFAULT_WINDOW_HEIGHT);
+end;
+
+function TKExtWindowControllerBase.GetDefaultWidth: Integer;
+begin
+  Result := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Width', DEFAULT_WINDOW_WIDTH);
 end;
 
 { TKExtPanelBase }
@@ -722,8 +734,8 @@ end;
 procedure TKExtModalWindow.InitDefaults;
 begin
   inherited;
-  Width := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Width', DEFAULT_WINDOW_WIDTH);
-  Height := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Height', DEFAULT_WINDOW_HEIGHT);
+  Width := GetDefaultWidth;
+  Height := GetDefaultHeight;
   Closable := False;
   Modal := True;
 end;

@@ -544,6 +544,8 @@ var
 
     LColumn := CreateColumn;
     LColumn.Sortable := not AViewField.IsBlob;
+    LColumn.MenuDisabled := True; //Column Menu always disabled
+
     if Assigned(ALayoutNode) then
       LColumn.Header := _(ALayoutNode.GetString('DisplayLabel', AViewField.DisplayLabel))
     else
