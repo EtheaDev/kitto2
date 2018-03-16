@@ -155,6 +155,7 @@ type
       const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IJSController;
     function GetDefaultEditControllerType: string; virtual;
     property EditItems: TKEditItemList read GetEditItems;
+    function ExpandExpression(const AExpression: string): string; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -184,6 +185,7 @@ uses
   , Math
   , Types
   , Classes
+  , EF.Macros
   , EF.StrUtils
   , EF.Sys
   , EF.Localization
@@ -265,6 +267,11 @@ begin
     FDupButton.PerformClick
   else
     inherited;
+end;
+
+function TKExtDataPanelController.ExpandExpression(const AExpression: string): string;
+begin
+  Result := TEFMacroExpansionEngine.Instance.Expand(AExpression);
 end;
 
 procedure TKExtDataPanelController.DefaultAction;
@@ -478,7 +485,7 @@ begin
   LLayoutNode := ViewTable.FindNode('Controller/' + ALayoutName + '/Layout');
   if Assigned(LLayoutNode) then
   begin
-    LLayoutName := LLayoutNode.AsString;
+    LLayoutName := ExpandExpression(LLayoutNode.AsString);
     if LLayoutName <> '' then
       Result := View.Catalog.Layouts.FindLayout(LLayoutName)
     else

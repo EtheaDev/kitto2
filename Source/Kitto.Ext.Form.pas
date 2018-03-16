@@ -137,6 +137,7 @@ type
     procedure RefreshEditorValues;
     procedure RefreshEditorFields;
     procedure CloseHostContainer; override;
+    function ExpandExpression(const AExpression: string): string; override;
   public
     procedure LoadData; override;
     destructor Destroy; override;
@@ -369,6 +370,18 @@ begin
       if (LController.AsObject is TKExtDataPanelController) then
         TKExtDataPanelController(LController.AsObject).LoadData;
   end;
+end;
+
+function TKExtFormPanelController.ExpandExpression(const AExpression: string): string;
+var
+  LStoreRecord: TKViewTableRecord;
+begin
+  Result := inherited ExpandExpression(AExpression);
+  // This method is called earlier than when StoreRecord is available, so we
+  // read the config directly.
+  LStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
+  if Assigned(LStoreRecord) then
+    Result := LStoreRecord.ExpandExpression(Result);
 end;
 
 function TKExtFormPanelController.CreateLayoutProcessor: TKExtLayoutProcessor;
@@ -968,7 +981,6 @@ begin
   FFormPanel.LabelWidth := FORM_LABELWIDTH;
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
-  //FFormPanel.LabelAlign := LabelAlign;
 
   LDetailStyle := GetDetailStyle;
   if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
