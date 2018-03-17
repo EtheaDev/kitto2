@@ -1,4 +1,5 @@
 ﻿Controller:
+  Style: opacity:0.9
   Movable: False
   BorderPanel:
     NorthView:
