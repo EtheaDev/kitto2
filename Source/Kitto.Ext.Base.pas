@@ -1173,9 +1173,14 @@ begin
   Assert(Assigned(FView));
   Assert(Assigned(FActionObserver));
 
-  LController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, FView, nil, nil, FActionObserver);
-  InitController(LController);
-  LController.Display;
+  if View.IsPersistent then
+    TKWebApplication.Current.DisplayView(View, FActionObserver)
+  else
+  begin
+    LController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, FView, nil, nil, FActionObserver);
+    InitController(LController);
+    LController.Display;
+  end;
 end;
 
 class procedure TKExtActionButton.ExecuteHandler(const AButton: TKExtButton);

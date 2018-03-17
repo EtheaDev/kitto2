@@ -129,11 +129,14 @@ type
     procedure ReloadConfig;
 
     function GetHomeView(const AViewportWidthInInches: Integer): TKView;
-    procedure DisplayView(const AName: string); overload;
-    procedure DisplayView(const AView: TKView); overload;
+    procedure DisplayView(const AName: string; const AObserver: IEFObserver = nil); overload;
+    procedure DisplayView(const AView: TKView; const AObserver: IEFObserver = nil); overload;
     function FindPageTemplate(const APageName: string): string;
     function GetPageTemplate(const APageName: string): string;
-    function DisplayNewController(const AView: TKView; const AForceModal: Boolean = False;
+    function DisplayNewController(
+      const AView: TKView;
+      const AObserver: IEFObserver = nil;
+      const AForceModal: Boolean = False;
       const AAfterCreateWindow: TProc<IJSContainer> = nil;
       const AAfterCreate: TProc<IJSController> = nil): IJSController;
     property Path: string read FPath;
@@ -494,10 +497,12 @@ begin
   end;
 end;
 
-function TKWebApplication.DisplayNewController(const AView: TKView; const AForceModal: Boolean;
-
-  const AAfterCreateWindow: TProc<IJSContainer>;
-  const AAfterCreate: TProc<IJSController>): IJSController;
+function TKWebApplication.DisplayNewController(
+  const AView: TKView;
+  const AObserver: IEFObserver = nil;
+  const AForceModal: Boolean = False;
+  const AAfterCreateWindow: TProc<IJSContainer> = nil;
+  const AAfterCreate: TProc<IJSController> = nil): IJSController;
 var
   LIsSynchronous: Boolean;
   LIsModal: Boolean;
@@ -522,7 +527,7 @@ begin
     TKWebSession.Current.ControllerHostWindow := LWindow;
     if Assigned(AAfterCreateWindow) then
       AAfterCreateWindow(LWindow);
-    Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView, LWindow);
+    Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView, LWindow, nil, AObserver);
     if Assigned(AAfterCreate) then
       AAfterCreate(Result);
     if not Result.Config.GetBoolean('Sys/SupportsContainer') then
@@ -548,7 +553,8 @@ begin
   else
   begin
     Assert(Assigned(TKWebSession.Current.ControllerContainer));
-    Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView, TKWebSession.Current.ControllerContainer);
+    Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView,
+      TKWebSession.Current.ControllerContainer, nil, AObserver);
     //Assert(Result.Config.GetBoolean('Sys/SupportsContainer'));
   end;
   LIsSynchronous := Result.IsSynchronous;
@@ -578,11 +584,11 @@ begin
     raise Exception.Create('Couldn''t create host window');
 end;
 
-procedure TKWebApplication.DisplayView(const AName: string);
+procedure TKWebApplication.DisplayView(const AName: string; const AObserver: IEFObserver = nil);
 begin
   Assert(AName <> '');
 
-  DisplayView(Config.Views.ViewByName(AName));
+  DisplayView(Config.Views.ViewByName(AName), AObserver);
 end;
 
 function TKWebApplication.FindOpenController(const AView: TKView): IJSController;
@@ -599,7 +605,7 @@ begin
   end;
 end;
 
-procedure TKWebApplication.DisplayView(const AView: TKView);
+procedure TKWebApplication.DisplayView(const AView: TKView; const AObserver: IEFObserver = nil);
 var
   LController: IJSController;
 begin
@@ -609,12 +615,12 @@ begin
   begin
     try
       if AView.GetBoolean('Controller/AllowMultipleInstances') then
-        LController := DisplayNewController(AView)
+        LController := DisplayNewController(AView, AObserver)
       else
       begin
         LController := FindOpenController(AView);
         if not Assigned(LController) then
-          LController := DisplayNewController(AView);
+          LController := DisplayNewController(AView, AObserver);
       end;
       if Assigned(LController) and Assigned(TKWebSession.Current.ControllerContainer) and LController.Config.GetBoolean('Sys/SupportsContainer') then
         TKWebSession.Current.ControllerContainer.SetActiveSubController(LController);
@@ -937,9 +943,9 @@ begin
   TKWebSession.Current.LoginController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, LLoginView, nil, nil, Self, LType);
   TKWebSession.Current.LoginController.Display;
 
-  { TODO : remove dependency }
-  if TKWebSession.Current.LoginController is TExtContainer then
-    TExtContainer(TKWebSession.Current.LoginController).UpdateLayout;
+//  { TODO : remove dependency }
+//  if TKWebSession.Current.LoginController is TExtContainer then
+//    TExtContainer(TKWebSession.Current.LoginController).UpdateLayout;
 end;
 
 procedure TKWebApplication.Home;

@@ -215,14 +215,19 @@ begin
   Assert(Assigned(ActionObserver));
 
   PerformBeforeExecute;
-  LController := TKExtControllerFactory.Instance.CreateController(
-    TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
-  if LController.Config.GetBoolean('RequireSelection', True) then
-    FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
+  if View.IsPersistent then
+    TKWebApplication.Current.DisplayView(View, ActionObserver)
   else
-    FServerRecord := nil;
-  InitController(LController);
-  LController.Display;
+  begin
+    LController := TKExtControllerFactory.Instance.CreateController(
+      TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
+    if LController.Config.GetBoolean('RequireSelection', True) then
+      FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
+    else
+      FServerRecord := nil;
+    InitController(LController);
+    LController.Display;
+  end;
 end;
 
 function TKExtDataActionButton.GetServerRecord: TKViewTableRecord;

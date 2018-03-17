@@ -24,28 +24,53 @@ uses
   Classes
   , SysUtils
   , HTTPApp
+  , Kitto.Metadata.Views
   , Kitto.Ext.Base
   , Kitto.Ext.DataTool
   ;
 
 type
-  /// <summary>Logs the current user out ending the current session. Only
-  /// useful if authentication is enabled.</summary>
+  /// <summary>
+  ///  Opens a view through Session.DisplayView. Useful to add a
+  ///  view to a panel's toolbar with customized properties (such as
+  ///  DisplayLabel or ImageName).
+  ///  If no customization is needed, just add the view's name
+  ///  or definition under the ToolViews node.
+  /// </summary>
+  TKExtDisplayViewController = class(TKExtToolController)
+  private
+    FTargetView: TKView;
+    function GetTargetView: TKView;
+  protected
+    property TargetView: TKView read GetTargetView;
+    procedure ExecuteTool; override;
+  end;
+
+  /// <summary>
+  ///  Logs the current user out ending the current session.
+  ///  Only useful if authentication is enabled.
+  /// </summary>
   TKExtLogoutController = class(TKExtToolController)
   protected
     procedure ExecuteTool; override;
   public
-    /// <summary>Returns the display label to use by default when not specified
-    /// at the view or other level. Called through RTTI.</summary>
+    /// <summary>
+    ///  Returns the display label to use by default when not specified
+    ///  at the view or other level. Called through RTTI.
+    /// </summary>
     class function GetDefaultDisplayLabel: string;
 
-    /// <summary>Returns the image name to use by default when not specified at
-    /// the view or other level. Called through RTTI.</summary>
+    /// <summary>
+    ///  Returns the image name to use by default when not specified at
+    ///  the view or other level. Called through RTTI.
+    /// </summary>
     class function GetDefaultImageName: string; override;
   end;
 
 
-  /// <summary>Base class for URL controllers.</summary>
+  /// <summary>
+  ///  Base class for URL controllers.
+  /// </summary>
   TKExtURLControllerBase = class(TKExtDataToolController)
   protected
     function GetURL: string; virtual; abstract;
@@ -53,19 +78,19 @@ type
   end;
 
   /// <summary>
-  ///   <para>Navigates to a specified URL in a different browser
-  ///   window/tab.</para>
-  ///   <para>Params:</para>
-  ///   <list type="table">
-  ///     <listheader>
-  ///       <term>Term</term>
-  ///       <description>Description</description>
-  ///     </listheader>
-  ///     <item>
-  ///       <term>TargetURL</term>
-  ///       <description>URL to navigate to. May contain macros.</description>
-  ///     </item>
-  ///   </list>
+  ///  <para>Navigates to a specified URL in a different browser
+  ///  window/tab.</para>
+  ///  <para>Params:</para>
+  ///  <list type="table">
+  ///   <listheader>
+  ///    <term>Term</term>
+  ///    <description>Description</description>
+  ///   </listheader>
+  ///   <item>
+  ///    <term>TargetURL</term>
+  ///    <description>URL to navigate to. May contain macros.</description>
+  ///   </item>
+  ///  </list>
   /// </summary>
   TKExtURLController = class(TKExtURLControllerBase)
   protected
@@ -729,7 +754,24 @@ begin
   end;
 end;
 
+{ TKExtDisplayViewController }
+
+procedure TKExtDisplayViewController.ExecuteTool;
+begin
+  inherited;
+  TKWebApplication.Current.DisplayView(TargetView);
+end;
+
+function TKExtDisplayViewController.GetTargetView: TKView;
+begin
+  if not Assigned(FTargetView) then
+    FTargetView := TKWebApplication.Current.Config.Views.FindViewByNode(View.FindNode('Controller/View'));
+  Result := FTargetView;
+  Assert(Assigned(Result));
+end;
+
 initialization
+  TKExtControllerRegistry.Instance.RegisterClass('DisplayView', TKExtDisplayViewController);
   TKExtControllerRegistry.Instance.RegisterClass('Logout', TKExtLogoutController);
   TKExtControllerRegistry.Instance.RegisterClass('URL', TKExtURLController);
   TKExtControllerRegistry.Instance.RegisterClass('FilteredURL', TKExtFilteredURLController);
@@ -737,6 +779,7 @@ initialization
   TKExtControllerRegistry.Instance.RegisterClass('UploadFile', TKExtUploadFileController);
 
 finalization
+  TKExtControllerRegistry.Instance.UnregisterClass('DisplayView');
   TKExtControllerRegistry.Instance.UnregisterClass('Logout');
   TKExtControllerRegistry.Instance.UnregisterClass('URL');
   TKExtControllerRegistry.Instance.UnregisterClass('FilteredURL');

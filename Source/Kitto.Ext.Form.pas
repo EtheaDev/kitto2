@@ -134,7 +134,7 @@ type
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     procedure TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
-    procedure RefreshEditorValues;
+    procedure RefreshEditorValues(const AStartIndex: Integer = 0);
     procedure RefreshEditorFields;
     procedure CloseHostContainer; override;
     function ExpandExpression(const AExpression: string): string; override;
@@ -592,7 +592,7 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.RefreshEditorValues;
+procedure TKExtFormPanelController.RefreshEditorValues(const AStartIndex: Integer = 0);
 begin
   // Load data. Combo boxes can only have their raw value set after they're rendered.
   EditItems.AllEditors(
@@ -614,7 +614,8 @@ begin
 
       else
         AEditor.RefreshValue;
-    end);
+    end,
+    AStartIndex);
 end;
 
 procedure TKExtFormPanelController.RefreshEditorFields;
@@ -1021,6 +1022,7 @@ var
   LDetailIndex: Integer;
   LActivableIntf: IKExtActivable;
   LLayoutProcessor: TKExtLayoutProcessor;
+  LItemCount: Integer;
 begin
   if Assigned(ANewTab) then
   begin
@@ -1036,6 +1038,7 @@ begin
     end
     else if (ANewTab is TKExtEditPage) and not TKExtEditPage(ANewTab).Rendered then
     begin
+      LItemCount := EditItems.Count;
       LLayoutProcessor := CreateLayoutProcessor;
       try
         LLayoutProcessor.CurrentEditPage := TKExtEditPage(ANewTab);
@@ -1043,9 +1046,8 @@ begin
       finally
         FreeAndNil(LLayoutProcessor);
       end;
-      // Newly-generated editors must show the record values. Actually refreshing
-      // all editors currently; seems no big deal performance-wise.
-      RefreshEditorValues;
+      // Newly-generated editors must be refreshed to show the values.
+      RefreshEditorValues(LItemCount);
       // Handlers must be re-generated now as their code depends from newly added
       // editors (see GetConfirmJSCode).
       SetConfirmButtonHandlers;
