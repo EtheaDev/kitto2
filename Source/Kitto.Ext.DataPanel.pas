@@ -155,6 +155,7 @@ type
       const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IJSController;
     function GetDefaultEditControllerType: string; virtual;
     property EditItems: TKEditItemList read GetEditItems;
+    function ExpandExpression(const AExpression: string): string; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -184,6 +185,7 @@ uses
   , Math
   , Types
   , Classes
+  , EF.Macros
   , EF.StrUtils
   , EF.Sys
   , EF.Localization
@@ -213,14 +215,19 @@ begin
   Assert(Assigned(ActionObserver));
 
   PerformBeforeExecute;
-  LController := TKExtControllerFactory.Instance.CreateController(
-    TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
-  if LController.Config.GetBoolean('RequireSelection', True) then
-    FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
+  if View.IsPersistent then
+    TKWebApplication.Current.DisplayView(View, ActionObserver)
   else
-    FServerRecord := nil;
-  InitController(LController);
-  LController.Display;
+  begin
+    LController := TKExtControllerFactory.Instance.CreateController(
+      TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
+    if LController.Config.GetBoolean('RequireSelection', True) then
+      FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
+    else
+      FServerRecord := nil;
+    InitController(LController);
+    LController.Display;
+  end;
 end;
 
 function TKExtDataActionButton.GetServerRecord: TKViewTableRecord;
@@ -265,6 +272,11 @@ begin
     FDupButton.PerformClick
   else
     inherited;
+end;
+
+function TKExtDataPanelController.ExpandExpression(const AExpression: string): string;
+begin
+  Result := TEFMacroExpansionEngine.Instance.Expand(AExpression);
 end;
 
 procedure TKExtDataPanelController.DefaultAction;
@@ -478,7 +490,7 @@ begin
   LLayoutNode := ViewTable.FindNode('Controller/' + ALayoutName + '/Layout');
   if Assigned(LLayoutNode) then
   begin
-    LLayoutName := LLayoutNode.AsString;
+    LLayoutName := ExpandExpression(LLayoutNode.AsString);
     if LLayoutName <> '' then
       Result := View.Catalog.Layouts.FindLayout(LLayoutName)
     else

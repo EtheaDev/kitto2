@@ -134,9 +134,10 @@ type
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     procedure TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
-    procedure RefreshEditorValues;
+    procedure RefreshEditorValues(const AStartIndex: Integer = 0);
     procedure RefreshEditorFields;
     procedure CloseHostContainer; override;
+    function ExpandExpression(const AExpression: string): string; override;
   public
     procedure LoadData; override;
     destructor Destroy; override;
@@ -371,6 +372,18 @@ begin
   end;
 end;
 
+function TKExtFormPanelController.ExpandExpression(const AExpression: string): string;
+var
+  LStoreRecord: TKViewTableRecord;
+begin
+  Result := inherited ExpandExpression(AExpression);
+  // This method is called earlier than when StoreRecord is available, so we
+  // read the config directly.
+  LStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
+  if Assigned(LStoreRecord) then
+    Result := LStoreRecord.ExpandExpression(Result);
+end;
+
 function TKExtFormPanelController.CreateLayoutProcessor: TKExtLayoutProcessor;
 begin
   Result := TKExtLayoutProcessor.Create;
@@ -579,7 +592,7 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.RefreshEditorValues;
+procedure TKExtFormPanelController.RefreshEditorValues(const AStartIndex: Integer = 0);
 begin
   // Load data. Combo boxes can only have their raw value set after they're rendered.
   EditItems.AllEditors(
@@ -601,7 +614,8 @@ begin
 
       else
         AEditor.RefreshValue;
-    end);
+    end,
+    AStartIndex);
 end;
 
 procedure TKExtFormPanelController.RefreshEditorFields;
@@ -968,7 +982,6 @@ begin
   FFormPanel.LabelWidth := FORM_LABELWIDTH;
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
-  FFormPanel.LabelAlign := LabelAlign;
 
   LDetailStyle := GetDetailStyle;
   if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
@@ -984,6 +997,7 @@ begin
     if Config.GetBoolean('Sys/ShowIcon', True) then
       FMainPage.IconCls := TKWebApplication.Current.SetViewIconStyle(ViewTable.View);
     FMainPage.LabelAlign := LabelAlign;
+    FMainPage.MainEditPanel := FFormPanel;
     FTabPanel.OnTabChange := TabChange;
     FTabPanel.On('tabchange', FTabPanel.GenerateAnonymousFunction(FTabPanel.UpdateLayout));
     FTabPanel.SetActiveTab(0);
@@ -1008,6 +1022,7 @@ var
   LDetailIndex: Integer;
   LActivableIntf: IKExtActivable;
   LLayoutProcessor: TKExtLayoutProcessor;
+  LItemCount: Integer;
 begin
   if Assigned(ANewTab) then
   begin
@@ -1023,6 +1038,7 @@ begin
     end
     else if (ANewTab is TKExtEditPage) and not TKExtEditPage(ANewTab).Rendered then
     begin
+      LItemCount := EditItems.Count;
       LLayoutProcessor := CreateLayoutProcessor;
       try
         LLayoutProcessor.CurrentEditPage := TKExtEditPage(ANewTab);
@@ -1030,9 +1046,8 @@ begin
       finally
         FreeAndNil(LLayoutProcessor);
       end;
-      // Newly-generated editors must show the record values. Actually refreshing
-      // all editors currently; seems no big deal performance-wise.
-      RefreshEditorValues;
+      // Newly-generated editors must be refreshed to show the values.
+      RefreshEditorValues(LItemCount);
       // Handlers must be re-generated now as their code depends from newly added
       // editors (see GetConfirmJSCode).
       SetConfirmButtonHandlers;

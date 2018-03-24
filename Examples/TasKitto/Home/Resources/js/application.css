@@ -2,10 +2,10 @@
 /* Put extra CSS classes used in views here. */
 body
 {
-  background: url(../background.png) repeat;
+  background: url(../background.png) repeat !important;
 }
 
-.x-tab-panel-body
+#tabpnl1-body
 {
-background-image: url(../background.png);
+  background: url(../background.png) repeat !important;
 }

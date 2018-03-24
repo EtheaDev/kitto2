@@ -145,6 +145,7 @@ type
   public
     procedure InitSubController(const ASubController: IJSController); virtual;
     procedure SetActiveSubController(const ASubController: IJSController); virtual;
+    property Config: TEFNode read GetConfig;
 
     destructor Destroy; override;
 
@@ -448,9 +449,16 @@ begin
 end;
 
 procedure TKExtWindowControllerBase.DoDisplay;
+var
+  LStyle: TEFNode;
 begin
   TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
   TKWebSession.Current.EnsureViewSupportFiles(View);
+
+  LStyle := Config.FindNode('Style');
+  if Assigned(LStyle) and (LStyle.AsString <> '') then
+    Style := LStyle.AsExpandedString;
+
   CreateSubController;
   Show;
 end;
@@ -640,9 +648,16 @@ begin
 end;
 
 procedure TKExtViewportControllerBase.DoDisplay;
+var
+  LStyle: TEFNode;
 begin
   TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
   TKWebSession.Current.EnsureViewSupportFiles(View);
+
+  LStyle := Config.FindNode('Style');
+  if Assigned(LStyle) and (LStyle.AsString <> '') then
+    Style := LStyle.AsExpandedString;
+
   CreateSubController;
   Show;
 end;
@@ -806,6 +821,7 @@ var
   LHeightStr: string;
   LView: TKView;
   LBodyStyle: string;
+  LStyle: TEFNode;
 begin
   EnsureAllSupportFiles;
 
@@ -870,6 +886,10 @@ begin
   LBodyStyle := Config.GetExpandedString('BodyStyle');
   if LBodyStyle <> '' then
     BodyStyle := LBodyStyle;
+
+  LStyle := Config.FindNode('Style');
+  if Assigned(LStyle) and (LStyle.AsString <> '') then
+    Style := LStyle.AsExpandedString;
 end;
 
 procedure TKExtPanelControllerBase.ExecuteNamedAction(const AActionName: string);
@@ -1173,9 +1193,14 @@ begin
   Assert(Assigned(FView));
   Assert(Assigned(FActionObserver));
 
-  LController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, FView, nil, nil, FActionObserver);
-  InitController(LController);
-  LController.Display;
+  if View.IsPersistent then
+    TKWebApplication.Current.DisplayView(View, FActionObserver)
+  else
+  begin
+    LController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, FView, nil, nil, FActionObserver);
+    InitController(LController);
+    LController.Display;
+  end;
 end;
 
 class procedure TKExtActionButton.ExecuteHandler(const AButton: TKExtButton);
