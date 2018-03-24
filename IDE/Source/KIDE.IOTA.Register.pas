@@ -9,10 +9,14 @@ implementation
 uses
   ToolsAPI
   , KIDE.IOTA.ProjectWizard
+  , KIDE.YAMLHighlighter
   ;
 
 procedure Register;
 begin
+  // YAML Syntax Highlighter
+  RegisterYAMLHighlighter;
+
   // Kitto projects.
   RegisterPackageWizard(TVclIOTAProjectWizard.Create);
   RegisterPackageWizard(TWindowsServiceIOTAProjectWizard.Create);

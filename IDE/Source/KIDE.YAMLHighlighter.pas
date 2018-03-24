@@ -9,6 +9,9 @@ interface
 uses
   ToolsAPI;
 
+const
+  YAML_ID_STRING = 'YAML';
+
 type
   // A class to define an new IDE Highlighter for YAML Files
   TYAMLHighlighter = class(TNotifierObject, IOTANotifier, IOTAHighlighter, IOTAHighlighterPreview)
@@ -36,6 +39,8 @@ type
     function  GetValidBreakpointLine: Integer;
   end;
 
+  procedure RegisterYAMLHighlighter;
+
 implementation
 
 uses
@@ -44,11 +49,9 @@ uses
   , Windows;
 
 var
-  iYAMLHighlighter : Integer;
   isMultipleLine : boolean;
 
 constructor TYAMLHighlighter.Create;
-
 var
   EditOps : IOTAEditOptions;
   iEditOps : Integer;
@@ -57,31 +60,36 @@ begin
   with (BorlandIDEServices as IOTAEditorServices) do
   begin
    For iEditOps := 0 To EditOptionsCount - 1 Do
-      If EditorOptions[iEditOps].IDString = 'YAML' Then
+      If EditorOptions[iEditOps].IDString = YAML_ID_STRING Then
       begin
         EditOps := EditorOptions[iEditOps];
+        EditOps.SyntaxHighlighter := Self;
       end;
   end;
   if not Assigned(EditOps) then
   begin
-    EditOps := (BorlandIDEServices As IOTAEditorServices).AddEditOptions('YAML');
-    EditOps.Extensions := 'yaml;yml';
-    EditOps.OptionsName := 'YAML';
-    EditOps.SyntaxHighlighter := Self;
-
-    EditOps.BufferOptions.AutoIndent := True;
-    EditOps.BufferOptions.UseTabCharacter := False;
-    EditOps.BufferOptions.SmartTab := False;
-    EditOps.BufferOptions.CursorThroughTabs := True;
-    EditOps.BufferOptions.BackspaceUnindents := True;
-    EditOps.BufferOptions.KeepTrailingBlanks := False;
-    EditOps.BufferOptions.ShowTab := True;
-    EditOps.BufferOptions.ShowSpace := False;
-    EditOps.BufferOptions.SyntaxHighlight := True;
-    EditOps.BufferOptions.ShowLineBreaks := False;
-    EditOps.BufferOptions.HighlightCurrentLine := True;
-    EditOps.BufferOptions.TabStops := '2';
-    EditOps.BlockIndent := 2;
+    EditOps := (BorlandIDEServices As IOTAEditorServices).AddEditOptions(YAML_ID_STRING);
+    EditOps.BeginUpdate;
+    Try
+      EditOps.Extensions := 'yaml;yml';
+      EditOps.OptionsName := 'YAML';
+      EditOps.SyntaxHighlighter := Self;
+      EditOps.BufferOptions.AutoIndent := True;
+      EditOps.BufferOptions.UseTabCharacter := False;
+      EditOps.BufferOptions.SmartTab := False;
+      EditOps.BufferOptions.CursorThroughTabs := True;
+      EditOps.BufferOptions.BackspaceUnindents := True;
+      EditOps.BufferOptions.KeepTrailingBlanks := False;
+      EditOps.BufferOptions.ShowTab := True;
+      EditOps.BufferOptions.ShowSpace := False;
+      EditOps.BufferOptions.SyntaxHighlight := True;
+      EditOps.BufferOptions.ShowLineBreaks := False;
+      EditOps.BufferOptions.HighlightCurrentLine := True;
+      EditOps.BufferOptions.TabStops := '2';
+      EditOps.BlockIndent := 2;
+    Finally
+      EditOps.EndUpdate;
+    End;
   end;
 end;
 
@@ -172,7 +180,7 @@ end;
 
 function TYAMLHighlighter.GetIDString: string;
 begin
-  Result := 'YAML';
+  Result := YAML_ID_STRING;
 end;
 
 function TYAMLHighlighter.GetInvalidBreakpointLine: Integer;
@@ -346,11 +354,32 @@ begin
 *)
 end;
 
+procedure UnregisterYAMLHighlighter;
+var
+  I: Integer;
+  OTAHighlightServices: IOTAHighlightServices;
+begin
+  OTAHighlightServices := (BorlandIDEServices As IOTAHighlightServices);
+  for I := 0 to OTAHighlightServices.HighlighterCount -1 do
+  begin
+    if OTAHighlightServices.Highlighter[I].IDString = YAML_ID_STRING then
+    begin
+      (BorlandIDEServices As IOTAHighlightServices).RemoveHighlighter(I);
+      Exit;
+    end;
+  end;
+end;
+
+procedure RegisterYAMLHighlighter;
+begin
+  UnregisterYAMLHighlighter;
+  (BorlandIDEServices As IOTAHighlightServices).AddHighlighter(TYAMLHighlighter.Create);
+end;
+
 Initialization
-  iYAMLHighlighter := (BorlandIDEServices As IOTAHighlightServices).AddHighlighter(
-    TYAMLHighlighter.Create);
+  RegisterYAMLHighlighter;
 
 Finalization
-  (BorlandIDEServices As IOTAHighlightServices).RemoveHighlighter(iYAMLHighlighter);
+  UnregisterYAMLHighlighter;
 
 end.
