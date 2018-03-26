@@ -182,7 +182,6 @@ begin
   begin
     DoLog(_('Stopping listener...'));
     FServer.Active := False;
-    FApplication.ReloadConfig;
     DoLog(_('Listener stopped'));
     HomeURLLabel.Visible := False;
     while IsStarted do
@@ -320,11 +319,16 @@ begin
 end;
 
 procedure TKMainForm.FormCreate(Sender: TObject);
+var
+  LDefaultConfig: string;
 begin
 {$IF RTLVersion >= 23.0}
   TStyleManager.TrySetStyle('Aqua Light Slate');
 {$IFEND}
-
+  //Read command line param -config
+  LDefaultConfig := ChangeFileExt(GetCmdLineParamValue('Config', TKConfig.BaseConfigFileName),'.yaml');
+  if LDefaultConfig <> '' then
+    TKConfig.BaseConfigFileName := LDefaultConfig;
   FServer := TKWebServer.Create(nil);
   FServer.Engine.OnSessionStart := SessionListUpdateHandler;
   FServer.Engine.OnSessionEnd := SessionListUpdateHandler;
@@ -392,15 +396,14 @@ end;
 
 procedure TKMainForm.FillConfigFileNameCombo;
 var
-  LDefaultConfig: string;
   LConfigIndex: Integer;
+  LConfigFileName: string;
 begin
   FindAllFiles('yaml', TKConfig.GetMetadataPath, ConfigFileNameComboBox.Items, False, False);
   if ConfigFileNameComboBox.Items.Count > 0 then
   begin
-    //Read command line param -config
-    LDefaultConfig := ChangeFileExt(GetCmdLineParamValue('Config', TKConfig.BaseConfigFileName),'.yaml');
-    LConfigIndex := ConfigFileNameComboBox.Items.IndexOf(LDefaultConfig);
+    LConfigFileName := TKConfig.BaseConfigFileName;
+    LConfigIndex := ConfigFileNameComboBox.Items.IndexOf(LConfigFileName);
     if LConfigIndex <> -1 then
     begin
       ConfigFileNameComboBox.ItemIndex := LConfigIndex;
@@ -418,7 +421,7 @@ procedure TKMainForm.StartActionExecute(Sender: TObject);
 begin
   Assert(Assigned(FServer));
   Assert(Assigned(FApplication));
-
+  FServer.Setup(FApplication.Config);
   FServer.Active := True;
   SessionCountLabel.Visible := True;
   DoLog(_('Listener started'));
