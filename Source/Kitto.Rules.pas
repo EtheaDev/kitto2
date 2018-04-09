@@ -176,6 +176,27 @@ type
 
     /// <summary>
     ///  <para>
+    ///   Called when duplicating a record.
+    ///   Descendants should read the values in ARecord and call RaiseError
+    ///   (which will raise an exception with the default or a custom
+    ///   message) in order to stop the duplicate operation and display an error
+    ///   to the user.
+    ///  </para>
+    ///  <para>
+    ///   Descendants may also change values.
+    ///  </para>
+    /// </summary>
+    /// <param name="ARecord">
+    ///  The duplicate record being created. It is usually an instance of
+    ///  TKViewTableRecord.
+    /// </param>
+    /// <remarks>
+    ///  If an exception is raised, any change is lost.
+    /// </remarks>
+    procedure DuplicateRecord(const ARecord: TKRecord); virtual;
+
+    /// <summary>
+    ///  <para>
     ///   Server side validation before writing a new record to the database.
     ///   Descendants should read the values in ARecord and call RaiseError
     ///   (which will raise an exception with the default or a custom
@@ -438,6 +459,10 @@ begin
     LStores[I].Free;
   FreeAndNil(FReferencedModelStores);
   inherited;
+end;
+
+procedure TKRuleImpl.DuplicateRecord(const ARecord: TKRecord);
+begin
 end;
 
 procedure TKRuleImpl.EditRecord(const ARecord: TKRecord);

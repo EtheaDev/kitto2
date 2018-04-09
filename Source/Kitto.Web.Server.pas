@@ -26,6 +26,7 @@ uses
   , Generics.Collections
   , IdCustomHTTPServer
   , IdContext
+  , Kitto.Config
   , Kitto.Web.Engine
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -48,6 +49,7 @@ type
     procedure DoCommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo); override;
     procedure DoCommandOther(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo); override;
   public
+    procedure Setup(AConfig: TKConfig);
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
@@ -65,7 +67,6 @@ uses
   , IdSchedulerOfThreadPool
   , EF.Logger
   , EF.StrUtils
-  , Kitto.Config
   , Kitto.Web.Types
   ;
 
@@ -74,7 +75,6 @@ uses
 procedure TKWebServer.AfterConstruction;
 var
   LConfig: TKConfig;
-  LThreadPoolSize: Integer;
 begin
   inherited;
   FEngine := TKWebEngine.Create;
@@ -82,12 +82,10 @@ begin
   // instance in order to read server-wide params.
   LConfig := TKConfig.Create;
   try
-    DefaultPort := LConfig.Config.GetInteger('Server/Port', 8080);
-    LThreadPoolSize := LConfig.Config.GetInteger('Server/ThreadPoolSize', 20);
+    Setup(LConfig);
   finally
     FreeAndNil(LConfig);
   end;
-  InitThreadScheduler(LThreadPoolSize);
 end;
 
 destructor TKWebServer.Destroy;
@@ -133,6 +131,15 @@ begin
   LScheduler.PoolSize := AThreadPoolSize;
   Scheduler := LScheduler;
   MaxConnections := LScheduler.PoolSize;
+end;
+
+procedure TKWebServer.Setup(AConfig: TKConfig);
+var
+  LThreadPoolSize: Integer;
+begin
+  DefaultPort := AConfig.Config.GetInteger('Server/Port', 8080);
+  LThreadPoolSize := AConfig.Config.GetInteger('Server/ThreadPoolSize', 20);
+  InitThreadScheduler(LThreadPoolSize);
 end;
 
 procedure TKWebServer.Shutdown;

@@ -13,4 +13,5 @@ MainTable:
       IsReadOnly: True
     FIRST_NAME:
     LAST_NAME:
+    EMAIL_ADDRESS:
   Controller:
