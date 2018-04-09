@@ -83,7 +83,7 @@ type
   end;
 
   ///	<summary>
-  ///	  Reads yaml data from files or streams and constructs tree objects.
+  ///	 Reads yaml data from files or streams and constructs tree objects.
   ///	</summary>
   TEFYAMLReader = class
   private
@@ -97,14 +97,16 @@ type
     property Parser: TEFYAMLParser read GetParser;
 
     ///	<summary>
-    ///	  Format settings used to parse values.
+    ///	 Format settings used to parse values.
     ///	</summary>
     class property FormatSettings: TFormatSettings read FFormatSettings write FFormatSettings;
+
     procedure LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
     procedure LoadTreeFromStream(const ATree: TEFTree; const AStream: TStream);
-    procedure LoadTreeFromString(const ATree: TEFTree; const AString: string);
+    procedure LoadTreeFromString(const ATree: TEFTree; const AString: string); overload;
 
     class function LoadTree(const AFileName: string): TEFTree; overload;
+    class function LoadTreeFromString(const AString: string): TEFTree; overload;
     class procedure LoadTree(const ATree: TEFTree; const AFileName: string); overload;
     class procedure ReadTree(const ATree: TEFTree; const AString: string);
   end;
@@ -361,8 +363,7 @@ begin
   end;
 end;
 
-procedure TEFYAMLReader.LoadTreeFromString(const ATree: TEFTree;
-  const AString: string);
+procedure TEFYAMLReader.LoadTreeFromString(const ATree: TEFTree; const AString: string);
 var
   LStream: TStringStream;
 begin
@@ -486,6 +487,24 @@ begin
     end;
   finally
     FreeAndNil(LReader);
+  end;
+end;
+
+class function TEFYAMLReader.LoadTreeFromString(const AString: string): TEFTree;
+var
+  LInstance: TEFYAMLReader;
+begin
+  LInstance := TEFYAMLReader.Create;
+  try
+    Result := TEFTree.Create;
+    try
+      LInstance.LoadTreeFromString(Result, AString);
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+  finally
+    FreeAndNil(LInstance);
   end;
 end;
 

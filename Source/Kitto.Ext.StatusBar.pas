@@ -43,6 +43,8 @@ type
   strict private
     FStatusBar: TKExtDefaultStatusBar;
   strict protected
+    function GetDefaultHeight: Integer; override;
+    function GetDefaultWidth: Integer; override;
     function GetDefaultSplit: Boolean; override;
     procedure InitDefaults; override;
     procedure DoDisplay; override;
@@ -66,9 +68,19 @@ begin
   FStatusBar.DefaultIconCls := TKWebApplication.Current.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
 end;
 
+function TKExtStatusBarController.GetDefaultHeight: Integer;
+begin
+  Result := 0;
+end;
+
 function TKExtStatusBarController.GetDefaultSplit: Boolean;
 begin
   Result := False;
+end;
+
+function TKExtStatusBarController.GetDefaultWidth: Integer;
+begin
+  Result := 0;
 end;
 
 procedure TKExtStatusBarController.InitDefaults;

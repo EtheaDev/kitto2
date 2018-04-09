@@ -24,8 +24,6 @@ uses
   EF.Types;
 
 type
-  TKEditMode = (emViewCurrentRecord, emNewRecord, emEditCurrentRecord, emDupCurrentRecord);
-
   EKError = class(EEFError);
 
   TKLogEvent = procedure (const AString: string) of object;

@@ -60,9 +60,9 @@ function StripSuffix(const AString, ASuffix: string): string;
 
 ///	<summary>
 ///	  Generates a random string of ALength characters in the 'A'..'Z' and
-///	  '0'..'9' printable sets.
+///	  '0'..'9' printable sets. Excludes the specified characters.
 ///	</summary>
-function GetRandomString(const ALength: Integer): string;
+function GetRandomString(const ALength: Integer; const AExcludeChars: string = ''): string;
 
 ///	<summary>
 ///	 Returns True if APattern matches AString. APattern may contain the
@@ -361,19 +361,26 @@ begin
   Result := StripPrefixAndSuffix(AString, '', ASuffix);
 end;
 
-function GetRandomString(const ALength: Integer): string;
+function GetRandomString(const ALength: Integer; const AExcludeChars: string = ''): string;
+var
+  LNextChar: Char;
 begin
   // If this function is moved out of this unit, then a call to Randomize should
   // be made somewhere in the application. See this unit's initialization section.
   Result := '';
   while Length(Result) < ALength do
+  begin
     // Randomly decide whether the next character will be a letter or a number.
     if Random(2) = 1 then
       // A random character between '0' and '9'.
-      Result := Result + Chr(Random(Ord('9') - Ord('0') + 1) + Ord('0'))
+      LNextChar := Chr(Random(Ord('9') - Ord('0') + 1) + Ord('0'))
     else
       // A random character between 'A' e 'Z'.
-      Result := Result + Chr(Random(Ord('Z') - Ord('A') + 1) + Ord('A'));
+      LNextChar := Chr(Random(Ord('Z') - Ord('A') + 1) + Ord('A'));
+
+    if (AExcludeChars = '') or not AExcludeChars.Contains(LNextChar) then
+      Result := Result + LNextChar;
+  end;
 end;
 
 function StrMatches(const AString, APattern: string): Boolean;

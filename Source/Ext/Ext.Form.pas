@@ -18,7 +18,6 @@ type
   TExtFormActionDirectSubmit = class;
   TExtFormField = class;
   TExtFormLabel = class;
-  TExtFormHidden = class;
   TExtFormTextField = class;
   TExtFormSliderField = class;
   TExtFormDisplayField = class;
@@ -26,7 +25,6 @@ type
   TExtFormCheckbox = class;
   TExtFormCheckboxGroup = class;
   TExtFormTextArea = class;
-  TExtFormTriggerField = class;
   TExtFormNumberField = class;
   TExtFormFieldContainer = class;
   TExtFormFieldSet = class;
@@ -35,7 +33,6 @@ type
   TExtFormRadio = class;
   TExtFormDateField = class;
   TExtFormComboBox = class;
-  TExtFormTwinTriggerField = class;
   TExtFormTimeField = class;
 
   TExtFormAction = class(TExtObject)
@@ -66,7 +63,7 @@ type
     property WaitTitle: string read FWaitTitle write SetWaitTitle;
   end;
 
-  TExtFormBasicForm = class(TExtUtilObservable)
+  TExtFormBasicForm = class(TExtBase)
   private
     FUrl: string;
     procedure SetUrl(const AValue: string);
@@ -177,11 +174,31 @@ type
     property Text: string read FText write _SetText;
   end;
 
-  TExtFormHidden = class(TExtFormField)
-  protected
+  TExtFieldTrigger = class(TExtWidget)
+  private
+    FHandler: TExtExpression;
+    FSide: string;
+    procedure SetHandler(const AValue: TExtExpression);
+    procedure SetSide(const AValue: string);
+  strict protected
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
+
+    class function CreateSimpleTrigger(const AOwner: TExtObject; const ACls: string;
+  const AHandler: TExtExpression): TExtFieldTrigger;
+
+    property Handler: TExtExpression read FHandler write SetHandler;
+    property Side: string read FSide write SetSide;
+  end;
+
+  TExtFormTriggers = class(TExtBase)
+  strict protected
+    function GetJSIdConfigName: string; override;
+  public
+    procedure AddSimpleTrigger(const AId: string; const ACls: string;
+      const AHandler: TExtExpression);
   end;
 
   TExtFormTextField = class(TExtFormField)
@@ -200,7 +217,9 @@ type
     FBlankText: string;
     FEmptyText: string;
     FMaxLengthText: string;
+    FTriggers: TExtFormTriggers;
     FValidator: TExtExpression;
+    FEditable: Boolean;
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetBlankText(const AValue: string);
     procedure SetEmptyClass(const AValue: string);
@@ -216,6 +235,8 @@ type
     procedure SetVtypeText(const AValue: string);
     procedure SetValidator(const AValue: TExtExpression);
     procedure SetMaskRe(const AValue: string);
+    procedure SetTriggers(const AValue: TExtFormTriggers);
+    procedure SetEditable(const AValue: Boolean);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -223,6 +244,7 @@ type
     class function JSClassName: string; override;
     property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
     property BlankText: string read FBlankText write SetBlankText;
+    property Editable: Boolean read FEditable write SetEditable;
     property EmptyClass: string read FEmptyClass write SetEmptyClass;
     property EmptyText: string read FEmptyText write SetEmptyText;
     property EnableKeyEvents: Boolean read FEnableKeyEvents write SetEnableKeyEvents;
@@ -233,6 +255,7 @@ type
     property MinLength: Integer read FMinLength write SetMinLength;
     property MinLengthText: string read FMinLengthText write SetMinLengthText;
     property SelectOnFocus: Boolean read FSelectOnFocus write SetSelectOnFocus;
+    property Triggers: TExtFormTriggers read FTriggers write SetTriggers;
     property Validator: TExtExpression read FValidator write SetValidator;
     property Vtype: string read FVtype write SetVtype;
     property VtypeText: string read FVtypeText write SetVtypeText;
@@ -308,7 +331,7 @@ type
     class function JSClassName: string; override;
   end;
 
-  TExtFormTriggerField = class(TExtFormTextField)
+  TExtFormPickerField = class(TExtFormTextField)
   private
     FTriggerClass: string;
     FEditable: Boolean;
@@ -416,7 +439,7 @@ type
     class function JSClassName: string; override;
   end;
 
-  TExtFormDateField = class(TExtFormTriggerField)
+  TExtFormDateField = class(TExtFormPickerField)
   private
     FMinValue: TDateTime;
     FDisabledDates: TJSObjectArray;
@@ -456,7 +479,7 @@ type
   TExtFormComboBoxOnSelect = procedure(Combo: TExtFormComboBox;
     RecordJS: TExtDataRecord; Index: Integer) of object;
 
-  TExtFormComboBox = class(TExtFormTriggerField)
+  TExtFormComboBox = class(TExtFormPickerField)
   private
     FOnSelect: TExtFormComboBoxOnSelect;
     FSelectedClass: string;
@@ -551,27 +574,6 @@ type
     property ValueNotFoundText: string read FValueNotFoundText
       write SetValueNotFoundText;
     property OnSelect: TExtFormComboBoxOnSelect read FOnSelect write SetOnSelect;
-  end;
-
-  TExtFormTwinTriggerField = class(TExtFormTriggerField)
-  private
-    FTrigger1Class: string;
-    FTrigger2Class: string;
-    FTriggerConfig: TExtObject;
-    FOnTrigger2Click: TExtExpression;
-    FOnTrigger1Click: TExtExpression;
-    procedure SetTrigger1Class(const AValue: string);
-    procedure SetTrigger2Class(const AValue: string);
-    procedure SetOnTrigger1Click(const AValue: TExtExpression);
-    procedure SetOnTrigger2Click(const AValue: TExtExpression);
-    function GetTriggerConfig: TExtObject;
-  public
-    class function JSClassName: string; override;
-    property Trigger1Class: string read FTrigger1Class write SetTrigger1Class;
-    property Trigger2Class: string read FTrigger2Class write SetTrigger2Class;
-    property TriggerConfig: TExtObject read GetTriggerConfig;
-    property OnTrigger1Click: TExtExpression read FOnTrigger1Click write SetOnTrigger1Click;
-    property OnTrigger2Click: TExtExpression read FOnTrigger2Click write SetOnTrigger2Click;
   end;
 
   TExtFormTimeField = class(TExtFormComboBox)
@@ -887,16 +889,6 @@ begin
     .AsExpression;
 end;
 
-class function TExtFormHidden.JSClassName: string;
-begin
-  Result := 'Ext.form.Hidden';
-end;
-
-procedure TExtFormHidden.InitDefaults;
-begin
-  inherited;
-end;
-
 procedure TExtFormTextField.SetAllowBlank(const AValue: Boolean);
 begin
   FAllowBlank := AValue;
@@ -906,6 +898,11 @@ end;
 procedure TExtFormTextField.SetBlankText(const AValue: string);
 begin
   FBlankText := SetConfigItem('blankText', AValue);
+end;
+
+procedure TExtFormTextField.SetEditable(const AValue: Boolean);
+begin
+  FEditable := SetConfigItem('editable', 'setEditable', AValue);
 end;
 
 procedure TExtFormTextField.SetEmptyClass(const AValue: string);
@@ -956,6 +953,11 @@ end;
 procedure TExtFormTextField.SetSelectOnFocus(const AValue: Boolean);
 begin
   FSelectOnFocus := SetConfigItem('selectOnFocus', AValue);
+end;
+
+procedure TExtFormTextField.SetTriggers(const AValue: TExtFormTriggers);
+begin
+  FTriggers := SetConfigItem('triggers', 'setTriggers', AValue) as TExtFormTriggers;
 end;
 
 procedure TExtFormTextField.SetValidator(const AValue: TExtExpression);
@@ -1098,33 +1100,33 @@ begin
   Result := 'txtarea';
 end;
 
-procedure TExtFormTriggerField._SetEditable(const AValue: Boolean);
+procedure TExtFormPickerField._SetEditable(const AValue: Boolean);
 begin
   FEditable := SetConfigItem('editable', 'setEditable', AValue);
 end;
 
-procedure TExtFormTriggerField.SetTriggerClass(const AValue: string);
+procedure TExtFormPickerField.SetTriggerClass(const AValue: string);
 begin
   FTriggerClass := SetConfigItem('triggerClass', AValue);
 end;
 
-class function TExtFormTriggerField.JSClassName: string;
+class function TExtFormPickerField.JSClassName: string;
 begin
-  Result := 'Ext.form.TriggerField';
+  Result := 'Ext.form.PickerField';
 end;
 
-procedure TExtFormTriggerField.InitDefaults;
+procedure TExtFormPickerField.InitDefaults;
 begin
   inherited;
   FEditable := true;
 end;
 
-function TExtFormTriggerField.SetEditable(const AValue: Boolean): TExtExpression;
+function TExtFormPickerField.SetEditable(const AValue: Boolean): TExtExpression;
 begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'setEditable').AddParam(AValue).AsExpression;
 end;
 
-function TExtFormTriggerField.SetReadOnly(const AValue: Boolean): TExtExpression;
+function TExtFormPickerField.SetReadOnly(const AValue: Boolean): TExtExpression;
 begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'setReadOnly').AddParam(AValue).AsExpression;
 end;
@@ -1591,38 +1593,6 @@ begin
       TExtDataRecord(ParamAsObject('RecordJS')), ParamAsInteger('Index'));
 end;
 
-procedure TExtFormTwinTriggerField.SetOnTrigger1Click(const AValue: TExtExpression);
-begin
-  FOnTrigger1Click := SetConfigItem('onTrigger1Click', AValue);
-end;
-
-procedure TExtFormTwinTriggerField.SetOnTrigger2Click(const AValue: TExtExpression);
-begin
-  FOnTrigger2Click := SetConfigItem('onTrigger2Click', AValue);
-end;
-
-procedure TExtFormTwinTriggerField.SetTrigger1Class(const AValue: string);
-begin
-  FTrigger1Class := SetConfigItem('trigger1Class', AValue);
-end;
-
-procedure TExtFormTwinTriggerField.SetTrigger2Class(const AValue: string);
-begin
-  FTrigger2Class := SetConfigItem('trigger2Class', AValue);
-end;
-
-function TExtFormTwinTriggerField.GetTriggerConfig: TExtObject;
-begin
-  if not Assigned(FTriggerConfig) then
-    FTriggerConfig := CreateConfigObject('triggerConfig');
-  Result := FTriggerConfig;
-end;
-
-class function TExtFormTwinTriggerField.JSClassName: string;
-begin
-  Result := 'Ext.form.TwinTriggerField';
-end;
-
 procedure TExtFormTimeField.SetAltFormats(const AValue: string);
 begin
   FAltFormats := SetConfigItem('altFormats', AValue);
@@ -1704,6 +1674,55 @@ end;
 class function TExtFormFileField.JSXType: string;
 begin
   Result := 'filefield';
+end;
+
+{ TExtFieldTrigger }
+
+class function TExtFieldTrigger.CreateSimpleTrigger(const AOwner: TExtObject; const ACls: string;
+  const AHandler: TExtExpression): TExtFieldTrigger;
+begin
+  Result := TExtFieldTrigger.CreateInline(AOwner);
+  Result.Cls := ACls;
+  Result.Handler := AHandler;
+end;
+
+procedure TExtFieldTrigger.InitDefaults;
+begin
+  inherited;
+  FSide := 'right';
+end;
+
+class function TExtFieldTrigger.JSClassName: string;
+begin
+  Result := 'Ext.form.Trigger';
+end;
+
+class function TExtFieldTrigger.JSXType: string;
+begin
+  Result := 'trigger.trigger';
+end;
+
+procedure TExtFieldTrigger.SetHandler(const AValue: TExtExpression);
+begin
+  FHandler := SetConfigItem('handler', AValue);
+end;
+
+procedure TExtFieldTrigger.SetSide(const AValue: string);
+begin
+  FSide := SetConfigItem('side', AValue);
+end;
+
+{ TExtFormTriggers }
+
+procedure TExtFormTriggers.AddSimpleTrigger(const AId: string; const ACls: string;
+  const AHandler: TExtExpression);
+begin
+  SetConfigItem(AId, TExtFieldtrigger.CreateSimpleTrigger(Self, ACls, AHandler));
+end;
+
+function TExtFormTriggers.GetJSIdConfigName: string;
+begin
+  Result := '';
 end;
 
 end.

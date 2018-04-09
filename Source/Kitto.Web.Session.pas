@@ -58,7 +58,6 @@ type
     FOpenControllers: TList<IJSController>;
     FHomeController: IJSController;
     FLoginController: IJSController;
-    FControllerHostWindow: IJSContainer;
     FControllerContainer: IJSControllerContainer;
     FStatusHost: IJSStatusHost;
     FHomeViewNodeName: string;
@@ -134,7 +133,6 @@ type
     ///  It is of type TKExtStatusBar.
     /// </summary>
     property StatusHost: IJSStatusHost read FStatusHost write FStatusHost;
-    property ControllerHostWindow: IJSContainer read FControllerHostWindow write FControllerHostWindow;
     property OpenControllers: TList<IJSController> read FOpenControllers;
     property HomeController: IJSController read FHomeController write FHomeController;
     property LoginController: IJSController read FLoginController write FLoginController;
@@ -348,7 +346,6 @@ destructor TKWebSession.Destroy;
 begin
   NilEFIntf(FHomeController);
   NilEFIntf(FLoginController);
-  NilEFIntf(FControllerHostWindow);
   NilEFIntf(FControllerContainer);
   NilEFIntf(FStatusHost);
 

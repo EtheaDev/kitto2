@@ -59,8 +59,7 @@ type
 
     /// <summary>
     ///  Returns a string URI that (non necessarily uniquely) identifies the
-    ///  object for access control purposes. By default, returns the same value
-    ///  as GetResourceURI.
+    ///  object for access control purposes.
     /// </summary>
     function GetACURI: string; virtual;
 
@@ -996,15 +995,13 @@ end;
 
 function TKMetadata.GetResourceURI: string;
 var
-  LName: string;
+  LNode: TEFNode;
 begin
-  LName := GetString('ResourceName');
-  if LName = '' then
-    LName := PersistentName;
-  if LName = '' then
-    Result := ''
-  else
-    Result := BuildURI(LName);
+  LNode := FindNode('ResourceName');
+  if Assigned(LNode) then
+    Exit(BuildURI(LNode.AsString));
+
+  Exit(BuildURI(PersistentName));
 end;
 
 function TKMetadata.IsAccessGranted(const AMode: string): Boolean;
@@ -1026,22 +1023,25 @@ end;
 
 function TKMetadata.GetACURI: string;
 var
-  LName: string;
+  LNode: TEFNode;
 begin
-  LName := GetString('ACName');
-  if LName = '' then
-    LName := GetString('ResourceName');
-  if LName = '' then
-    LName := PersistentName;
-  if LName = '' then
-    Result := ''
-  else
-    Result := BuildURI(LName);
+  LNode := FindNode('ACName');
+  if Assigned(LNode) then
+    Exit(BuildURI(LNode.AsString));
+
+  LNode := FindNode('ResourceName');
+  if Assigned(LNode) then
+    Exit(BuildURI(LNode.AsString));
+
+  Exit(BuildURI(PersistentName));
 end;
 
 function TKMetadata.BuildURI(const AName: string): string;
 begin
-  Result := 'metadata://' + GetClassNameForResourceURI + '/' + AName;
+  if AName = '' then
+    Result := ''
+  else
+    Result := 'metadata://' + GetClassNameForResourceURI + '/' + AName;
 end;
 
 

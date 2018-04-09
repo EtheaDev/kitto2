@@ -42,7 +42,7 @@ contains
   KIDE.IOTA.Register in '..\..\Source\KIDE.IOTA.Register.pas',
   KIDE.IOTA.ProjectCreator in '..\..\Source\KIDE.IOTA.ProjectCreator.pas',
   KIDE.IOTA.Utils in '..\..\Source\KIDE.IOTA.Utils.pas',
-  KIDE.IOTA.MainFormCreator in '..\..\Source\KIDE.IOTA.MainFormCreator.pas',
+  KIDE.IOTA.ModuleCreator in '..\..\Source\KIDE.IOTA.ModuleCreator.pas',
   KIDE.BaseForm in '..\..\Source\KIDE.BaseForm.pas' {BaseForm},
   KIDE.BaseWizardForm in '..\..\Source\KIDE.BaseWizardForm.pas' {BaseWizardForm},
   KIDE.NewProjectWizardForm in '..\..\Source\KIDE.NewProjectWizardForm.pas' {NewProjectWizardForm},
@@ -53,6 +53,7 @@ contains
   KIDE.Config in '..\..\Source\KIDE.Config.pas',
   KIDE.Project in '..\..\Source\KIDE.Project.pas',
   KIDE.YAMLHighlighter in '..\..\Source\KIDE.YAMLHighlighter.pas',
-  KIDE.MainDataModule in '..\..\Source\KIDE.MainDataModule.pas' {MainDataModule: TDataModule};
+  KIDE.MainDataModule in '..\..\Source\KIDE.MainDataModule.pas' {MainDataModule: TDataModule},
+  KIDE.IOTA.MainFormCreator in '..\..\Source\KIDE.IOTA.MainFormCreator.pas';
 
 end.

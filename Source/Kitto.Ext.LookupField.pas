@@ -34,12 +34,12 @@ uses
   ;
 
 type
-  TKExtLookupField = class(TExtFormTwinTriggerField,  IInterface, IEFInterface)
+  TKExtLookupField = class(TExtFormTextField,  IInterface, IEFInterface)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FLookupController: IJSController;
     FViewField: TKViewField;
-//    function GetClickJSCode(const AMethod: TJSProcedure): string;
+    procedure ConfigureTriggers;
   protected
     procedure InitDefaults; override;
   strict protected
@@ -60,8 +60,8 @@ type
     function AsExtObject: TExtObject;
     class function SupportsViewField(const AViewField: TKViewField): Boolean; static;
   //published
-    procedure TriggerClick;
-    procedure ClearClick; virtual;
+    procedure DoSelect;
+    procedure DoClear; virtual; abstract;
   end;
 
 implementation
@@ -124,8 +124,6 @@ begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Editable := False;
-  Trigger1Class := 'x-form-search-trigger';
-  Trigger2Class := 'x-form-clear-trigger';
 end;
 
 procedure TKExtLookupField.NotifyObservers(const AContext: string);
@@ -147,7 +145,7 @@ begin
         Assert(Assigned(LRecord));
         LookupConfirmed(LRecord);
       end;
-      FreeAndNilEFIntf(FLookupController);
+      NilEFIntf(FLookupController);
     end;
   end;
 end;
@@ -162,7 +160,7 @@ begin
   Result := -1;
 end;
 
-procedure TKExtLookupField.TriggerClick;
+procedure TKExtLookupField.DoSelect;
 var
   LView: TKView;
 begin
@@ -173,40 +171,32 @@ begin
   Assert(Assigned(LView));
 
   FLookupController := TKWebApplication.Current.DisplayNewController(LView, Self, True,
-    procedure (AHostWindow: IJSContainer)
-    begin
-      (AHostWindow as TExtWindow).Title := _(Format('Choose %s', [FViewField.DisplayLabel]));
-    end,
     procedure (AController: IJSController)
     begin
+      AController.Config.SetString('Title', _(Format('Choose %s', [FViewField.DisplayLabel])));
       AController.Config.SetBoolean('Sys/LookupMode', True);
       AController.Config.SetString('Sys/LookupFilter', FViewField.LookupFilter);
     end);
 end;
 
-procedure TKExtLookupField.ClearClick;
+procedure TKExtLookupField.ConfigureTriggers;
 begin
+  if ReadOnly then
+    Triggers := nil
+  else
+  begin
+    Triggers := TExtFormTriggers.CreateInline(Self);
+    { TODO : check whether Post('null') is still required or not. }
+    Triggers.AddSimpleTrigger('select', 'x-form-search-trigger', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoSelect).Post('null').AsFunction);
+    Triggers.AddSimpleTrigger('clear', 'x-form-clear-trigger', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoClear).Post('null').AsFunction);
+  end;
 end;
 
 procedure TKExtLookupField.SetViewField(const AValue: TKViewField);
 begin
   FViewField := AValue;
-  if not ReadOnly then
-  begin
-{ TODO : check whether POST is still needed or not }
-    OnTrigger1Click := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(TriggerClick).Post('null').AsFunction;
-    OnTrigger2Click := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ClearClick).Post('null').AsFunction;
-//    TKWebResponse.Current.Items.ExecuteJSCode(Self,
-//      JSName + '.onTrigger1Click = function(e) { ' + GetClickJSCode(TriggerClick) + '};');
-//    TKWebResponse.Current.Items.ExecuteJSCode(Self,
-//      JSName + '.onTrigger2Click = function(e) { ' + GetClickJSCode(ClearClick) + '};');
-  end;
+  ConfigureTriggers;
 end;
-
-//function TKExtLookupField.GetClickJSCode(const AMethod: TJSProcedure): string;
-//begin
-//  Result := GetPOSTAjaxCode(AMethod, [], 'null');
-//end;
 
 class function TKExtLookupField.SupportsViewField(const AViewField: TKViewField): Boolean;
 begin

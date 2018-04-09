@@ -30,9 +30,11 @@ uses
 
 const
   DEFAULT_READUSERCOMMANDTEXT =
-    'select USER_NAME, PASSWORD_HASH from KITTO_USERS where IS_ACTIVE = 1 and USER_NAME = :USER_NAME';
+    'select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD from KITTO_USERS where IS_ACTIVE = 1 and USER_NAME = :USER_NAME';
   DEFAULT_SETPASSWORDCOMMANDTEXT =
-    'update KITTO_USERS set PASSWORD_HASH = :PASSWORD_HASH where IS_ACTIVE = 1 and USER_NAME = :USER_NAME';
+    'update KITTO_USERS set PASSWORD_HASH = :PASSWORD_HASH, MUST_CHANGE_PASSWORD = 0 where IS_ACTIVE = 1 and USER_NAME = :USER_NAME';
+  DEFAULT_RESETPASSWORDCOMMANDTEXT =
+    'update KITTO_USERS set PASSWORD_HASH = :PASSWORD_HASH, MUST_CHANGE_PASSWORD = 1 where IS_ACTIVE = 1 and EMAIL_ADDRESS = :EMAIL_ADDRESS';
 
 type
   /// <summary>User data read from the database. Used internally as a helper
@@ -63,6 +65,11 @@ type
   ///     <item>
   ///       <term>USER_NAME</term>
   ///       <description>String uniquely identifying the user.</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>EMAIL_ADDRESS</term>
+  ///       <description>Unique e-mail address for the user. This is optional,
+  ///       and only used by ResetPassword.</description>
   ///     </item>
   ///     <item>
   ///       <term>PASSWORD_HASH</term>
@@ -152,6 +159,10 @@ type
     function GetIsClearPassword: Boolean; override;
     procedure SetPassword(const AValue: string); override;
 
+    /// <summary>Generates and returns a random password. Apply application-defined
+    /// rules by overriding this method.</summary>
+    function GenerateRandomPassword: string; virtual;
+
     /// <summary>Returns True if the passepartout mechanism is enabled and the
     /// supplied password matches the passpartout password.</summary>
     function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
@@ -166,6 +177,15 @@ type
     /// USER_NAME that will be filled in with the data used to locate the
     /// record and update the password.</remarks>
     function GetSetPasswordCommandText: string;
+
+    /// <summary>Returns the SQL statement to be used to reset the password
+    /// (or password hash) in a user's record in the database. Override this
+    /// method to change the name or the structure of the predefined table of
+    /// users.</summary>
+    /// <remarks>The statement should have two params named PASSWORD_HASH and
+    /// EMAIL_ADDRESS that will be filled in with the data used to locate the
+    /// record and update the password.</remarks>
+    function GetResetPasswordCommandText: string;
 
     /// <summary>Creates and returns an object with the user data read from the
     /// database. It is actually a template method that calls a set of virtual
@@ -227,6 +247,37 @@ type
     /// </summary>
     procedure ReadUserFromRecord(const AUser: TKAuthUser;
       const ADBQuery: TEFDBQuery; const AAuthData: TEFNode); virtual;
+
+    /// <summary>
+    ///  Called by ResetPassword after generating the new random password
+    ///  but before writing it to the database. Override this method to send
+    ///  the generated password to the user so he can log in and change it.
+    ///  The default implementation does nothing.
+    /// </summary>
+    /// <param name="AParams">
+    ///  Contains all the params passed to ResetPassword plus the generated
+    ///  password (in the "Password" node). This method is not supposed to
+    ///  modify the params but can add custom ones if needed. They will be passed
+    ///  back to the initiator of the password reset flow.
+    /// </param>
+    procedure BeforeResetPassword(const AParams: TEFNode); virtual;
+
+    /// <summary>
+    ///  Called by ResetPassword after writing the new random password
+    ///  to the database but before committing the transaction. Override this method
+    ///  if you need to perform additional database-related operations at this point
+    ///  in time.
+    ///  The default implementation does nothing.
+    /// </summary>
+    /// <param name="AParams">
+    ///  Contains all the params passed to ResetPassword plus the generated
+    ///  password (in the "Password" node). This method is not supposed to
+    ///  modify the params but can add custom ones if needed. They will be passed
+    ///  back to the initiator of the password reset flow.
+    /// </param>
+    procedure AfterResetPassword(const ADBConnection: TEFDBConnection; const AParams: TEFNode); virtual;
+  public
+    procedure ResetPassword(const AParams: TEFNode); override;
   end;
 
 implementation
@@ -237,6 +288,7 @@ uses
   , Variants
   , DB
   , EF.Localization
+  , EF.Logger
   , EF.Types
   , EF.StrUtils
   , Kitto.Types
@@ -246,6 +298,14 @@ uses
   ;
 
 { TKDBAuthenticator }
+
+procedure TKDBAuthenticator.AfterResetPassword(const ADBConnection: TEFDBConnection; const AParams: TEFNode);
+begin
+end;
+
+procedure TKDBAuthenticator.BeforeResetPassword(const AParams: TEFNode);
+begin
+end;
 
 function TKDBAuthenticator.CreateAndReadUser(
   const AUserName: string; const AAuthData: TEFNode): TKAuthUser;
@@ -296,6 +356,11 @@ begin
   Result := ASuppliedPasswordHash = AStoredPasswordHash;
 end;
 
+function TKDBAuthenticator.GenerateRandomPassword: string;
+begin
+  Result := GetRandomString(8, '01');
+end;
+
 function TKDBAuthenticator.GetAfterAuthenticateCommandText: string;
 begin
   Result := Config.GetExpandedString('AfterAuthenticateCommandText');
@@ -322,6 +387,11 @@ function TKDBAuthenticator.GetReadUserCommandText(const AUserName: string): stri
 begin
   Result := Config.GetString('ReadUserCommandText',
     DEFAULT_READUSERCOMMANDTEXT);
+end;
+
+function TKDBAuthenticator.GetResetPasswordCommandText: string;
+begin
+  Result := Config.GetString('ResetPasswordCommandText', DEFAULT_RESETPASSWORDCOMMANDTEXT);
 end;
 
 function TKDBAuthenticator.GetSuppliedPasswordHash(
@@ -454,6 +524,57 @@ begin
   AAuthData.SetString('Password', AUser.PasswordHash);
 end;
 
+procedure TKDBAuthenticator.ResetPassword(const AParams: TEFNode);
+var
+  LEmailAddress: string;
+  LPassword: string;
+  LPasswordHash: string;
+  LDBConnection: TEFDBConnection;
+  LDBCommand: TEFDBCommand;
+  LCommandText: string;
+begin
+  Assert(Assigned(AParams));
+
+  LEmailAddress := AParams.GetString('EmailAddress');
+  if LEmailAddress = '' then
+    raise Exception.Create(_('E-mail address not specified.'));
+
+  LPassword := GenerateRandomPassword;
+  AParams.SetString('Password', LPassword);
+
+  BeforeResetPassword(AParams);
+  if IsClearPassword then
+    LPasswordHash := LPassword
+  else
+    LPasswordHash := GetStringHash(LPassword);
+
+  LCommandText := GetResetPasswordCommandText;
+
+  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName);
+  try
+    LDBCommand := LDBConnection.CreateDBCommand;
+    try
+      LDBCommand.Connection.StartTransaction;
+      try
+        LDBCommand.CommandText := LCommandText;
+        LDBCommand.Params.ParamByName('EMAIL_ADDRESS').AsString := LEmailAddress;
+        LDBCommand.Params.ParamByName('PASSWORD_HASH').AsString := LPasswordHash;
+        if LDBCommand.Execute <> 1 then
+          raise EKError.Create(_('Error resetting password.'));
+        AfterResetPassword(LDBConnection, AParams);
+        LDBCommand.Connection.CommitTransaction;
+      except
+        LDBCommand.Connection.RollbackTransaction;
+        raise;
+      end;
+    finally
+      FreeAndNil(LDBCommand);
+    end;
+  finally
+    FreeAndNil(LDBConnection);
+  end;
+end;
+
 procedure TKDBAuthenticator.SetPassword(const AValue: string);
 var
   LPasswordHash: string;
@@ -499,8 +620,7 @@ end;
 
 function TKDBAuthenticator.GetSetPasswordCommandText: string;
 begin
-  Result := Config.GetString('SetPasswordCommandText',
-    DEFAULT_SETPASSWORDCOMMANDTEXT);
+  Result := Config.GetString('SetPasswordCommandText', DEFAULT_SETPASSWORDCOMMANDTEXT);
 end;
 
 initialization

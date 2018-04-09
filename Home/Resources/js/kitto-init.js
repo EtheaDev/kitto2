@@ -120,7 +120,6 @@ function kittoInit()
   TextMetrics = new Ext.util.TextMetrics("body");
   Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
 
-  //kittoLoadMask = new Ext.LoadMask({msg: "Kitto is starting...", target: Ext.getBody()});
   Ext.Ajax.on("beforerequest", function() { showKittoLoadMask(1); });
   Ext.Ajax.on("requestcomplete", function() { showKittoLoadMask(-1); });
   Ext.Ajax.on("requestexception", function() { showKittoLoadMask(0); });

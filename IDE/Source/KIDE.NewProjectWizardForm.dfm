@@ -2,25 +2,25 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
   HelpContext = 120
   BorderStyle = bsDialog
   Caption = 'New Kitto Application'
-  ClientHeight = 425
+  ClientHeight = 357
   ClientWidth = 562
   OnCreate = FormCreate
   ExplicitWidth = 568
-  ExplicitHeight = 454
+  ExplicitHeight = 386
   PixelsPerInch = 96
   TextHeight = 13
   inherited PageControl: TPageControl
     Width = 562
-    Height = 364
-    ActivePage = DoneTabSheet
+    Height = 296
+    ActivePage = GoTabSheet
     ExplicitWidth = 562
-    ExplicitHeight = 364
+    ExplicitHeight = 296
     object SelectTabSheet: TTabSheet
       Caption = 'SelectTabSheet'
       object TemplateSplitter: TSplitter
         Left = 270
         Top = 0
-        Height = 333
+        Height = 265
         Align = alRight
         AutoSnap = False
         MinSize = 50
@@ -32,22 +32,22 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         Left = 0
         Top = 0
         Width = 270
-        Height = 333
+        Height = 265
         Align = alClient
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0
         ExplicitWidth = 270
-        ExplicitHeight = 333
+        ExplicitHeight = 265
         inherited ListView: TListView
           Width = 270
-          Height = 333
+          Height = 265
           ExplicitWidth = 270
-          ExplicitHeight = 333
+          ExplicitHeight = 265
         end
         inherited ImageList: TImageList
           Bitmap = {
-            494C010101000500400020002000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+            494C010101000500500020002000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
             0000000000003600000028000000800000002000000001002000000000000040
             0000000000000000000000000000000000000000000000000000000000000000
             0000000000000000000000000000000000000000000000000000000000000000
@@ -587,7 +587,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         Left = 273
         Top = 0
         Width = 281
-        Height = 333
+        Height = 265
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 1
@@ -595,7 +595,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
           Left = 0
           Top = 0
           Width = 281
-          Height = 333
+          Height = 265
           Align = alClient
           Color = clBtnFace
           Font.Charset = ANSI_CHARSET
@@ -615,37 +615,37 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
       Caption = 'OptionsTabSheet'
       ImageIndex = 1
       object AuthenticationtypeLabel: TLabel
-        Left = 8
-        Top = 137
-        Width = 113
+        Left = 25
+        Top = 85
+        Width = 95
         Height = 13
         Caption = 'Authentication type'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
         Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
+        Font.Style = []
         ParentFont = False
       end
       object AccessControltypeLabel: TLabel
-        Left = 8
-        Top = 179
-        Width = 112
+        Left = 25
+        Top = 131
+        Width = 96
         Height = 13
         Caption = 'Access Control type'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
         Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
+        Font.Style = []
         ParentFont = False
       end
       object ExtJSLabel: TLabel
-        Left = 181
-        Top = 138
-        Width = 51
+        Left = 398
+        Top = 3
+        Width = 31
         Height = 13
-        Caption = 'ExtJS 6.2'
+        Caption = 'ExtJS'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
@@ -654,16 +654,16 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         ParentFont = False
       end
       object ThemeLabel: TLabel
-        Left = 200
-        Top = 157
+        Left = 405
+        Top = 20
         Width = 32
         Height = 13
         Alignment = taRightJustify
         Caption = 'Theme'
       end
       object LanguagEEncodingLabel: TLabel
-        Left = 8
-        Top = 221
+        Left = 210
+        Top = 3
         Width = 120
         Height = 13
         Caption = 'Language && Encoding'
@@ -675,35 +675,35 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         ParentFont = False
       end
       object LanguageLabel: TLabel
-        Left = 5
-        Top = 241
+        Left = 223
+        Top = 20
         Width = 47
         Height = 13
         Alignment = taRightJustify
         Caption = 'Language'
       end
       object CharsetLabel: TLabel
-        Left = 12
-        Top = 264
+        Left = 223
+        Top = 66
         Width = 38
         Height = 13
         Alignment = taRightJustify
         Caption = 'Charset'
       end
       object PortLabel: TLabel
-        Left = 212
-        Top = 241
+        Left = 223
+        Top = 128
         Width = 20
         Height = 13
         Alignment = taRightJustify
         Caption = 'Port'
       end
       object ServerLabel: TLabel
-        Left = 189
-        Top = 222
-        Width = 41
+        Left = 210
+        Top = 109
+        Width = 38
         Height = 13
-        Caption = 'Server:'
+        Caption = 'Server'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
@@ -712,86 +712,119 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         ParentFont = False
       end
       object ThreadPoolSizeLabel: TLabel
-        Left = 159
-        Top = 264
+        Left = 223
+        Top = 175
         Width = 73
         Height = 13
         Alignment = taRightJustify
         Caption = 'ThreadPoolSize'
       end
       object SessionTimeOutLabel: TLabel
-        Left = 156
-        Top = 287
+        Left = 223
+        Top = 222
         Width = 76
         Height = 13
         Alignment = taRightJustify
         Caption = 'SessionTimeOut'
       end
+      object FeaturesLabel: TLabel
+        Left = 10
+        Top = 66
+        Width = 50
+        Height = 13
+        Caption = 'Features'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object ProjectOptionsLabel: TLabel
+        Left = 10
+        Top = 1
+        Width = 86
+        Height = 13
+        Caption = 'Project options'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object SearchPathLabel: TLabel
+        Left = 20
+        Top = 20
+        Width = 83
+        Height = 13
+        Caption = 'Kitto Search Path'
+      end
       object AuthComboBox: TComboBox
-        Left = 24
-        Top = 154
-        Width = 116
+        Left = 25
+        Top = 104
+        Width = 156
+        Height = 21
+        TabOrder = 1
+      end
+      object ACComboBox: TComboBox
+        Left = 25
+        Top = 150
+        Width = 156
         Height = 21
         TabOrder = 2
       end
-      object ACComboBox: TComboBox
-        Left = 24
-        Top = 195
-        Width = 116
-        Height = 21
-        TabOrder = 3
-      end
       object ExtThemeComboBox: TComboBox
-        Left = 236
-        Top = 154
+        Left = 405
+        Top = 39
         Width = 79
         Height = 21
-        TabOrder = 4
+        TabOrder = 9
         Text = 'triton'
         Items.Strings = (
           'classic')
       end
       object LanguageIdComboBox: TComboBox
-        Left = 58
-        Top = 238
+        Left = 223
+        Top = 39
         Width = 82
         Height = 21
         ItemIndex = 0
-        TabOrder = 5
+        TabOrder = 4
         Text = 'en'
         Items.Strings = (
           'en'
           'it')
       end
       object CharsetComboBox: TComboBox
-        Left = 58
-        Top = 261
+        Left = 223
+        Top = 82
         Width = 82
         Height = 21
         ItemIndex = 0
-        TabOrder = 6
+        TabOrder = 5
         Text = 'utf-8'
         Items.Strings = (
           'utf-8'
           'iso-8859-1')
       end
       object ServerPortEdit: TSpinEdit
-        Left = 236
-        Top = 238
+        Left = 223
+        Top = 147
         Width = 79
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 7
+        TabOrder = 6
         Value = 8080
       end
       object DatabasesGroupBox: TGroupBox
-        Left = 343
-        Top = -1
-        Width = 130
+        Left = 25
+        Top = 175
+        Width = 156
         Height = 89
         Caption = 'Database Adapters'
-        TabOrder = 1
+        TabOrder = 3
         object DBADOCheckBox: TCheckBox
           Left = 7
           Top = 17
@@ -817,88 +850,33 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
           TabOrder = 2
         end
       end
-      object DelphiGroupBox: TGroupBox
-        Left = 3
-        Top = 1
-        Width = 326
-        Height = 124
-        Caption = 'Create Delphi Project'
-        TabOrder = 0
-        object SearchPathLabel: TLabel
-          Left = 136
-          Top = 18
-          Width = 83
-          Height = 13
-          Caption = 'Kitto Search Path'
-        end
-        object DXE7CheckBox: TCheckBox
-          Left = 8
-          Top = 18
-          Width = 110
-          Height = 17
-          Caption = 'Delphi XE7'
-          TabOrder = 0
-        end
-        object DXE8CheckBox: TCheckBox
-          Left = 8
-          Top = 37
-          Width = 110
-          Height = 17
-          Caption = 'Delphi XE8'
-          TabOrder = 1
-        end
-        object SearchPathComboBox: TComboBox
-          Left = 136
-          Top = 37
-          Width = 177
-          Height = 21
-          Hint = 'Root Kitto directory as seen by the Delphi project'
-          TabOrder = 5
-        end
-        object D10CheckBox: TCheckBox
-          Left = 8
-          Top = 56
-          Width = 110
-          Height = 17
-          Caption = 'Delphi 10 Seattle'
-          TabOrder = 2
-        end
-        object D10_1CheckBox: TCheckBox
-          Left = 8
-          Top = 74
-          Width = 110
-          Height = 17
-          Caption = 'Delphi 10.1 Berlin'
-          TabOrder = 3
-        end
-        object D10_2CheckBox: TCheckBox
-          Left = 8
-          Top = 92
-          Width = 110
-          Height = 17
-          Caption = 'Delphi 10.2 Tokio'
-          TabOrder = 4
-        end
-      end
       object ServerThreadPoolSizeEdit: TSpinEdit
-        Left = 236
-        Top = 261
+        Left = 223
+        Top = 194
+        Width = 79
+        Height = 22
+        MaxValue = 0
+        MinValue = 0
+        TabOrder = 7
+        Value = 20
+      end
+      object ServerSessionTimeOutEdit: TSpinEdit
+        Left = 223
+        Top = 241
         Width = 79
         Height = 22
         MaxValue = 0
         MinValue = 0
         TabOrder = 8
-        Value = 20
-      end
-      object ServerSessionTimeOutEdit: TSpinEdit
-        Left = 236
-        Top = 284
-        Width = 79
-        Height = 22
-        MaxValue = 0
-        MinValue = 0
-        TabOrder = 9
         Value = 10
+      end
+      object SearchPathComboBox: TComboBox
+        Left = 20
+        Top = 39
+        Width = 161
+        Height = 21
+        Hint = 'Root Kitto directory as seen by the Delphi project'
+        TabOrder = 0
       end
     end
     object GoTabSheet: TTabSheet
@@ -906,7 +884,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
       ImageIndex = 2
       DesignSize = (
         554
-        333)
+        265)
       object ProjectPathButton: TSpeedButton
         Left = 517
         Top = 32
@@ -958,7 +936,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         Left = 0
         Top = 0
         Width = 554
-        Height = 333
+        Height = 265
         Align = alClient
         Color = clBtnFace
         Font.Charset = ANSI_CHARSET
@@ -975,9 +953,9 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
     end
   end
   inherited ButtonPanel: TPanel
-    Top = 389
+    Top = 321
     Width = 562
-    ExplicitTop = 389
+    ExplicitTop = 321
     ExplicitWidth = 562
     inherited BackButton: TButton
       Left = 402

@@ -1,6 +1,8 @@
 ﻿Type: Data
 IsLookup: True
 Controller: List
+  Width: 1000
+  Height: 600
   Filters:
     DisplayLabel: Employee Filter
     Items:
@@ -10,7 +12,7 @@ Controller: List
           upper(EMPLOYEE_NAME) like upper('%{value}%')
   CenterController:
     AutoFormPlacement: Right
-      Size: 1000
+      Size: 450
 
 MainTable:
   Model: EMPLOYEE

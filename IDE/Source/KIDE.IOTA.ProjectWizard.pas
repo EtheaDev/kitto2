@@ -77,6 +77,7 @@ uses
   , SysUtils
   , Vcl.Dialogs
   , KIDE.NewProjectWizardForm
+  , KIDE.ProjectTemplate
   ;
 
 { TKProjectWizard }
@@ -87,16 +88,20 @@ var
 begin
   inherited Create;
   LCategoryServices := BorlandIDEServices as IOTAGalleryCategoryManager;
-  LCategoryServices.AddCategory(LCategoryServices.FindCategory(sCategoryRoot), ID_STRING, GALLERY_PAGE);
+  LCategoryServices.AddCategory(LCategoryServices.FindCategory(sCategoryDelphiNew), ID_STRING, GALLERY_PAGE);
 end;
 
 procedure TIOTAProjectWizard.Execute;
 var
-  LProjectFileName: string;
+  LProjectTemplate: TProjectTemplate;
 begin
-  if TNewProjectWizardForm.ShowDialog(LProjectFileName) then
+  if TNewProjectWizardForm.ShowDialog(LProjectTemplate) then
   begin
-    (BorlandIDEServices as IOTAModuleServices).CreateModule(GetProjectCreatorClass.Create(LProjectFileName));
+    try
+      (BorlandIDEServices as IOTAModuleServices).CreateModule(GetProjectCreatorClass.Create(LProjectTemplate));
+    finally
+      FreeAndNIl(LProjectTemplate);
+    end;
   end;
 end;
 
@@ -153,6 +158,7 @@ end;
 
 function TIOTAProjectWizard.IsVisible(Project: IOTAProject): Boolean;
 begin
+{ TODO : There may be cases in which the wizard shouldn't be available }
   Result := True;
 end;
 

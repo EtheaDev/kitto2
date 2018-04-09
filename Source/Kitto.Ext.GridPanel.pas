@@ -123,6 +123,7 @@ uses
   , Kitto.Web.Response
   , Kitto.Ext.Utils
   , Kitto.Ext.Form
+  , Kitto.Ext.DataPanel
   ;
 
 { TKExtGridPanel }
@@ -636,7 +637,7 @@ begin
     begin
       if not Assigned(FAutoFormController) then
       begin
-        FAutoFormController := InitEditController(FAutoFormContainer, FindCurrentViewRecord, emViewCurrentRecord);
+        FAutoFormController := InitEditController(FAutoFormContainer, LRecord, 'View');
         FAutoFormController.Config.SetBoolean('HideButtons', True);
         FAutoFormController.Config.SetString('LayoutNamePrefix', 'Auto');
         FAutoFormController.Config.SetString('DetailStyle', 'None');
@@ -911,10 +912,13 @@ begin
 end;
 
 procedure TKExtGridPanel.ConfirmLookup;
+var
+  LParentDataPanel: TKExtDataPanelController;
 begin
-  GetParentDataPanel.Config.SetObject('Sys/LookupResultRecord', GetCurrentViewRecord);
-  CloseHostContainer;
-  GetParentDataPanel.NotifyObservers('LookupConfirmed');
+  LParentDataPanel := GetParentDataPanel;
+  LParentDataPanel.Close;
+  LParentDataPanel.Config.SetObject('Sys/LookupResultRecord', GetCurrentViewRecord);
+  LParentDataPanel.NotifyObservers('LookupConfirmed');
 end;
 
 procedure TKExtGridPanel.CancelInplaceChanges;
@@ -925,9 +929,12 @@ begin
 end;
 
 procedure TKExtGridPanel.CancelLookup;
+var
+  LParentDataPanel: TKExtDataPanelController;
 begin
-  CloseHostContainer;
-  GetParentDataPanel.NotifyObservers('LookupCanceled');
+  LParentDataPanel := GetParentDataPanel;
+  LParentDataPanel.Close;
+  LParentDataPanel.NotifyObservers('LookupCanceled');
 end;
 
 procedure TKExtGridPanel.ShowConfirmButtons(const AShow: Boolean);

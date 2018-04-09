@@ -80,7 +80,6 @@ type
     FOwnsServerStore: Boolean;
     FVisibleActions: TDictionary<string, Boolean>;
     FAllowedActions: TDictionary<string, Boolean>;
-    FEditHostWindow: TKExtModalWindow;
     FNewButton: TKExtButton;
     FEditButton: TKExtButton;
     FViewButton: TKExtButton;
@@ -107,7 +106,7 @@ type
     procedure InitDefaults; override;
     procedure InitSubController(const AController: IJSController); override;
     procedure AddTopToolbarButtons; override;
-    function AddTopToolbarButton(const AActionName, ATooltip, AImageName: string;
+    function AddTopToolbarButton(const AActionName, ADefaultTooltip, AImageName: string;
       const ARequiresSelection: Boolean): TKExtButton;
     property View: TKDataView read GetView;
     property ClientStore: TExtDataStore read FClientStore;
@@ -127,7 +126,7 @@ type
     function GetDefaultRemoteSort: Boolean; virtual;
     function FindCurrentViewRecord: TKViewTableRecord;
     function GetCurrentViewRecord: TKViewTableRecord;
-    procedure ShowEditWindow(const ARecord: TKViewTableRecord; const AEditMode: TKEditMode);
+    procedure DisplayEditController(const ARecord: TKViewTableRecord; const AOperation: string);
     function IsMultiSelect: Boolean; virtual;
     function HasDefaultAction: Boolean;
     function GetExplicitDefaultAction: string;
@@ -152,7 +151,7 @@ type
     // and this method when changes are canceled. This class manages housekeeping.
     procedure ChangesCanceled(const ARecord: TKViewTableRecord);
     function InitEditController(const AContainer: IJSControllerContainer;
-      const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IJSController;
+  const ARecord: TKViewTableRecord; const AOperation: string): IJSController;
     function GetDefaultEditControllerType: string; virtual;
     property EditItems: TKEditItemList read GetEditItems;
     function ExpandExpression(const AExpression: string): string; virtual;
@@ -393,8 +392,12 @@ begin
 end;
 
 procedure TKExtDataPanelController.DuplicateRecord;
+var
+  LRecord: TKViewTableRecord;
 begin
-  ShowEditWindow(GetCurrentViewRecord, emDupCurrentRecord);
+  LRecord := GetCurrentViewRecord;
+  LRecord.ApplyDuplicateRecordRules;
+  DisplayEditController(LRecord, 'Dup');
 end;
 
 procedure TKExtDataPanelController.EditRecord;
@@ -403,47 +406,23 @@ var
 begin
   LRecord := GetCurrentViewRecord;
   LRecord.ApplyEditRecordRules;
-  ShowEditWindow(LRecord, emEditCurrentRecord);
+  DisplayEditController(LRecord, 'Edit');
 end;
 
-procedure TKExtDataPanelController.ShowEditWindow(const ARecord: TKViewTableRecord;
-  const AEditMode: TKEditMode);
+procedure TKExtDataPanelController.DisplayEditController(const ARecord: TKViewTableRecord; const AOperation: string);
 var
   LFormController: IJSController;
 begin
-  Assert((AEditMode = emNewrecord) or Assigned(ARecord));
+  Assert((AOperation = 'Add') or Assigned(ARecord));
   Assert(ViewTable <> nil);
 
-  if Assigned(FEditHostWindow) then
-  begin
-    FEditHostWindow.Delete;
-    FreeAndNil(FEditHostWindow);
-  end;
-  FEditHostWindow := TKExtModalWindow.Create(Self);
-//  FEditHostWindow.OwnerCt := TKWebSession.Current.HomeController.AsJSObject as TExtContainer;
-
-  //FEditHostWindow.ResizeHandles := 'n s';
-  FEditHostWindow.Layout := lyFit;
-
-  if AEditMode in [emNewRecord, emDupCurrentRecord] then
-    FEditHostWindow.Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
-  else if (AEditMode = emEditCurrentRecord) and IsActionAllowed('Edit') then
-    FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
-  else if (AEditMode = emViewCurrentRecord) and IsActionAllowed('View') then
-    FEditHostWindow.Title := Format(_('View %s'), [_(ViewTable.DisplayLabel)])
-  else
-    FEditHostWindow.Title := _(ViewTable.DisplayLabel);
-
-  LFormController := InitEditController(FEditHostWindow, ARecord, AEditMode);
-  LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
-  //LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
-  FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/');
+  LFormController := InitEditController(nil, ARecord, AOperation);
+  LFormController.SetModal;
   LFormController.Display;
-  FEditHostWindow.Show;
 end;
 
 function TKExtDataPanelController.InitEditController(const AContainer: IJSControllerContainer;
-  const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IJSController;
+  const ARecord: TKViewTableRecord; const AOperation: string): IJSController;
 var
   LFormControllerType: string;
   LFormControllerNode: TEFNode;
@@ -453,8 +432,8 @@ begin
     LFormControllerType := LFormControllerNode.AsString;
   if LFormControllerType = '' then
     LFormControllerType := GetDefaultEditControllerType;
-  Result := TKExtControllerFactory.Instance.CreateController(
-    AContainer.AsJSObject, ViewTable.View, AContainer, LFormControllerNode, Self, LFormControllerType);
+  Result := TKExtControllerFactory.Instance.CreateController(Self,
+    ViewTable.View, AContainer, LFormControllerNode, Self, LFormControllerType);
   Result.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
     Result.Config.SetObject('Sys/Record', ARecord)
@@ -462,18 +441,10 @@ begin
     SetNewRecordDefaultValues(Result.Config);
   Result.Config.SetObject('Sys/ViewTable', ViewTable);
   Result.Config.SetObject('Sys/CallingController', Self);
+  Result.Config.SetString('Sys/Operation', AOperation);
 
-  case AEditMode of
-    emNewRecord : Result.Config.SetString('Sys/Operation', 'Add');
-    emDupCurrentRecord : Result.Config.SetString('Sys/Operation', 'Dup');
-    emEditCurrentRecord : Result.Config.SetString('Sys/Operation', 'Edit');
-    emViewCurrentRecord :
-    begin
-      if not IsActionAllowed('Edit') then
-        Result.Config.SetBoolean('PreventEditing', True);
-      Result.Config.SetString('Sys/Operation', 'View');
-    end;
-  end;
+  if SameText(AOperation, 'View') and not IsActionAllowed('Edit') then
+    Result.Config.SetBoolean('PreventEditing', True);
 end;
 
 function TKExtDataPanelController.GetCurrentViewRecord: TKViewTableRecord;
@@ -934,7 +905,7 @@ end;
 
 procedure TKExtDataPanelController.NewRecord;
 begin
-  ShowEditWindow(nil, emNewRecord);
+  DisplayEditController(nil, 'Add');
 end;
 
 procedure TKExtDataPanelController.SetViewTable(const AValue: TKViewTable);
@@ -961,10 +932,8 @@ begin
   FVisibleActions.AddOrSetValue('Dup',
     IsActionSupported('Dup')
     and (FViewTable.GetBoolean('Controller/AllowDuplicating') or Config.GetBoolean('AllowDuplicating'))
-    and not FViewTable.GetBoolean('Controller/PreventAdding')
     and not View.GetBoolean('IsReadOnly')
-    and not FViewTable.IsReadOnly
-    and not Config.GetBoolean('PreventAdding'));
+    and not FViewTable.IsReadOnly);
   FAllowedActions.AddOrSetValue('Dup', FVisibleActions['Dup'] and FViewTable.IsAccessGranted(ACM_ADD));
 
   FVisibleActions.AddOrSetValue('Edit',
@@ -998,13 +967,13 @@ begin
     AddUsedViewField(ViewTable.Fields[I]);
 end;
 
-function TKExtDataPanelController.AddTopToolbarButton(const AActionName, ATooltip, AImageName: string;
+function TKExtDataPanelController.AddTopToolbarButton(const AActionName, ADefaultTooltip, AImageName: string;
   const ARequiresSelection: Boolean): TKExtButton;
 begin
   if (AActionName <> '') and IsActionSupported(AActionName) then
   begin
     Result := TKExtButton.CreateAndAddToArray(TopToolbar.Items);
-    Result.Tooltip := ATooltip;
+    Result.Tooltip := FViewTable.GetString('Controller/' + AActionName + '/Tooltip', ADefaultTooltip);
     Result.SetIconAndScale(AImageName);
     if (AActionName <> '') and not IsActionVisible(AActionName) then
       Result.Hidden := True
@@ -1096,7 +1065,7 @@ procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(ViewTable <> nil);
 
-  TKAccessController.Current.CheckAccessGranted(TKAuthenticator.Current.UserName, ViewTable.GetResourceURI, ACM_READ);
+  TKAccessController.Current.CheckAccessGranted(TKAuthenticator.Current.UserName, ViewTable.GetACURI, ACM_READ);
 end;
 
 procedure TKExtDataPanelController.SetFieldValue(const AField: TKViewTableField; const ANode: TEFNode);
@@ -1200,7 +1169,7 @@ end;
 
 procedure TKExtDataPanelController.ViewRecord;
 begin
-  ShowEditWindow(GetCurrentViewRecord, emViewCurrentRecord);
+  DisplayEditController(GetCurrentViewRecord, 'View');
 end;
 
 procedure TKExtDataPanelController.UpdateObserver(const ASubject: IEFSubject; const AContext: string);

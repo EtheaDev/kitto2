@@ -17,7 +17,7 @@ type
   TExtDataTree = class;
   TExtDataJsonReader = class;
 
-  TExtDataProxy = class(TExtUtilObservable)
+  TExtDataProxy = class(TExtBase)
   private
     FReader: TExtDataDataReader;
     procedure SetReader(const AValue: TExtDataDataReader);
@@ -74,7 +74,7 @@ type
     property UseNull: Boolean read FUseNull write SetUseNull;
   end;
 
-  TExtDataNode = class(TExtUtilObservable)
+  TExtDataNode = class(TExtBase)
   private
     FChildren: TJSObjectArray;
     FLeaf: Boolean;
@@ -91,7 +91,7 @@ type
     property Children: TJSObjectArray read FChildren;
   end;
 
-  TExtDataStore = class(TExtUtilObservable)
+  TExtDataStore = class(TExtEvented)
   private
     FAutoLoad: Boolean;
     FRemoteSort: Boolean;
@@ -121,7 +121,7 @@ type
     property StoreId: string read FStoreId write SetStoreId;
   end;
 
-  TExtDataTree = class(TExtUtilObservable)
+  TExtDataTree = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;

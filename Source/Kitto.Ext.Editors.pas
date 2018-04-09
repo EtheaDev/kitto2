@@ -485,7 +485,7 @@ type
     function AsObject: TObject;
     procedure SetReadOnly(const AValue: Boolean);
   //published
-    procedure ClearClick; override;
+    procedure DoClear; override;
   end;
 
   TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor)
@@ -792,29 +792,29 @@ end;
 
 function IsChangeHandlerNeeded(const AViewTableField: TKViewTableField): Boolean;
 begin
-  { TODO : Consider dependencies such as field names used in layout elements
-    (such as field set titles). In order to do that, build a dependency list/tree. }
-  if AViewTableField.ViewField.FileNameField <> '' then
-    // Uploads always need the change handler.
-    Result := True
-  else if AViewTableField.ViewField.DerivedFieldsExist then
-    // Derived fields must be updated when source field changes.
-    Result := True
-  else if AViewTableField.ViewField.HasServerSideRules then
-    // Server-side rules need the change handler in order to be applied.
-    Result := True
-  else if AViewTableField.ViewField.GetBoolean('NotifyChange') then
-    // Temporary, for cases not handled by this detector and setup manually.
-    Result := True
-  else if Length(AViewTableField.ViewField.Table.GetFilterByFields(
-      function (AFilterByViewField: TKFilterByViewField): Boolean
-      begin
-        Result := AFilterByViewField.SourceField = AViewTableField.ViewField;
-      end)) > 0 then
-    // If any fields are filtered by this field, then the change must be notified.
-    Result := True
-  else
-    Result := False;
+  // Short-circuited for performance reasons.
+  Result := True;
+//  if AViewTableField.ViewField.FileNameField <> '' then
+//    // Uploads always need the change handler.
+//    Result := True
+//  else if AViewTableField.ViewField.DerivedFieldsExist then
+//    // Derived fields must be updated when source field changes.
+//    Result := True
+//  else if AViewTableField.ViewField.HasServerSideRules then
+//    // Server-side rules need the change handler in order to be applied.
+//    Result := True
+//  else if AViewTableField.ViewField.GetBoolean('NotifyChange') then
+//    // Temporary, for cases not handled by this detector and setup manually.
+//    Result := True
+//  else if Length(AViewTableField.ViewField.Table.GetFilterByFields(
+//      function (AFilterByViewField: TKFilterByViewField): Boolean
+//      begin
+//        Result := AFilterByViewField.SourceField = AViewTableField.ViewField;
+//      end)) > 0 then
+//    // If any fields are filtered by this field, then the change must be notified.
+//    Result := True
+//  else
+//    Result := False;
 end;
 
 procedure InvalidTransientProperty(APropertyName: string; const AValue: Variant);
@@ -1364,10 +1364,7 @@ procedure TKExtEditPage.InitDefaults;
 begin
   inherited;
   Border := False;
-//  BodyStyle := 'background:none';
-//  Layout := lyForm;
-  // Leave room for the scroll bar on the right and a small space on top before the first editor.
-  PaddingString := '15px 15px 15px 10px'; // top right bottom left
+  Padding := '10px 10px 0 10px'; // top right bottom left
   AutoScroll := True;
 end;
 
@@ -1490,7 +1487,7 @@ begin
       &On('afterrender', GenerateAnonymousFunction(Expand(True)));
   end
   else if SameText(ANode.Name, 'Title') then
-    UnexpandedTitle := ANode.AsExpandedString
+    UnexpandedTitle := _(ANode.AsExpandedString)
   else
     TKExtEditorManager.InvalidOption(ANode);
 end;
@@ -2319,7 +2316,7 @@ procedure TKExtFormRowField.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  Padding := '0 10 0 0';
+  Padding := '0 10px 0 0';
 end;
 
 function TKExtFormRowField.InternalSetOption(const ANode: TEFNode): Boolean;
@@ -3316,7 +3313,7 @@ begin
   Result := Self;
 end;
 
-procedure TKExtLookupEditor.ClearClick;
+procedure TKExtLookupEditor.DoClear;
 var
   LKeyFieldNames: string;
 begin

@@ -454,7 +454,7 @@ type
     procedure Invalidate;
     function AsExtObject: TExtObject;
   //published
-    procedure ClearClick; override;
+    procedure DoClear; override;
   end;
 
 implementation
@@ -1443,7 +1443,7 @@ begin
   Result := Self;
 end;
 
-procedure TKLookupFilter.ClearClick;
+procedure TKLookupFilter.DoClear;
 begin
   FreeAndNil(FCurrentValues);
   SetValue('');

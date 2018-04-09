@@ -129,15 +129,19 @@ var
   LRttiMethod: TRttiMethod;
   LObject: TObject;
 begin
+  Result := '';
+
   LMethod := TMethod(AMethod);
   LObject := LMethod.Data;
 
   LInfo := TRttiContext.Create.GetType(LObject.ClassType);
   for LRttiMethod in LInfo.GetMethods do
   begin
-    Result := LRttiMethod.Name;
     if LRttiMethod.CodeAddress = LMethod.Code then
+    begin
+      Result := LRttiMethod.Name;
       Break;
+    end;
   end;
 
   if Result = '' then

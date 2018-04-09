@@ -71,7 +71,6 @@ type
     FAccessController: TKAccessController;
     FHandleResources: Boolean;
     class threadvar FCurrent: TKWebApplication;
-    class var FOnCreateHostWindow: TFunc<TJSBase, IJSControllerContainer>;
     function GetDefaultHomeViewNodeNames(const AViewportWidthInInches: Integer; const ASuffix: string): TStringDynArray;
     procedure Home;
     procedure FreeLoginNode;
@@ -93,7 +92,6 @@ type
     class procedure SetCurrent(const AValue: TKWebApplication); static;
     function CallObjectMethod(const AObject: TObject; const AMethodName: string): Boolean;
     function GetViewportWidthInInches: TJSExpression;
-    class function CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer; static;
     function GetAuthenticator: TKAuthenticator;
     function GetAccessController: TKAccessController;
     procedure InitConfig;
@@ -137,14 +135,11 @@ type
       const AView: TKView;
       const AObserver: IEFObserver = nil;
       const AForceModal: Boolean = False;
-      const AAfterCreateWindow: TProc<IJSContainer> = nil;
       const AAfterCreate: TProc<IJSController> = nil): IJSController;
     property Path: string read FPath;
     property Theme: string read FTheme;
 
     class property Current: TKWebApplication read GetCurrent write SetCurrent;
-
-    class property OnCreateHostWindow: TFunc<TJSBase, IJSControllerContainer> read FOnCreateHostWindow write FOnCreateHostWindow;
 
     /// <summary>
     ///  Returns the URL for the specified resource, based on the first
@@ -501,72 +496,36 @@ function TKWebApplication.DisplayNewController(
   const AView: TKView;
   const AObserver: IEFObserver = nil;
   const AForceModal: Boolean = False;
-  const AAfterCreateWindow: TProc<IJSContainer> = nil;
   const AAfterCreate: TProc<IJSController> = nil): IJSController;
 var
-  LIsSynchronous: Boolean;
   LIsModal: Boolean;
-  LWindow: IJSControllerContainer;
+  LContainer: IJSControllerContainer;
+  LIsSynchronous: Boolean;
 begin
-  Assert(Assigned(AView));
-
-  // If there's no view host, we treat all views as windows.
+  // If there's no view host, all views must be floating. For now, all floating views
+  // are displayed modally.
   LIsModal := AForceModal or not Assigned(TKWebSession.Current.ControllerContainer) or AView.GetBoolean('Controller/IsModal');
-  if Assigned(TKWebSession.Current.ControllerHostWindow) then
-  begin
-    TKWebSession.Current.ControllerHostWindow.AsJSObject.Delete;
-    TKWebSession.Current.ControllerHostWindow.AsObject.Free;
-    TKWebSession.Current.ControllerHostWindow := nil;
-  end;
-  { TODO :
-  If we added the ability to change owner after object creation,
-  this code could be simplified a lot by only creating the window if needed. }
   if LIsModal then
-  begin
-    LWindow := CreateHostWindow(TKWebSession.Current.ObjectSpace);
-    TKWebSession.Current.ControllerHostWindow := LWindow;
-    if Assigned(AAfterCreateWindow) then
-      AAfterCreateWindow(LWindow);
-    Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView, LWindow, nil, AObserver);
-    if Assigned(AAfterCreate) then
-      AAfterCreate(Result);
-    if not Result.Config.GetBoolean('Sys/SupportsContainer') then
-    begin
-      TKWebSession.Current.ControllerHostWindow.AsJSObject.Delete;
-      TKWebSession.Current.ControllerHostWindow.AsJSObject.Free;
-      TKWebSession.Current.ControllerHostWindow := nil;
-    end
-    else
-    begin
-      { TODO : remove dependency from TKExtWindowControllerBase }
-//      set view
-//      is autosize
-      LWindow.SetActiveSubController(Result);
-      if TKExtWindowControllerBase(LWindow).Title = '' then
-        TKExtWindowControllerBase(LWindow).Title := _(AView.DisplayLabel);
-      TKExtWindowControllerBase(LWindow).Closable := AView.GetBoolean('Controller/AllowClose', True);
-      Result.Config.SetObject('Sys/HostWindow', LWindow.AsObject);
-//      Result.Config.SetBoolean('Sys/HostWindow/AutoSize',
-      TKExtWindowControllerBase(LWindow).SetSizeFromTree(AView, 'Controller/PopupWindow/');
-    end;
-  end
+    LContainer := nil
   else
-  begin
-    Assert(Assigned(TKWebSession.Current.ControllerContainer));
-    Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView,
-      TKWebSession.Current.ControllerContainer, nil, AObserver);
-    //Assert(Result.Config.GetBoolean('Sys/SupportsContainer'));
-  end;
+    LContainer := TKWebSession.Current.ControllerContainer;
+  Assert(LIsModal or Assigned(LContainer));
+
+  Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace,
+    AView, LContainer, nil, AObserver);
+
+  if Assigned(AAfterCreate) then
+    AAfterCreate(Result);
+
+  if LIsModal then
+    Result.SetModal;
+
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
     TKWebSession.Current.OpenControllers.Add(Result);
   try
     Result.Display;
-    if Assigned(TKWebSession.Current.ControllerHostWindow) and not LIsSynchronous then
-      TKExtControllerHostWindow(TKWebSession.Current.ControllerHostWindow).Show;
   except
-    if Assigned(TKWebSession.Current.ControllerHostWindow) and not LIsSynchronous then
-      TKExtControllerHostWindow(TKWebSession.Current.ControllerHostWindow).Hide;
     TKWebSession.Current.OpenControllers.Remove(Result);
     FreeAndNilEFIntf(Result);
     raise;
@@ -574,14 +533,6 @@ begin
   // Synchronous controllers end their life inside Display.
   if LIsSynchronous then
     NilEFIntf(Result);
-end;
-
-class function TKWebApplication.CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer;
-begin
-  if Assigned(FOnCreateHostWindow) then
-    Result := FOnCreateHostWindow(AOwner)
-  else
-    raise Exception.Create('Couldn''t create host window');
 end;
 
 procedure TKWebApplication.DisplayView(const AName: string; const AObserver: IEFObserver = nil);
@@ -901,18 +852,24 @@ end;
 
 procedure TKWebApplication.DisplayHomeView;
 var
-  LHomeView: TKView;
+  LView: TKView;
 begin
   if Assigned(TKWebSession.Current.HomeController) then
   begin
     TKWebSession.Current.HomeController.AsObject.Free;
     TKWebSession.Current.HomeController := nil;
   end;
-  LHomeView := GetHomeView(TKWebSession.Current.ViewportWidthInInches);
 
-  TKWebSession.Current.HomeController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, LHomeView, nil);
+  if TKAuthenticator.Current.MustChangePassword then
+  begin
+    LView := Config.Views.ViewByName('ChangePassword');
+    TKWebSession.Current.AutoOpenViewName := '';
+  end
+  else
+    LView := GetHomeView(TKWebSession.Current.ViewportWidthInInches);
+
+  TKWebSession.Current.HomeController := DisplayNewController(LView);
   TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.HomeController.AsJSObject, 'var kittoHomeContainer = ' + TKWebSession.Current.HomeController.AsJSObject.JSName + ';');
-  TKWebSession.Current.HomeController.Display;
 
   if TKWebSession.Current.AutoOpenViewName <> '' then
   begin
@@ -921,8 +878,8 @@ begin
   end;
 
   { TODO : remove dependency }
-  if TKWebSession.Current.HomeController is TExtContainer then
-    TExtContainer(TKWebSession.Current.HomeController).UpdateLayout;
+//  if TKWebSession.Current.HomeController is TExtContainer then
+//    TExtContainer(TKWebSession.Current.HomeController).UpdateLayout;
 end;
 
 procedure TKWebApplication.DisplayLoginView;

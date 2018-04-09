@@ -216,6 +216,7 @@ type
   TJSExpressionResponseItem = class(TJSResponseItem)
   private
     FExpression: TJSExpression;
+    FOwnsExpression: Boolean;
     // Used by GetAsFunction.
     FFunctionArgs: string;
     FFunctionReturn: string;
@@ -1292,7 +1293,8 @@ end;
 
 destructor TJSExpressionResponseItem.Destroy;
 begin
-  FreeAndNil(FExpression);
+  if FOwnsExpression then
+    FreeAndNil(FExpression);
   inherited;
 end;
 
@@ -1300,6 +1302,7 @@ function TJSExpressionResponseItem.GetAsExpression: TJSExpression;
 begin
   if not Assigned(FExpression) then
   begin
+    FOwnsExpression := Sender = nil;
     FExpression := TJSExpression.Create(Sender);
     FExpression.Text := GetFormattedCode;
   end;
@@ -1310,6 +1313,7 @@ function TJSExpressionResponseItem.GetAsFunction: TJSFunction;
 begin
   if not Assigned(FExpression) then
   begin
+    FOwnsExpression := Sender = nil;
     FExpression := TJSFunction.Create(Sender);
     FExpression.Text := TJS.WrapInAnonymousFunction(FFunctionArgs, GetFormattedCode, FFunctionReturn);
   end;

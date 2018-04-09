@@ -78,6 +78,19 @@ type
     function GetSource: string;
   end;
 
+  TKStringFile = class(TInterfacedObject, IOTAFile)
+  strict private
+    FSource: string;
+  public
+    constructor Create(const ASource: string);
+
+    // IOTAFile
+    function GetAge: TDateTime;
+    function GetSource: string;
+
+    property Source: string read GetSource write FSource;
+  end;
+
 implementation
 
 uses
@@ -221,6 +234,24 @@ begin
   finally
     FreeAndNil(LResourceStream);
   end;
+end;
+
+{ TKStringFile }
+
+constructor TKStringFile.Create(const ASource: string);
+begin
+  inherited Create;
+  FSource := ASource;
+end;
+
+function TKStringFile.GetAge: TDateTime;
+begin
+  Result := -1;
+end;
+
+function TKStringFile.GetSource: string;
+begin
+  Result := FSource;
 end;
 
 end.

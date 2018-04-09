@@ -4,6 +4,7 @@ interface
 
 uses
   ToolsAPI
+  , KIDE.ProjectTemplate
   ;
 
 // Avoid warnings from obsolete but apparently still needed IOTAProjectCreator* interfaces.
@@ -19,9 +20,7 @@ type
     , IOTAProjectCreator
   )
   private
-    FProjectFileName: string;
-    function GetProjectDir: string;
-    function GetProjectName(const AExtension: string): string;
+    FTemplate: TProjectTemplate;
   public
     // IOTACreator
     function GetCreatorType: string;
@@ -59,7 +58,7 @@ type
     ///  reference to create the template-based source files. The contents of
     ///  the kproj might be used as well at some point.
     /// </param>
-    constructor Create(const AProjectFileName: string);
+    constructor Create(const ATemplate: TProjectTemplate);
   end;
 
   TIOTAProjectCreatorClass = class of TIOTAProjectCreator;
@@ -82,10 +81,12 @@ uses
   , KIDE.IOTA.Utils
   ;
 
-constructor TIOTAProjectCreator.Create(const AProjectFileName: string);
+constructor TIOTAProjectCreator.Create(const ATemplate: TProjectTemplate);
 begin
+  Assert(Assigned(ATemplate));
+
   inherited Create;
-  FProjectFileName := AProjectFileName;
+  FTemplate := ATemplate;
 end;
 
 function TIOTAProjectCreator.GetCreatorType: string;
@@ -110,12 +111,12 @@ end;
 
 function TIOTAProjectCreator.GetUnnamed: Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TIOTAProjectCreator.GetFileName: string;
 begin
-  Result := TPath.Combine(GetProjectDir, GetProjectName('dpr'));
+  Result := TPath.Combine(FTemplate.ProjectDirectory, GetProjectName('.dpr'));
 end;
 
 function TIOTAProjectCreator.GetOptionFileName: string;
@@ -130,8 +131,9 @@ end;
 
 function TIOTAProjectCreator.NewProjectSource(const AProjectName: string): IOTAFile;
 begin
-{ TODO : Use different resource names for different project types }
-  Result := TKResourceFile.Create('NewKittoProjectGUI_dproj');
+  Assert(AProjectName = FTemplate.ProjectName);
+
+  Result := StringToIOTAFile(FTemplate.GetProjectSource);
 end;
 
 function TIOTAProjectCreator.NewOptionSource(const AProjectName: string): IOTAFile; deprecated;
@@ -151,19 +153,15 @@ procedure TIOTAProjectCreator.NewDefaultProjectModule(const Project: IOTAProject
 var
   LModuleServices: IOTAModuleServices;
 begin
+  Assert(A
   LModuleServices := BorlandIDEServices as IOTAModuleServices;
-  LModuleServices.CreateModule(TIOTAMainFormCreator.Create);
-  { TODO : Create other modules such as Tools.pas, Controllers.pas, Config.yaml... }
-end;
-
-function TIOTAProjectCreator.GetProjectDir: string;
-begin
-  Result := ExtractFilePath(FProjectFileName);
+  LModuleServices.CreateModule(TIOTAMainFormCreator.Create());
+  { TODO : Create modules based on expanded texts/bytes modules in project template (still some refactoring to do) }
 end;
 
 function TIOTAProjectCreator.GetProjectName(const AExtension: string): string;
 begin
-  Result := ChangeFileExt(ExtractFileName(FProjectFileName), AExtension);
+  Result := FTemplate.ProjectName + AExtension;
 end;
 
 function TIOTAProjectCreator.GetProjectPersonality: string;

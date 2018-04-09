@@ -85,7 +85,7 @@ function TKExtFilterPanel.GetFilterACURI(const AACName: string): string;
 begin
   Assert(Assigned(FView));
 
-  Result := FView.GetResourceURI + '/Filters/' + AACName;
+  Result := FView.GetACURI + '/Filters/' + AACName;
 end;
 
 function TKExtFilterPanel.IsFilterVisible(const AACName: string): Boolean;

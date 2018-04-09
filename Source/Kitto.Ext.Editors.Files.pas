@@ -585,7 +585,7 @@ begin
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 50;
-  LFormPanel.PaddingString := '15px 15px 15px 5px'; // top right bottom left
+  LFormPanel.Padding := '15px 15px 15px 5px'; // top right bottom left
 
   LUploadFormField := TKExtFormFileUploadField.CreateInlineAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);

@@ -347,10 +347,10 @@ begin
 end;
 
 Initialization
-  iYAMLHighlighter := (BorlandIDEServices As IOTAHighlightServices).AddHighlighter(
-    TYAMLHighlighter.Create);
+//  iYAMLHighlighter := (BorlandIDEServices As IOTAHighlightServices).AddHighlighter(
+//    TYAMLHighlighter.Create);
 
 Finalization
-  (BorlandIDEServices As IOTAHighlightServices).RemoveHighlighter(iYAMLHighlighter);
+//  (BorlandIDEServices As IOTAHighlightServices).RemoveHighlighter(iYAMLHighlighter);
 
 end.

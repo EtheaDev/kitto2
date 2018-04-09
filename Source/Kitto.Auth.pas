@@ -92,6 +92,11 @@ type
     /// authenticating is lost). This allows a usr to change his password more
     /// than once per session.</remarks>
     procedure SetPassword(const AValue: string); virtual;
+
+    /// <summary>Returns True if the authentication data contains a custom field
+    /// called MUST_CHANGE_PASSWORD with value 1. Override this method to implement a
+    /// custom way of signaling that the user needs to change his password.</summary>
+    function GetMustChangePassword: Boolean; virtual;
   public
     procedure AfterConstruction; override;
   public
@@ -135,6 +140,22 @@ type
     /// <summary>Returns True if authentication has successfully taken
     /// place.</summary>
     property IsAuthenticated: Boolean read GetIsAuthenticated;
+
+    /// <summary>Returns True if the authentication data signals that the user
+    /// must change his password. By default, this happens when a custom field
+    /// called MUST_CHANGE_PASSWORD with value 1 is added to the authentication data.
+    /// Querying this property is only meaningful after successful authentication.</summary>
+    property MustChangePassword: Boolean read GetMustChangePassword;
+
+    /// <summary>
+    ///  Called (with no authenticated user) when a password reset is initiated.
+    ///  Override this method to implement an application-defined scheme, such
+    ///  as generating a random password and emailing it to the user.
+    ///  The specified params depend on the calling controller.
+    ///  A standard controller might specify the user name (UserName) or
+    ///  email address (EmailAddress) to which the generated password should be sent.
+    /// </summary>
+    procedure ResetPassword(const AParams: TEFNode); virtual; abstract;
 
     class property Current: TKAuthenticator read GetCurrent write SetCurrent;
   end;
@@ -297,6 +318,11 @@ end;
 function TKAuthenticator.GetPassword: string;
 begin
   Result := '';
+end;
+
+function TKAuthenticator.GetMustChangePassword: Boolean;
+begin
+  Result := TKWebSession.Current.AuthData.GetInteger('MUST_CHANGE_PASSWORD') = 1;
 end;
 
 function TKAuthenticator.GetUserName: string;

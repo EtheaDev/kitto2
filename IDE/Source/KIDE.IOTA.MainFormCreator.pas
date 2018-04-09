@@ -4,11 +4,14 @@ interface
 
 uses
   ToolsAPI
+  , KIDE.ProjectTemplate
   , KIDE.IOTA.Utils
   ;
 
 type
   TIOTAMainFormCreator = class(TInterfacedObject, IOTACreator, IOTAModuleCreator)
+  private
+    FTemplate: TProjectTemplate;
   public
     // IOTACreator
     function GetCreatorType: string;
@@ -29,12 +32,15 @@ type
     function NewImplSource(const AModuleIdent, AFormIdent, AAncestorIdent: string): IOTAFile;
     function NewIntfSource(const ModuleIdent, FormIdent, AncestorIdent: string): IOTAFile;
     procedure FormCreated(const FormEditor: IOTAFormEditor);
+
+    constructor Create(const ATemplate: TProjectTemplate);
   end;
 
 implementation
 
 uses
   SysUtils
+  , IOUtils
   ;
 
 function TIOTAMainFormCreator.GetCreatorType: string;
@@ -69,7 +75,7 @@ end;
 
 function TIOTAMainFormCreator.GetImplFileName: string;
 begin
-  Result := GetCurrentDir + '\MainFormUnit.pas';
+  Result := TPath.Combine(FTemplate.ProjectDirectory, 'MainFormUnit.pas');
 end;
 
 function TIOTAMainFormCreator.GetIntfFileName: string;
@@ -99,6 +105,9 @@ end;
 
 function TIOTAMainFormCreator.NewFormFile(const AFormIdent, AAncestorIdent: string): IOTAFile;
 begin
+  Result := StringToIOTAFile(FTemplate.GetProjectSource);
+
+
 { TODO : macros/text replace }
   Result := TKResourceFile.Create('MainForm_dfm');
 end;
@@ -112,6 +121,14 @@ end;
 function TIOTAMainFormCreator.NewIntfSource(const ModuleIdent, FormIdent, AncestorIdent: string): IOTAFile;
 begin
   Result := nil;
+end;
+
+constructor TIOTAMainFormCreator.Create(const ATemplate: TProjectTemplate);
+begin
+  Assert(Assigned(ATemplate));
+
+  inherited Create;
+  FTemplate := ATemplate;
 end;
 
 procedure TIOTAMainFormCreator.FormCreated(const FormEditor: IOTAFormEditor);

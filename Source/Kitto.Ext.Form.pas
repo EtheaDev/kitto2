@@ -91,7 +91,7 @@ type
     FApplyButton: TKExtButton;
     FEditButton: TKExtButton;
     FCancelButton: TKExtButton;
-    FCloseButton: TKExtButton;
+//    FCloseButton: TKExtButton;
     FDetailToolbar: TKExtToolbar;
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
     FDetailControllers: TObjectList<TObject>;
@@ -136,7 +136,6 @@ type
     procedure TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
     procedure RefreshEditorValues(const AStartIndex: Integer = 0);
     procedure RefreshEditorFields;
-    procedure CloseHostContainer; override;
     function ExpandExpression(const AExpression: string): string; override;
   public
     procedure LoadData; override;
@@ -214,13 +213,6 @@ begin
   StartOperation;
 end;
 
-procedure TKExtFormPanelController.CloseHostContainer;
-begin
-  if FChangesApplied then
-    NotifyObservers('Confirmed');
-  inherited;
-end;
-
 destructor TKExtFormPanelController.Destroy;
 begin
   FreeAndNil(FCloneValues);
@@ -232,6 +224,15 @@ end;
 procedure TKExtFormPanelController.DoDisplay;
 begin
   inherited;
+  if MatchText(FOperation, ['Add', 'Dup']) then
+    Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
+  else if SameText(FOperation, 'Edit') then
+    Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
+  else if SameText(FOperation, 'View') then
+    Title := Format(_('View %s'), [_(ViewTable.DisplayLabel)])
+  else
+    Title := _(ViewTable.DisplayLabel);
+
   CreateEditors;
   LoadData;
   ChangeEditorsState;
@@ -476,7 +477,7 @@ end;
 procedure TKExtFormPanelController.SetStoreRecord(const AValue: TKViewTableRecord);
 begin
   FStoreRecord := AValue;
-  Config.SetObject('Sys/Record', FStoreRecord);
+  //Config.SetObject('Sys/Record', FStoreRecord);
   if Assigned(FStoreRecord) then
   begin
     FStoreRecord.OnSetTransientProperty :=
@@ -530,7 +531,7 @@ var
 
   procedure SwitchChangeNotificationsForDupAndClone(const AOn: Boolean);
   begin
-    if SameText(FOperation, 'Dup') or Assigned(FCloneValues) then
+    if SameText(FOperation, 'Dup') or (SameText(FOperation, 'Add') and Assigned(FCloneValues)) then
     begin
       if AOn then
         StoreRecord.Store.EnableChangeNotifications
@@ -611,7 +612,6 @@ begin
             AEditor.RefreshValue;
           end)));
       end
-
       else
         AEditor.RefreshValue;
     end,
@@ -635,11 +635,13 @@ begin
   FEditButton.SetVisible(False);
   if Assigned(FApplyButton) then
     FApplyButton.SetVisible(True);
-  FConfirmButton.SetVisible(True);
+  if Assigned(FConfirmButton) then
+    FConfirmButton.SetVisible(True);
   if Assigned(FCloneButton) then
     FCloneButton.SetVisible(True);
-  FCloseButton.SetVisible(False);
-  FCancelButton.SetVisible(True);
+//  FCloseButton.SetVisible(False);
+  if Assigned(FCancelButton) then
+    FCancelButton.SetVisible(True);
   FOperation := 'Edit';
   InitFlags;
   ChangeEditorsState;
@@ -680,7 +682,10 @@ begin
       StartOperation;
     end
     else
-      CloseHostContainer;
+    begin
+      NotifyObservers('Confirmed');
+      Close;
+    end;
   end
   else
     AssignFieldChangeEvent(True);
@@ -749,7 +754,7 @@ end;
 procedure TKExtFormPanelController.CreateButtons;
 var
   LCloneButtonNode: TEFNode;
-  LHostWindow: TExtWindow;
+//  LHostWindow: TExtWindow;
   LApplyButtonNode: TEFNode;
   LToolbar: TKExtToolbar;
   LPreviousButtonNode: TEFNode;
@@ -870,15 +875,15 @@ begin
   FCancelButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(CancelChanges).AsFunction;
   FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
-  FCloseButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
-  FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
-  FCloseButton.Text := Config.GetString('CloseButton/Caption', _('Close'));
-  FCloseButton.Tooltip := Config.GetString('CloseButton/Tooltip', _('Close this panel'));
-  // No need for an ajax call when we just close the client-side panel.
-  LHostWindow := GetHostWindow;
-  if Assigned(LHostWindow) then
-    FCloseButton.Handler := GenerateAnonymousFunction(LHostWindow.JSName + '.close();');
-  FCloseButton.Hidden := not FIsReadOnly and not IsViewMode;
+//  FCloseButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+//  FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
+//  FCloseButton.Text := Config.GetString('CloseButton/Caption', _('Close'));
+//  FCloseButton.Tooltip := Config.GetString('CloseButton/Tooltip', _('Close this panel'));
+//  // No need for an ajax call when we just close the client-side panel.
+//  LHostWindow := GetHostWindow;
+//  if Assigned(LHostWindow) then
+//    FCloseButton.Handler := GenerateAnonymousFunction(LHostWindow.JSName + '.close();');
+//  FCloseButton.Hidden := not FIsReadOnly and not IsViewMode;
 end;
 
 procedure TKExtFormPanelController.InitComponents;
@@ -887,9 +892,13 @@ begin
   FOperation := Config.GetString('Sys/Operation');
   if FOperation = '' then
     FOperation := Config.GetString('Operation');
+  Assert(FOperation <> '');
+
   InitFlags;
   CreateFormPanel;
-  CreateButtons;
+
+  if not Config.GetBoolean('HideButtons') then
+    CreateButtons;
 end;
 
 function TKExtFormPanelController.GetFilterExpression: string;
@@ -934,11 +943,16 @@ begin
 
   AssignFieldChangeEvent(True);
 
-  if MatchText(FOperation, ['Add', 'Dup']) then
+  if SameText(FOperation, 'Add') then
     FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
       or View.GetBoolean('IsReadOnly')
       or ViewTable.IsReadOnly
       or Config.GetBoolean('PreventAdding')
+      or not ViewTable.IsAccessGranted(ACM_ADD)
+  else if SameText(FOperation, 'Dup') then
+    FIsReadOnly :=
+      View.GetBoolean('IsReadOnly')
+      or ViewTable.IsReadOnly
       or not ViewTable.IsAccessGranted(ACM_ADD)
   else //Edit or View Mode
     FIsReadOnly := ViewTable.GetBoolean('Controller/PreventEditing')
@@ -1107,7 +1121,8 @@ begin
   else
   begin
     AssignFieldChangeEvent(False);
-    CloseHostContainer;
+    NotifyObservers('Canceled');
+    Close;
   end;
 end;
 

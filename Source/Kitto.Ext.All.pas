@@ -32,6 +32,7 @@ uses
   , Kitto.Ext.HtmlPanel
   , Kitto.Ext.Login
   , Kitto.Ext.List
+  , Kitto.Ext.ResetPassword
   , Kitto.Ext.Rules
   , Kitto.Ext.StandardControllers
   , Kitto.Ext.StatusBar

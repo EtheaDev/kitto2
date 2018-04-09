@@ -104,7 +104,7 @@ type
     property Format: string read FFormat write SetFormat;
   end;
 
-  TExtViewTable = class(TExtUtilObservable)
+  TExtViewTable = class(TExtBase)
   private
     FAutoFill: Boolean;
     FForceFit: Boolean;
@@ -160,7 +160,7 @@ type
     class function JSXType: string; override;
   end;
 
-  TExtGridAbstractSelectionModel = class(TExtUtilObservable)
+  TExtGridAbstractSelectionModel = class(TExtEvented)
   private
     FStore: TExtDataStore;
     procedure SetStore(const AValue: TExtDataStore);
@@ -281,7 +281,7 @@ type
     property ViewConfig: TExtObject read FViewConfig;
   end;
 
-  TExtGridFeatureFeature = class(TExtUtilObservable)
+  TExtGridFeatureFeature = class(TExtBase)
   end;
 
   TExtGridGroupingFeature = class(TExtGridFeatureFeature)

@@ -32,12 +32,12 @@ type
 
   TExtCalendarEventRecord = class(TExtObject);
 
-  TExtCalendarView = class(TExtUtilObservable)
+  TExtCalendarView = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarDateRangeField = class(TExtUtilObservable)
+  TExtCalendarDateRangeField = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
@@ -102,82 +102,82 @@ type
     property ReadOnly: Boolean read FReadOnly write SetReadOnly;
   end;
 
-  TExtCalendarPicker = class(TExtUtilObservable)
+  TExtCalendarPicker = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarDayHeaderTemplate = class(TExtUtilObservable)
+  TExtCalendarDayHeaderTemplate = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarDayBodyTemplate = class(TExtUtilObservable)
+  TExtCalendarDayBodyTemplate = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarDayBodyView = class(TExtUtilObservable)
+  TExtCalendarDayBodyView = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarBoxLayoutTemplate = class(TExtUtilObservable)
+  TExtCalendarBoxLayoutTemplate = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarStatusProxy = class(TExtUtilObservable)
+  TExtCalendarStatusProxy = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarWeekView = class(TExtUtilObservable)
+  TExtCalendarWeekView = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarReminderField = class(TExtUtilObservable)
+  TExtCalendarReminderField = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarDayViewTemplate = class(TExtUtilObservable)
+  TExtCalendarDayViewTemplate = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarEventEditForm = class(TExtUtilObservable)
+  TExtCalendarEventEditForm = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarDayHeaderView = class(TExtUtilObservable)
+  TExtCalendarDayHeaderView = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarDayView = class(TExtUtilObservable)
+  TExtCalendarDayView = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarMonthView = class(TExtUtilObservable)
+  TExtCalendarMonthView = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarMonthViewTemplate = class(TExtUtilObservable)
+  TExtCalendarMonthViewTemplate = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarEventEditWindow = class(TExtUtilObservable)
+  TExtCalendarEventEditWindow = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtCalendarEventMappings = class(TExtUtilObservable)
+  TExtCalendarEventMappings = class(TExtBase)
   public
     class function JSClassName: string; override;
   end;

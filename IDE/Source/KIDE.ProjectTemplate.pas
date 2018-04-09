@@ -25,6 +25,7 @@ interface
 
 uses
   SysUtils
+  , Generics.Collections
   , EF.Tree
   ;
 
@@ -36,14 +37,13 @@ type
     FProjectDirectory: string;
     FProjectName: string;
     FProjectGuid: string;
+    FModuleSources: TDictionary<string, string>;
     procedure SetOptions(const AValue: TEFTree);
     function ReplaceUseKittoBooleanMacro(const AString, AOptionName, AUnitName: string): string;
     function ReplaceUseKittoStringMacro(const AString, AOptionName, AUnitFormat: string): string;
-    procedure ExpandMacros(const AFileName: string; const AEncoding: TEncoding);
+    function ExpandMacros(const AString: string): string;
     procedure SetProjectName(const AValue: string);
-    procedure ProcessConfigTemplate(const AFileName: string);
-    procedure ExtractFileFromResource(const ABaseDirectory, APathName: string;
-      const AOverrideFileName: string = '');
+    function ProcessConfigTemplate(const AString: string): string;
     function GetResourceName(const APathName: string): string;
     function GetProjectVersion: string;
   public
@@ -57,7 +57,17 @@ type
     property ProjectDirectory: string read FProjectDirectory write FProjectDirectory;
     property ProjectName: string read FProjectName write SetProjectName;
     property ProjectGuid: string read FProjectGuid;
-    procedure CreateProject;
+
+//  GetModuleSource('Home\Metadata\Config.yaml');
+//  GetModuleSource('Home\Metadata\Models\Sample.yaml');
+//  GetModuleSource('Home\Resources\js\application.css');
+//  GetModuleSource('Home\Resources\js\application.js');
+//  GetModuleSource('Home\Project.kproj');
+//  GetModuleSource('Source\Controllers.pas');
+//  GetModuleSource('Source\Rules.pas');
+//  GetModuleSource('Source\UseKitto.pas');
+    function GetProjectSource: string;
+    function GetModuleSource(const APathName: string): string;
   end;
 
 implementation
@@ -71,6 +81,8 @@ uses
   , EF.Sys.Windows
   , EF.StrUtils
   , EF.YAML
+
+  , dialogs
   ;
 
 { TProjectTemplate }
@@ -79,6 +91,7 @@ procedure TProjectTemplate.AfterConstruction;
 begin
   inherited;
   FOptions := TEFNode.Create;
+  FModuleSources := TDictionary<string, string>.Create;
 end;
 
 function TProjectTemplate.ReplaceUseKittoBooleanMacro(const AString, AOptionName, AUnitName: string): string;
@@ -102,28 +115,19 @@ begin
   Result := ReplaceText(AString, '{' + AOptionName + '}', LReplace);
 end;
 
-procedure TProjectTemplate.ExpandMacros(const AFileName: string; const AEncoding: TEncoding);
-var
-  LContents: string;
+function TProjectTemplate.ExpandMacros(const AString: string): string;
 begin
-  LContents := TextFileToString(AFileName, AEncoding);
-  LContents := ReplaceText(LContents, '{ProjectName}', ProjectName);
-  LContents := ReplaceText(LContents, '{ProjectGuid}', ProjectGuid);
-  LContents := ReplaceText(LContents, '{ProjectVersion}', GetProjectVersion);
-  LContents := ReplaceText(LContents, '{AppTitle}', Options.GetString('AppTitle'));
-
-  if SameText(ExtractFileFormat(AFileName), 'pas') then
-  begin
-    LContents := ReplaceUseKittoBooleanMacro(LContents, 'DB/ADO', 'EF.DB.ADO');
-    LContents := ReplaceUseKittoBooleanMacro(LContents, 'DB/DBX', 'EF.DB.DBX');
-    LContents := ReplaceUseKittoBooleanMacro(LContents, 'DB/FD', 'EF.DB.FD');
-    LContents := ReplaceUseKittoStringMacro(LContents, 'Auth', sLineBreak + 'Kitto.Auth.%s,');
-    LContents := ReplaceUseKittoStringMacro(LContents, 'AC', sLineBreak + 'Kitto.AccessControl.%s,');
-  end
-  else if SameText(ExtractFileFormat(AFileName), 'dproj') then
-    LContents := ReplaceText(LContents, '{KittoPath}', Options.GetString('SearchPath'));
-
-  StringToTextFile(LContents, AFileName, AEncoding);
+  Result := AString;
+  Result := ReplaceText(Result, '{ProjectName}', ProjectName);
+  Result := ReplaceText(Result, '{ProjectGuid}', ProjectGuid);
+  Result := ReplaceText(Result, '{ProjectVersion}', GetProjectVersion);
+  Result := ReplaceText(Result, '{AppTitle}', Options.GetString('AppTitle'));
+  Result := ReplaceUseKittoBooleanMacro(Result, 'DB/ADO', 'EF.DB.ADO');
+  Result := ReplaceUseKittoBooleanMacro(Result, 'DB/DBX', 'EF.DB.DBX');
+  Result := ReplaceUseKittoBooleanMacro(Result, 'DB/FD', 'EF.DB.FD');
+  Result := ReplaceUseKittoStringMacro(Result, 'Auth', sLineBreak + 'Kitto.Auth.%s,');
+  Result := ReplaceUseKittoStringMacro(Result, 'AC', sLineBreak + 'Kitto.AccessControl.%s,');
+  Result := ReplaceText(Result, '{KittoPath}', Options.GetString('SearchPath'));
 end;
 
 function TProjectTemplate.GetSupportFileAsString(const AFileName: string; const AEncoding: TEncoding): string;
@@ -138,7 +142,7 @@ begin
   Result := AEncoding.GetString(LBytes);
 end;
 
-procedure TProjectTemplate.ProcessConfigTemplate(const AFileName: string);
+function TProjectTemplate.ProcessConfigTemplate(const AString: string): string;
 const
   DB_NAMES: array[0..3] of string = ('Main', 'Other1', 'Other2', 'Other3');
 var
@@ -157,7 +161,7 @@ var
   end;
 
 begin
-  LTree := TEFYAMLReader.LoadTree(AFileName);
+  LTree := TEFYAMLReader.LoadTreeFromString(AString);
   try
     if Options.GetBoolean('DB/ADO') or Options.GetBoolean('DB/DBX') or Options.GetBoolean('DB/FD') then
     begin
@@ -190,8 +194,7 @@ begin
     LTree.SetString('Server/ThreadPoolSize', Options.GetString('Server/ThreadPoolSize'));
     LTree.SetString('Server/SessionTimeOut', Options.GetString('Server/SessionTimeOut'));
 
-    TEFYAMLWriter.SaveTree(LTree, AFileName);
-    ExpandMacros(AFileName, TEncoding.UTF8);
+    Result := ExpandMacros(TEFYAMLWriter.TreeAsString(LTree));
   finally
     FreeAndNil(LTree);
   end;
@@ -202,6 +205,11 @@ begin
   Assert(FTemplateName <> '');
 
   Result := (FTemplateName + '_' + APathName).Replace(PathDelim, '_').Replace('.', '_').ToUpper;
+end;
+
+function TProjectTemplate.GetProjectSource: string;
+begin
+  Result := GetModuleSource('Source\Project.dpr');
 end;
 
 function TProjectTemplate.GetProjectVersion: string;
@@ -220,84 +228,33 @@ begin
   {$IFEND}
 end;
 
-procedure TProjectTemplate.ExtractFileFromResource(const ABaseDirectory, APathName: string;
-  const AOverrideFileName: string = '');
+function TProjectTemplate.GetModuleSource(const APathName: string): string;
 var
+  LResourceName: string;
   LBytes: TBytes;
-  LFileName: string;
-  LFileStream: TFileStream;
-  LPath: string;
-  LName: string;
-  LExt: string;
 begin
-  LBytes := GetRCDATAResourceBytes(HInstance, GetResourceName(APathName));
-  if LBytes <> nil then
+  Result := '';
+  LResourceName := GetResourceName(APathName);
+  if not FModuleSources.ContainsKey(LResourceName) then
   begin
-    LFileName := TPath.Combine(ABaseDirectory, APathName);
-    if AOverrideFileName <> '' then
+    LBytes := GetRCDATAResourceBytes(HInstance, LResourceName);
+    if Assigned(LBytes) then
     begin
-      LPath := ExtractFileName(LFileName);
-      LName := ExtractFileName(LFileName);
-      LExt := ExtractFileExt(LFileName);
-      LFileName := TPath.Combine(LPath, AOverrideFileName + LExt);
+      Result := TEncoding.UTF8.GetString(LBytes);
+      if SameText(ExtractFileName(APathName), 'Config.yaml') then
+        Result := ProcessConfigTemplate(Result)
+      else
+        Result := ExpandMacros(Result);
+      FModuleSources.Add(LResourceName, Result);
     end;
-    LFileStream := TFileStream.Create(LFileName, fmCreate or fmShareDenyNone);
-    try
-      LFileStream.Write(LBytes, Length(LBytes));
-    finally
-      FreeAndNil(LFileStream);
-    end;
-  end;
-end;
-
-procedure TProjectTemplate.CreateProject;
-var
-  LTempDir: string;
-begin
-  Assert(ProjectName <> '');
-  Assert(ProjectDirectory <> '');
-  Assert(TemplateName <> '');
-
-  LTempDir := GetUniqueDirectoryName(GetTempDirectory);
-  try
-    ExtractFileFromResource(LTempDir, 'Home\Metadata\Config.yaml');
-    ExtractFileFromResource(LTempDir, 'Home\Metadata\Models\Sample.yaml');
-    ExtractFileFromResource(LTempDir, 'Home\Resources\js\application.css');
-    ExtractFileFromResource(LTempDir, 'Home\Resources\js\application.js');
-    ExtractFileFromResource(LTempDir, 'Home\Project.kproj', ProjectName);
-    ExtractFileFromResource(LTempDir, 'Source\Project.dproj', ProjectName);
-    ExtractFileFromResource(LTempDir, 'Source\Project.dpr', ProjectName);
-    ExtractFileFromResource(LTempDir, 'Source\Project.res', ProjectName);
-    ExtractFileFromResource(LTempDir, 'Source\Controllers.pas');
-    ExtractFileFromResource(LTempDir, 'Source\Rules.pas');
-    ExtractFileFromResource(LTempDir, 'Source\UseKitto.pas');
-
-    CopyAllFilesAndFolders(LTempDir, ProjectDirectory,
-      // before each file
-      procedure (const ASourceFileName: string; var ADestinationFileName: string; var AAllow: Boolean)
-      begin
-        AAllow := True;
-      end,
-      // after each file
-      procedure (const ASourceFileName, ADestinationFileName: string)
-      begin
-        if SameText(ExtractFileExt(ADestinationFileName), '.dproj') then
-          ExpandMacros(ADestinationFileName, TEncoding.UTF8)
-        else if MatchText(ExtractFileExt(ADestinationFileName), ['.dpr', '.pas']) then
-          ExpandMacros(ADestinationFileName, TEncoding.UTF8)
-        else if MatchText(ExtractFileName(ADestinationFileName), ['Config.yaml']) then
-          ProcessConfigTemplate(ADestinationFileName)
-        else if MatchText(ExtractFileExt(ADestinationFileName), ['.yaml']) then
-          ExpandMacros(ADestinationFileName, TEncoding.UTF8);
-      end
-    );
-  finally
-    DeleteTree(LTempDir);
-  end;
+  end
+  else
+    Result :=  FModuleSources[LResourceName];
 end;
 
 destructor TProjectTemplate.Destroy;
 begin
+  FreeAndNil(FModuleSources);
   FreeAndNil(FOptions);
   inherited;
 end;

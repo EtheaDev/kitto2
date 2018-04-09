@@ -200,6 +200,8 @@ type
     /// </summary>
     function IsSynchronous: Boolean;
 
+    procedure SetModal;
+
     function AsJSObject: TJSObject;
   end;
 
@@ -623,13 +625,19 @@ begin
 end;
 
 procedure TJSObject.InitDefaults;
+var
+  LIdConfigName: string;
 begin
   inherited;
   { TODO per gli store è storeId; virtuale? Sì, ma poi però ci liberiamo di JSName tout court e teniamo id.
   forse in qualche caso ci dobbiamo tenere le var globali }
 
   if (JSName <> '') and not JSName.Contains('.') then
-    SetConfigItem(GetJSIdConfigName, JSName);
+  begin
+    LIdConfigName := GetJSIdConfigName;
+    if LIdConfigName <> '' then
+      SetConfigItem(GetJSIdConfigName, JSName);
+  end;
 end;
 
 function TJSObject.GetJSIdConfigName: string;

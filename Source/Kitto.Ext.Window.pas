@@ -48,7 +48,6 @@ begin
   ResizeHandles := View.GetString('Controller/ResizeHandles');
   Resizable := ResizeHandles <> '';
   Maximizable := View.GetBoolean('Controller/Maximizable', Resizable);
-  Draggable := View.GetBoolean('Controller/Movable', True);
   inherited;
 end;
 

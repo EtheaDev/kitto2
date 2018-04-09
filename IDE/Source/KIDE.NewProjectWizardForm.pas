@@ -57,18 +57,14 @@ type
     DBADOCheckBox: TCheckBox;
     DBDBXCheckBox: TCheckBox;
     DBFDCheckBox: TCheckBox;
-    DelphiGroupBox: TGroupBox;
-    DXE7CheckBox: TCheckBox;
-    DXE8CheckBox: TCheckBox;
-    D10CheckBox: TCheckBox;
     SearchPathLabel: TLabel;
     SearchPathComboBox: TComboBox;
-    D10_1CheckBox: TCheckBox;
-    D10_2CheckBox: TCheckBox;
     ThreadPoolSizeLabel: TLabel;
     ServerThreadPoolSizeEdit: TSpinEdit;
     SessionTimeOutLabel: TLabel;
     ServerSessionTimeOutEdit: TSpinEdit;
+    ProjectOptionsLabel: TLabel;
+    FeaturesLabel: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure ProjectPathButtonClick(Sender: TObject);
     procedure ProjectNameEditChange(Sender: TObject);
@@ -85,6 +81,7 @@ type
     procedure SaveProjectMRU;
     procedure LoadProjectMRU;
     procedure LoadRichText(const ARichEdit: TRichEdit; const AText: string);
+    procedure FreeTemplate;
   protected
     procedure AfterEnterPage(const ACurrentPageIndex: Integer;
       const AOldPageIndex: Integer; const AGoingForward: Boolean); override;
@@ -95,10 +92,9 @@ type
       const ANewPageIndex: Integer; const AGoingForward: Boolean); override;
     procedure InitWizard; override;
   public
-    class function ShowDialog(out AProjectFileName: string): Boolean;
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    function GetProjectFileName: string;
+  public
+    class function ShowDialog(out AProjectTemplate: TProjectTemplate): Boolean;
   end;
 
 implementation
@@ -106,9 +102,14 @@ implementation
 {$R *.dfm}
 
 uses
-  Vcl.FileCtrl,
-  EF.Localization, EF.Sys.Windows, EF.StrUtils,
-  KIDE.MRUOptions, KIDE.Config;
+  FileCtrl
+  , IOUtils
+  , EF.Localization
+  , EF.Sys.Windows
+  , EF.StrUtils
+  , KIDE.MRUOptions
+  , KIDE.Config
+  ;
 
 const
   PAGE_TEMPLATE = 0;
@@ -164,18 +165,9 @@ procedure TNewProjectWizardForm.BeforeLeavePage(const ACurrentPageIndex,
 begin
   inherited;
   if (ACurrentPageIndex = PAGE_TEMPLATE) and AGoingForward then
-  begin
-    FTemplate.TemplateName := TemplateFrame.CurrentTemplateName;
-    if not System.SysUtils.DirectoryExists(FTemplate.TemplateName) then
-      raise Exception.CreateFmt('Directory %s not found.', [FTemplate.TemplateName]);
-  end
+    FTemplate.TemplateName := TemplateFrame.CurrentTemplateName
   else if (ACurrentPageIndex = PAGE_OPTIONS) and AGoingForward then
   begin
-    FTemplate.Options.SetBoolean('DXE7', DXE7CheckBox.Checked);
-    FTemplate.Options.SetBoolean('DXE8', DXE8CheckBox.Checked);
-    FTemplate.Options.SetBoolean('D10', D10CheckBox.Checked);
-    FTemplate.Options.SetBoolean('D10_1', D10_1CheckBox.Checked);
-    FTemplate.Options.SetBoolean('D10_2', D10_2CheckBox.Checked);
     FTemplate.Options.SetString('SearchPath', SearchPathComboBox.Text);
     FTemplate.Options.SetBoolean('DB/ADO', DBADOCheckBox.Checked);
     FTemplate.Options.SetBoolean('DB/DBX', DBDBXCheckBox.Checked);
@@ -199,18 +191,12 @@ begin
     end;
     FTemplate.ProjectName := ProjectNameEdit.Text;
     FTemplate.Options.SetString('AppTitle', AppTitleEdit.Text);
-    FTemplate.CreateProject;
   end;
 end;
 
 function TNewProjectWizardForm.GetKeyBase: string;
 begin
   Result := 'NewProjectWizard/';
-end;
-
-function TNewProjectWizardForm.GetProjectFileName: string;
-begin
-  Result := IncludeTrailingPathDelimiter(FTemplate.ProjectDirectory) + 'Home' + PathDelim + FTemplate.ProjectName + '.kproj';
 end;
 
 procedure TNewProjectWizardForm.InitWizard;
@@ -229,11 +215,6 @@ var
   LKeyBase: string;
 begin
   LKeyBase := GetKeyBase + TemplateFrame.CurrentTemplateName + '/';
-  DXE7CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DXE7');
-  DXE8CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DXE8');
-  D10CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10');
-  D10_1CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_1');
-  D10_2CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_2');
   SearchPathComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'SearchPath', '..\..\..\..');
   DBADOCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/ADO');
   DBDBXCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/DBX', True);
@@ -253,11 +234,6 @@ var
   LKeyBase: string;
 begin
   LKeyBase := GetKeyBase + TemplateFrame.CurrentTemplateName + '/';
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'DXE7', DXE7CheckBox.Checked);
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'DXE8', DXE8CheckBox.Checked);
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10', D10CheckBox.Checked);
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_1', D10_1CheckBox.Checked);
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_2', D10_2CheckBox.Checked);
   TMRUOptions.Instance.SetString(LKeyBase + 'SearchPath', SearchPathComboBox.Text);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/ADO', DBADOCheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/DBX', DBDBXCheckBox.Checked);
@@ -307,11 +283,7 @@ end;
 function TNewProjectWizardForm.OptionsValid: Boolean;
 begin
   Result := True;
-  if not DXE7CheckBox.Checked and not DXE8CheckBox.Checked and
-    not D10CheckBox.Checked and not D10_1CheckBox.Checked and
-    not D10_2CheckBox.Checked then
-    Result := False
-  else if SearchPathComboBox.Text = '' then
+  if SearchPathComboBox.Text = '' then
     Result := False;
 end;
 
@@ -321,17 +293,16 @@ begin
   FTemplate := TProjectTemplate.Create;
 end;
 
-destructor TNewProjectWizardForm.Destroy;
-begin
-  FreeAndNil(FTemplate);
-  inherited;
-end;
-
 procedure TNewProjectWizardForm.FormCreate(Sender: TObject);
 begin
   inherited;
   TemplateFrame.OnChange := TemplateChange;
   TemplateFrame.OnDblClick := TemplateListDblClick;
+end;
+
+procedure TNewProjectWizardForm.FreeTemplate;
+begin
+  FreeAndNil(FTemplate);
 end;
 
 procedure TNewProjectWizardForm.TemplateListDblClick(Sender: TObject);
@@ -344,17 +315,17 @@ begin
   UpdateTemplateInfo;
 end;
 
-class function TNewProjectWizardForm.ShowDialog(out AProjectFileName: string): Boolean;
+class function TNewProjectWizardForm.ShowDialog(out AProjectTemplate: TProjectTemplate): Boolean;
 var
   LForm: TNewProjectWizardForm;
 begin
+  AProjectTemplate := nil;
   LForm := TNewProjectWizardForm.Create(Application);
   try
     Result := LForm.ShowModal = mrOk;
-    if Result then
-      AProjectFileName := LForm.GetProjectFileName
-    else
-      AProjectFileName := '';
+    if not Result then
+      LForm.FreeTemplate;
+    AProjectTemplate := LForm.FTemplate;
   finally
     FreeAndNil(LForm);
   end;
@@ -373,7 +344,10 @@ begin
   inherited;
   LDirectory := ProjectPathEdit.Text;
   if SelectDirectory(_('Select a directory'), '', LDirectory, [sdNewFolder, sdShowEdit, sdNewUI, sdValidateDir]) then
+  begin
     ProjectPathEdit.Text := LDirectory;
+    ProjectNameEdit.Text := ExtractFileName(LDirectory);
+  end;
 end;
 
 procedure TNewProjectWizardForm.UpdateTemplateList(

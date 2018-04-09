@@ -264,7 +264,6 @@ function TKAccessController.GetAccessGrantValue(const AUserId, AResourceURI,
 var
   LAllResult: Variant;
 begin
-  Assert(AUserId <> '');
   Assert(AMode <> '');
 
   // Empty URIs identify nameless objects, access to which is always granted
@@ -295,7 +294,7 @@ procedure TKAccessController.WriteLog(const AUserId, AResourceURI,
   function Delimit(const AString: string): string;
   begin
     if FLogDelimiter <> '' then
-      Result := AnsiQuotedStr(AString, FlogDelimiter[1])
+      Result := AnsiQuotedStr(AString, FLogDelimiter[1])
     else
       Result := AString;
   end;

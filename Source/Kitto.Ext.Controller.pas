@@ -208,7 +208,7 @@ begin
     LObject := LClass.Create(AOwner);
 
   if not Supports(LObject, IJSController, Result) then
-    raise EKError.Create('Object does not support IKController.');
+    raise EKError.Create('Object does not support IJSController.');
 
   if Assigned(AContainer) and LSupportsContainer then
     AContainer.AddItem(LObject);
@@ -222,7 +222,7 @@ begin
   Result.View := AView;
   if Assigned(AContainer) then
     AContainer.InitSubController(Result);
-  if LSupportsContainer then
+  if Assigned(AContainer) and LSupportsContainer then
     Result.Container := AContainer;
   if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LSubject) then
     LSubject.AttachObserver(AObserver);

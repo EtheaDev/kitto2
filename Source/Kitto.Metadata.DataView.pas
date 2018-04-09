@@ -533,6 +533,7 @@ type
     // Same as above but fires the view table's model's Before/AfterNewRecord events.
     procedure ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable; const AIsCloned: Boolean);
     procedure ApplyEditRecordRules;
+    procedure ApplyDuplicateRecordRules;
     procedure ApplyBeforeRules;
     procedure ApplyAfterRules;
 
@@ -1375,11 +1376,11 @@ end;
 
 function TKViewTable.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetResourceURI, AMode)
+  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetACURI, AMode)
     // A dataview and its main table currently share the same resource URI,
     // so it's useless to test it twice.
-    //and TKConfig.Instance.IsAccessGranted(View.GetResourceURI, AMode)
-    and TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, Model.GetResourceURI, AMode);
+    //and TKConfig.Instance.IsAccessGranted(View.GetACURI, AMode)
+    and TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, Model.GetACURI, AMode);
 end;
 
 function TKViewTable.IsFieldVisible(const AField: TKViewField): Boolean;
@@ -2221,8 +2222,8 @@ end;
 
 function TKViewField.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetResourceURI, AMode)
-    and TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, ModelField.GetResourceURI, AMode);
+  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetACURI, AMode)
+    and TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, ModelField.GetACURI, AMode);
 end;
 
 class function TKViewField.IsURLFieldName(const AFieldName: string): Boolean;
@@ -2623,6 +2624,15 @@ begin
     procedure (ARuleImpl: TKRuleImpl)
     begin
       ARuleImpl.EditRecord(Self);
+    end);
+end;
+
+procedure TKViewTableRecord.ApplyDuplicateRecordRules;
+begin
+  ViewTable.ApplyRules(
+    procedure (ARuleImpl: TKRuleImpl)
+    begin
+      ARuleImpl.DuplicateRecord(Self);
     end);
 end;
 

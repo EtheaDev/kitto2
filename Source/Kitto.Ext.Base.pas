@@ -89,6 +89,7 @@ type
 
     property View: TKView read GetView write SetView;
     procedure Display;
+    procedure SetModal;
   //published
     procedure PanelClosed; virtual;
     procedure WindowClosed;
@@ -105,29 +106,15 @@ type
     ///  Call this after adding the panel so that the window can hook its
     ///  beforeclose event and close itself.
     /// <summary>
-    procedure HookPanel(const APanel: TExtPanel);
+    procedure HookPanel(const APanel: TExtComponent);
   //published
     procedure PanelClosed; override;
   end;
 
   /// <summary>
-  ///  A modal window that hosts a controller and removes the controller
-  ///  (instead of itself) from the session when it's closed.
-  /// </summary>
-  TKExtControllerHostWindow = class(TKExtModalWindow, IJSControllerContainer)
-  private
-    FController: IJSController;
-  strict protected
-    function GetControllerToRemove: IJSController; override;
-    procedure InitDefaults; override;
-  public
-    procedure SetActiveSubController(const ASubController: IJSController); override;
-    procedure InitSubController(const ASubController: IJSController); override;
-  end;
-
-  /// <summary>
   ///  Base ext viewport with subject, observer and controller capabilities.
   /// </summary>
+  { TODO : deprecate and replace with mixin }
   TKExtViewportControllerBase = class(TExtViewport, IJSController, IJSControllerContainer)
   private
     FView: TKView;
@@ -154,6 +141,7 @@ type
 
     property View: TKView read GetView write SetView;
     procedure Display;
+    procedure SetModal;
   end;
 
   /// <summary>
@@ -188,8 +176,6 @@ type
     FConfig: TEFNode;
   strict protected
     function GetConfig: TEFNode;
-    // Closes the hosting window or tab.
-    procedure CloseHostContainer; virtual;
     function GetHostWindow: TExtWindow;
     procedure InitDefaults; override;
     procedure LoadHtml(const AFileName: string; const APostProcessor: TFunc<string, string> = nil);
@@ -233,6 +219,9 @@ type
 
   TKExtActionButtonClass = class of TKExtActionButton;
 
+  /// <summary>
+  ///  Base panel controller. Used for both floating and embedded panels.
+  /// </summary>
   TKExtPanelControllerBase = class(TKExtPanelBase, IJSController, IJSControllerContainer)
   strict private
     FView: TKView;
@@ -249,11 +238,14 @@ type
     procedure DoDisplay; virtual;
     function GetContainer: IJSContainer;
     procedure SetContainer(const AValue: IJSContainer);
+    procedure InitDefaults; override;
     property Container: IJSContainer read GetContainer write SetContainer;
     property TopToolbar: TKExtToolbar read FTopToolbar;
     procedure BeforeCreateTopToolbar; virtual;
     procedure AfterCreateTopToolbar; virtual;
     function GetDefaultAllowClose: Boolean; virtual;
+    function GetDefaultHeight: Integer; virtual;
+    function GetDefaultWidth: Integer; virtual;
 
     /// <summary>
     ///  Adds built-in buttons to the top toolbar.
@@ -286,6 +278,9 @@ type
     function IsSynchronous: Boolean;
     property View: TKView read GetView write SetView;
     procedure Display;
+    procedure SetModal;
+  //published
+    procedure Closed;
   end;
 
   /// <summary>
@@ -311,6 +306,7 @@ type
     function IsSynchronous: Boolean; virtual;
     property View: TKView read GetView write SetView;
     procedure Display;
+    procedure SetModal;
     property Config: TEFNode read GetConfig;
     procedure Apply(const AProc: TProc<IJSController>); virtual;
   end;
@@ -518,6 +514,12 @@ begin
   FContainer := AValue;
 end;
 
+procedure TKExtWindowControllerBase.SetModal;
+begin
+  Floating := True;
+  Modal := True;
+end;
+
 procedure TKExtWindowControllerBase.SetSizeFromTree(const ATree: TEFTree; const APath: string);
 var
   LWidth: Integer;
@@ -618,19 +620,6 @@ begin
   Html := LHtml;
 end;
 
-procedure TKExtPanelBase.CloseHostContainer;
-var
-  LHostWindow: TExtWindow;
-  LIntf: IKExtPanelHost;
-begin
-  { TODO : Perhaps we could unify the behaviour here by implementing IKExtPanelHost in a custom window class. }
-  LHostWindow := GetHostWindow;
-  if Assigned(LHostWindow) then
-    LHostWindow.Close
-  else if Supports(Owner, IKExtPanelHost, LIntf) then
-    LIntf.ClosePanel(Self);
-end;
-
 { TKExtViewportControllerBase }
 
 destructor TKExtViewportControllerBase.Destroy;
@@ -704,6 +693,11 @@ begin
   FContainer := AValue;
 end;
 
+procedure TKExtViewportControllerBase.SetModal;
+begin
+  // Viewport cannot be floating.
+end;
+
 procedure TKExtViewportControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
@@ -736,21 +730,30 @@ end;
 
 { TKExtModalWindow }
 
-procedure TKExtModalWindow.HookPanel(const APanel: TExtPanel);
+procedure TKExtModalWindow.HookPanel(const APanel: TExtComponent);
 begin
   Assert(Assigned(APanel));
 
-  //APanel.On('close', Ajax(PanelClosed, ['Panel', APanel.JSName]));
   APanel.&On('close',
+    TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PanelClosed)
+      .AddParam('Panel', APanel.JSName).AsFunction);
+  APanel.&On('beforedestroy',
     TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PanelClosed)
       .AddParam('Panel', APanel.JSName).AsFunction);
 end;
 
 procedure TKExtModalWindow.InitDefaults;
+var
+  LWidth: Integer;
+  LHeight: Integer;
 begin
   inherited;
-  Width := GetDefaultWidth;
-  Height := GetDefaultHeight;
+  LWidth := GetDefaultWidth;
+  if LWidth <> 0 then
+    Width := LWidth;
+  LHeight := GetDefaultHeight;
+  if LHeight <> 0 then
+    Height := LHeight;
   Closable := False;
   Modal := True;
 end;
@@ -770,6 +773,16 @@ end;
 
 { TKExtPanelControllerBase }
 
+function TKExtPanelControllerBase.GetDefaultHeight: Integer;
+begin
+  Result := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Height', DEFAULT_WINDOW_HEIGHT);
+end;
+
+function TKExtPanelControllerBase.GetDefaultWidth: Integer;
+begin
+  Result := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Width', DEFAULT_WINDOW_WIDTH);
+end;
+
 destructor TKExtPanelControllerBase.Destroy;
 begin
   if TKWebSession.Current <> nil then
@@ -784,7 +797,6 @@ begin
     if Config.GetBoolean('AllowClose', GetDefaultAllowClose) then
     begin
       Closable := True;
-      //On('close', Container.Ajax('PanelClosed', ['Panel', JSName]));
       &On('close',
         TKWebResponse.Current.Items.AjaxCallMethod(Container.AsJSObject, 'PanelClosed')
           .AddParam('Panel', JSName).AsFunction);
@@ -793,6 +805,13 @@ begin
       Closable := False;
   end;
   DoDisplay;
+  &On('render', GenerateAnonymousFunction(UpdateLayout));
+  if Floating then
+  begin
+    Show;
+    if Modal then
+      ToFront;
+  end;
 end;
 
 procedure TKExtPanelControllerBase.EnsureAllSupportFiles;
@@ -822,8 +841,15 @@ var
   LView: TKView;
   LBodyStyle: string;
   LStyle: TEFNode;
+  LLabelWidth: TEFNode;
 begin
   EnsureAllSupportFiles;
+
+  RenderTo := Config.GetExpandedString('ContainerElementId');
+
+  LLabelWidth := Config.FindNode('LabelWidth');
+  if Assigned(LLabelWidth) then
+    LabelWidth := LLabelWidth.AsInteger;
 
   if Title = '' then
   begin
@@ -831,6 +857,14 @@ begin
     if Assigned(LView) then
       Title := _(Config.GetExpandedString('Title', LView.DisplayLabel));
   end;
+
+  LHeader := Config.FindNode('Header');
+  if Assigned(LHeader) then
+    Header := LHeader.AsBoolean
+  else
+    Header := (Title <> '') and not Assigned(Container);
+
+  Draggable := Config.GetBoolean('Movable', Header);
 
   LWidthStr := Config.GetString('Width');
   if TryStrToInt(LWidthStr, LWidth) then
@@ -875,11 +909,7 @@ begin
   else
     Collapsible := False;
 
-  LHeader := Config.FindNode('Header');
-  if Assigned(LHeader) then
-    Header := LHeader.AsBoolean
-  else
-    Header := False;
+  Closable := Config.GetBoolean('AllowClose');
 
   CreateTopToolbar;
 
@@ -968,6 +998,11 @@ begin
   AddToolViewButtons(Config.FindNode('ToolViews'), TopToolbar);
 end;
 
+procedure TKExtPanelControllerBase.Closed;
+begin
+  Free;
+end;
+
 procedure TKExtPanelControllerBase.CreateTopToolbar;
 begin
   BeforeCreateTopToolbar;
@@ -1014,6 +1049,14 @@ begin
   Result := FView;
 end;
 
+procedure TKExtPanelControllerBase.InitDefaults;
+begin
+  inherited;
+  Width := GetDefaultWidth;
+  Height := GetDefaultHeight;
+  &On('close', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Closed).AsFunction);
+end;
+
 procedure TKExtPanelControllerBase.InitSubController(const ASubController: IJSController);
 var
   LSysConfigNode: TEFNode;
@@ -1043,6 +1086,12 @@ end;
 procedure TKExtPanelControllerBase.SetContainer(const AValue: IJSContainer);
 begin
   FContainer := AValue;
+end;
+
+procedure TKExtPanelControllerBase.SetModal;
+begin
+  Floating := True;
+  Modal := True;
 end;
 
 procedure TKExtPanelControllerBase.SetView(const AValue: TKView);
@@ -1117,6 +1166,11 @@ begin
   FContainer := AValue;
 end;
 
+procedure TKExtControllerBase.SetModal;
+begin
+  // No need.
+end;
+
 procedure TKExtControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
@@ -1165,7 +1219,6 @@ begin
   inherited;
   ExecuteTool;
   DoAfterExecuteTool;
-  //NotifyObservers('Closed');
 end;
 
 { TKExtContainerHelper }
@@ -1458,40 +1511,6 @@ begin
       Inc(Result);
   end;
 end;
-
-{ TKExtControllerHostWindow }
-
-function TKExtControllerHostWindow.GetControllerToRemove: IJSController;
-begin
-  Assert(Assigned(FController));
-
-  Result := FController;
-end;
-
-procedure TKExtControllerHostWindow.InitSubController(const ASubController: IJSController);
-begin
-end;
-
-procedure TKExtControllerHostWindow.InitDefaults;
-begin
-  inherited;
-  Layout := lyFit;
-end;
-
-procedure TKExtControllerHostWindow.SetActiveSubController(const ASubController: IJSController);
-begin
-  FController := ASubController;
-end;
-
-initialization
-  TKWebApplication.OnCreateHostWindow :=
-    function (AOwner: TJSBase): IJSControllerContainer
-    begin
-      Result := TKExtControllerHostWindow.Create(AOwner);
-    end;
-
-finalization
-  TKWebApplication.OnCreateHostWindow := nil;
 
 end.
 
