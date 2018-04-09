@@ -792,8 +792,12 @@ end;
 
 function IsChangeHandlerNeeded(const AViewTableField: TKViewTableField): Boolean;
 begin
+  { This method optimize some callbacks but reduce performances drammatically,
+    so it was removed! }
+  Result := True;
+  Exit;
   { TODO : Consider dependencies such as field names used in layout elements
-    (such as field set titles). In order to do that, build a dependency list/tree. }
+    (such as field set titles). In order to do that, build a dependency list/tree.
   if AViewTableField.ViewField.FileNameField <> '' then
     // Uploads always need the change handler.
     Result := True
@@ -815,6 +819,7 @@ begin
     Result := True
   else
     Result := False;
+  }
 end;
 
 procedure InvalidTransientProperty(APropertyName: string; const AValue: Variant);

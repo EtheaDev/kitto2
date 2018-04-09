@@ -26,7 +26,7 @@ interface
 uses
   SysUtils, Classes,
   IdMessage, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
-  IdMessageClient, IdSMTP, IdExplicitTLSClientServerBase, IdSMTPBase;
+  IdMessageClient, IdSMTP, IdExplicitTLSClientServerBase, IdSSLOpenSSL, IdSMTPBase;
 
 type
   ///	<summary>
@@ -38,10 +38,13 @@ type
     FPort: Integer;
     FPassword: string;
     FHostName: string;
+    FUseTLS: Boolean;
+    FProtocol: string;
   public
     procedure Assign(Source: TPersistent); override;
     property HostName: string read FHostName write FHostName;
     property Port: Integer read FPort write FPort;
+    property UseTLS: Boolean read FUseTLS write FUseTLS default False;
 
     ///	<summary>
     ///	  Only set this property if authentication is used.
@@ -153,6 +156,7 @@ type
   TEFEmailer = class(TComponent)
     FIdSMTP: TIdSMTP;
     FIdMessage: TIdMessage;
+    FIdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
   private
     FConnected: Boolean;
     FSMTPServerParams: TEFSMTPServerParams;
@@ -193,6 +197,8 @@ uses
 
 procedure TEFEmailer.SendMail(const AEmailSender: TEFEmailSender;
   const AEmailMessage: TEFEmailMessage);
+var
+  LIdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
 begin
   AEmailSender.CheckValid;
   with FIdMessage do begin
@@ -216,11 +222,20 @@ begin
     BuildAttachments(AEmailMessage.AttachmentFileNames);
   end;
   // Informazioni per l'identificazione del server ed eventuale autenticazione
-  with FIdSMTP do begin
+  with FIdSMTP do
+  begin
     Host := FSMTPServerParams.HostName;
     Port := FSMTPServerParams.Port;
     if FSMTPServerParams.HasAuthInfo then
     begin
+      if FSMTPServerParams.UseTLS then
+      begin
+        LIdSSLIOHandler := TIdSSLIOHandlerSocketOpenSSL.Create;
+        FIdSMTP.IOHandler := LIdSSLIOHandler;
+        FIdSMTP.UseTLS := utUseRequireTLS;
+      end
+      else
+        FIdSMTP.UseTLS := utNoTLSSupport;
       AuthType := satDefault;
       Username := SMTPServerParams.UserID;
       Password := SMTPServerParams.Password;
@@ -308,6 +323,7 @@ begin
     FPort := TEFSMTPServerParams(Source).Port;
     FPassword := TEFSMTPServerParams(Source).Password;
     FHostName := TEFSMTPServerParams(Source).HostName;
+    FUseTLS := TEFSMTPServerParams(Source).UseTLS;
   end
   else
     inherited;

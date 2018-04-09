@@ -709,6 +709,8 @@ end;
 { TEFPathMacroExpander }
 
 function TEFPathMacroExpander.InternalExpand(const AString: string): string;
+var
+  LMajorVersion, LMinorVersion, LRelease, LBuild : integer;
 begin
   Result := inherited InternalExpand(AString);
   Result := ExpandMacros(Result, '%APP_PATH%', ExtractFilePath(ParamStr(0)));
@@ -718,6 +720,12 @@ begin
   {$IFDEF MSWINDOWS}
   Result := ExpandMacros(Result, '%WIN_DIR%', IncludeTrailingPathDelimiter(SafeGetWindowsDirectory));
   Result := ExpandMacros(Result, '%SYS_DIR%', IncludeTrailingPathDelimiter(SafeGetSystemDirectory));
+  if (pos('%APP_VERSION%', AString) > 0) or (pos('%APP_VERSION_FULL%', AString) > 0) then
+  begin
+    GetVerInfo(ParamStr(0), LMajorVersion, LMinorVersion, LRelease, LBuild);
+    Result := ExpandMacros(Result, '%APP_VERSION%', Format('%d.%d',[LMajorVersion, LMinorVersion]));
+    Result := ExpandMacros(Result, '%APP_VERSION_FULL%', Format('%d.%d.%d',[LMajorVersion, LMinorVersion, LRelease]));
+  end;
   {$ENDIF}
 end;
 

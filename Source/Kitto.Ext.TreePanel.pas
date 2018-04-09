@@ -158,7 +158,7 @@ var
   LViewId: string;
 begin
   LViewId := ParamAsString('View');
-  if LViewId <> '' then
+  if (LViewId <> '') and (LViewId <> 'undefined') then
     TKWebApplication.Current.DisplayView(TKView(StrToInt(LViewId)));
 end;
 

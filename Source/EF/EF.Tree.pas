@@ -3213,7 +3213,10 @@ end;
 
 function TEFDataType.ValueToFloat(const AValue: Variant): Double;
 begin
-  Result := EFVarToFloat(AValue);
+  if VarIsNull(AValue) or VarIsEmpty(AValue) then
+    Result := 0
+  else
+    Result := EFVarToFloat(AValue);
 end;
 
 function TEFDataType.ValueToInteger(const AValue: Variant): Integer;
@@ -3221,7 +3224,9 @@ const
   KB = 1024;
   MB = KB * 1024;
 begin
-  if EndsStr('MB', AValue) then
+  if VarIsNull(AValue) or VarIsEmpty(AValue) then
+    Result := 0
+  else if EndsStr('MB', AValue) then
     Result := MB * StrToInt(StripSuffix(AValue, 'MB'))
   else if EndsStr('KB', AValue) then
     Result := KB * StrToInt(StripSuffix(AValue, 'KB'))
