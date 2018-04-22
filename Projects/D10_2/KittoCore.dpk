@@ -160,6 +160,7 @@ contains
   Kitto.Web.Types in '..\..\Source\Kitto.Web.Types.pas',
   Kitto.Web.URL in '..\..\Source\Kitto.Web.URL.pas',
   Kitto.WebBroker.Handler in '..\..\Source\Kitto.WebBroker.Handler.pas',
-  Kitto.WebBroker.WebModule in '..\..\Source\Kitto.WebBroker.WebModule.pas' {KWebModule: TWebModule};
+  Kitto.WebBroker.WebModule in '..\..\Source\Kitto.WebBroker.WebModule.pas' {KWebModule: TWebModule},
+  Kitto.Ext.ResetPassword in '..\..\Source\Kitto.Ext.ResetPassword.pas';
 
 end.

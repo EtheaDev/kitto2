@@ -39,7 +39,6 @@ type
     FPassword: string;
     FHostName: string;
     FUseTLS: Boolean;
-    FProtocol: string;
   public
     procedure Assign(Source: TPersistent); override;
     property HostName: string read FHostName write FHostName;
