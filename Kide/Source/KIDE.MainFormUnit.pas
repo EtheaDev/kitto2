@@ -245,7 +245,7 @@ implementation
 uses
   Clipbrd, Math, Types, ShellAPI,
   EF.Localization, EF.Sys, EF.Sys.Windows, EF.StrUtils,
-  Kitto.Config, Kitto.Ext.MainFormUnit,
+  Kitto.Config, Kitto.Vcl.MainForm,
   KIDE.Utils, KIDE.MRUOptions, KIDE.ModelWizardFormUnit, KIDE.SplashFormUnit,
   KIDE.EFHelpers, KIDE.ModelValidator, KIDE.ViewValidator, KIDE.ConfigValidator,
   KIDE.HelpViewer, KIDE.NewProjectWizardFormUnit, KIDE.SelectOptionsFormUnit;

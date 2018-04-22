@@ -20,7 +20,7 @@ interface
 uses
   Classes, Controls, Dialogs, Graphics, ExtCtrls,
   SynEdit, SynEditHighlighter, SynEditOptionsDialog,
-  Ext.Base, EF.Tree;
+  Ext.Base, EF.Tree, Kitto.Web.Application;
 
 type
   TExtraInfo = (eiOriginalFileName, eiProductName, eiInternalName, eiProductVersion, eiFileVersion, eiFileDescription, eiCompanyName, eiLegalCopyright, eiLegalTradeMarks, eiComments, eiCompanyURL, eiProductURL, eiEmailSupport);
@@ -166,12 +166,14 @@ end;
 procedure ShowImage(const AImageName: string; AImage: TImage);
 var
   LFileName: string;
+  LApplication: string;
 begin
+  Assert(Assigned(TProject.CurrentProject.Application));
   if AImageName = '' then
     AImage.Picture.Bitmap := nil
   else
   begin
-    LFileName := TProject.CurrentProject.Config.FindImagePathName(
+    LFileName := TProject.CurrentProject.Application.FindImagePathName(
       TEFMacroExpansionEngine.Instance.Expand(AImageName));
     if FileExists(LFileName) then
       AImage.Picture.LoadFromFile(LFileName)

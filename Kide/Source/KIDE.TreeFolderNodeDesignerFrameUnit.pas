@@ -85,7 +85,7 @@ procedure TTreeFolderNodeDesignerFrame.ImageNameEditChange(Sender: TObject);
 begin
   if (ImageNameEdit.Text = '') then
     ImageNameEdit.Text := 'Folder';
-  ShowImage(ImageNameEdit.Text+'_large', ImageNameImageLarge);
+  ShowImage( ImageNameEdit.Text+'_large', ImageNameImageLarge);
   ShowImage(ImageNameEdit.Text, ImageNameImage);
 end;
 

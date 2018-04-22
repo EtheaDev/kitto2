@@ -125,7 +125,7 @@ constructor TProject.Create;
 begin
   inherited;
   FServer := TKWebServer.Create(nil);
-  FApplication := FServer.AddRoute(TKWebApplication.Create) as TKWebApplication;
+  FApplication := FServer.Engine.AddRoute(TKWebApplication.Create) as TKWebApplication;
 end;
 
 destructor TProject.Destroy;
