@@ -160,6 +160,7 @@ type
     FTpl: string;
     FFlex: Integer;
     FRenderTo: string;
+    FRenderToExpression: TExtExpression;
     FFloating: Boolean;
     FModal: Boolean;
     FDraggable: Boolean;
@@ -190,6 +191,7 @@ type
     procedure SetFloating(const AValue: Boolean);
     procedure SetModal(const AValue: Boolean);
     procedure SetDraggable(const AValue: Boolean);
+    procedure SetRenderToExpression(const AValue: TExtExpression);
   protected
     procedure InitDefaults; override;
   public
@@ -224,7 +226,8 @@ type
     property OverCls: string read FOverCls write SetOverCls;
     property Padding: string read FPadding write SetPadding;
     property Plugins: TJSObjectArray read GetPlugins;
-    property renderTo: string read FRenderTo write SetRenderTo;
+    property RenderTo: string read FRenderTo write SetRenderTo;
+    property RenderToExpression: TExtExpression read FRenderToExpression write SetRenderToExpression;
     property Style: string read FStyle write SetStyle;
     property Split: Boolean read FSplit write SetSplit;
     property Tpl: string read FTpl write SetTpl;
@@ -966,6 +969,11 @@ end;
 procedure TExtComponent.SetRenderTo(const AValue: string);
 begin
   FRenderTo := SetConfigItem('renderTo', AValue);
+end;
+
+procedure TExtComponent.SetRenderToExpression(const AValue: TExtExpression);
+begin
+  FRenderToExpression := SetConfigItem('renderTo', AValue);
 end;
 
 procedure TExtComponent.SetStyle(const AValue: string);

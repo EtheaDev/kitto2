@@ -808,9 +808,9 @@ begin
   &On('render', GenerateAnonymousFunction(UpdateLayout));
   if Floating then
   begin
+//    &On('show', GenerateAnonymousFunction(
+//      'Ext.Function.defer(function () { ' + JSName + '.toFront(); }, 250)'));
     Show;
-    if Modal then
-      ToFront;
   end;
 end;
 
@@ -842,10 +842,13 @@ var
   LBodyStyle: string;
   LStyle: TEFNode;
   LLabelWidth: TEFNode;
+  LRenderTo: string;
 begin
   EnsureAllSupportFiles;
 
-  RenderTo := Config.GetExpandedString('ContainerElementId');
+  LRenderTo := Config.GetString('ContainerElementId');
+  if LRenderTo <> '' then
+    RenderTo := TEFMacroExpansionEngine.Instance.Expand(LRenderTo);
 
   LLabelWidth := Config.FindNode('LabelWidth');
   if Assigned(LLabelWidth) then
@@ -1092,6 +1095,7 @@ procedure TKExtPanelControllerBase.SetModal;
 begin
   Floating := True;
   Modal := True;
+  RenderToExpression := JSExpressionFromCodeBlock('Ext.getBody()');
 end;
 
 procedure TKExtPanelControllerBase.SetView(const AValue: TKView);
