@@ -605,12 +605,17 @@ begin
       if Assigned(LFormField) then
       begin
         // Already rendered - call RefreshValue directly; otherwise postpone it.
-        LFormField.RemoveAllListeners('afterrender');
-        LFormField.On('afterrender', LFormField.GenerateAnonymousFunction(GetJSCode(
-          procedure
-          begin
-            AEditor.RefreshValue;
-          end)));
+        if LFormField.JSConfig.IsReadOnly then
+          AEditor.RefreshValue
+        else
+        begin
+          LFormField.RemoveAllListeners('afterrender');
+          LFormField.On('afterrender', LFormField.GenerateAnonymousFunction(GetJSCode(
+            procedure
+            begin
+              AEditor.RefreshValue;
+            end)));
+        end;
       end
       else
         AEditor.RefreshValue;
