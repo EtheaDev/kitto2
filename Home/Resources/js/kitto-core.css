@@ -8,6 +8,7 @@
 	color: #666666;
 }
 
+.
 .x-form-empty-field
 {
 	font-style: italic;
@@ -18,6 +19,16 @@
 {
 	/* prevents remote combos to be rendered one pixel off with certain themes */
 	vertical-align: top;
+}
+
+.x-form-item-default.x-item-disabled
+{
+    opacity: 0.7;
+}
+
+body > .x-mask {
+    /* Invisible mask avoids flickering */
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .k-loading {

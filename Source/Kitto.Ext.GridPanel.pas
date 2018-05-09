@@ -224,6 +224,8 @@ begin
   FGridPanel.ColumnLines := True;
   FGridPanel.TrackMouseOver := True;
   FGridPanel.EnableHdMenu := False;
+  // We mask globally, see kitto-init.js
+  FGridPanel.ViewConfig.SetConfigItem('loadMask', False);
 end;
 
 function TKExtGridPanel.IsActionSupported(const AActionName: string): Boolean;
