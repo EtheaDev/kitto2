@@ -91,7 +91,7 @@ type
     FApplyButton: TKExtButton;
     FEditButton: TKExtButton;
     FCancelButton: TKExtButton;
-//    FCloseButton: TKExtButton;
+    FCloseButton: TKExtButton;
     FDetailToolbar: TKExtToolbar;
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
     FDetailControllers: TObjectList<TObject>;
@@ -639,7 +639,7 @@ begin
     FConfirmButton.SetVisible(True);
   if Assigned(FCloneButton) then
     FCloneButton.SetVisible(True);
-//  FCloseButton.SetVisible(False);
+  FCloseButton.SetVisible(False);
   if Assigned(FCancelButton) then
     FCancelButton.SetVisible(True);
   FOperation := 'Edit';
@@ -875,15 +875,13 @@ begin
   FCancelButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(CancelChanges).AsFunction;
   FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
-//  FCloseButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
-//  FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
-//  FCloseButton.Text := Config.GetString('CloseButton/Caption', _('Close'));
-//  FCloseButton.Tooltip := Config.GetString('CloseButton/Tooltip', _('Close this panel'));
-//  // No need for an ajax call when we just close the client-side panel.
-//  LHostWindow := GetHostWindow;
-//  if Assigned(LHostWindow) then
-//    FCloseButton.Handler := GenerateAnonymousFunction(LHostWindow.JSName + '.close();');
-//  FCloseButton.Hidden := not FIsReadOnly and not IsViewMode;
+  FCloseButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+  FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
+  FCloseButton.Text := Config.GetString('CloseButton/Caption', _('Close'));
+  FCloseButton.Tooltip := Config.GetString('CloseButton/Tooltip', _('Close this panel'));
+  // No need for an ajax call when we just close the client-side panel.
+  FCloseButton.Handler := GenerateAnonymousFunction(JSName + '.close();');
+  FCloseButton.Hidden := not FIsReadOnly and not IsViewMode;
 end;
 
 procedure TKExtFormPanelController.InitComponents;
