@@ -881,7 +881,9 @@ begin
       AutoWidth := True;
   end
   else if LWidthStr <> '' then
-    WidthString := LWidthStr;
+    WidthString := LWidthStr
+  else if Floating then
+    Width := GetDefaultWidth;
 
   LHeightStr := Config.GetString('Height');
   if TryStrToInt(LHeightStr, LHeight) then
@@ -892,7 +894,9 @@ begin
       AutoHeight := True;
   end
   else if LHeightStr <> '' then
-    HeightString := LHeightStr;
+    HeightString := LHeightStr
+  else if Floating then
+    Height := GetDefaultHeight;
 
   LSplit := Config.FindNode('Split');
   if Assigned(LSplit) then
@@ -1055,8 +1059,6 @@ end;
 procedure TKExtPanelControllerBase.InitDefaults;
 begin
   inherited;
-  Width := GetDefaultWidth;
-  Height := GetDefaultHeight;
   &On('close', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Closed).AsFunction);
 end;
 
