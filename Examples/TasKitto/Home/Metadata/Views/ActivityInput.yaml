@@ -1,6 +1,8 @@
 ﻿Type: Data
 
 Controller: List
+  IsReadOnly: True
+  AllowViewing: True
   Filters:
     DisplayLabel: Search panel
     LabelWidth: 90
