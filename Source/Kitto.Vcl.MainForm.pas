@@ -91,6 +91,7 @@ type
     procedure UpdateSessionInfo;
     procedure SessionListUpdateHandler(AEngine: TKWebEngine;
       ASession: TKWebSession);
+    procedure RecreateServer;
     const
       TAB_LOG = 0;
       TAB_SESSIONS = 1;
@@ -272,7 +273,7 @@ var
   LSession: TKWebSession;
 begin
   SessionListView.Clear;
-  if FServer.Active then
+  if IsStarted then
   begin
     LSessions := FServer.Engine.GetSessions;
 
@@ -305,7 +306,7 @@ end;
 
 function TKMainForm.IsStarted: Boolean;
 begin
-  Result := FServer.Active;
+  Result := Assigned(FServer) and FServer.Active;
 end;
 
 procedure TKMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -329,10 +330,8 @@ begin
   LDefaultConfig := ChangeFileExt(GetCmdLineParamValue('Config', TKConfig.BaseConfigFileName),'.yaml');
   if LDefaultConfig <> '' then
     TKConfig.BaseConfigFileName := LDefaultConfig;
-  FServer := TKWebServer.Create(nil);
-  FServer.Engine.OnSessionStart := SessionListUpdateHandler;
-  FServer.Engine.OnSessionEnd := SessionListUpdateHandler;
-  FApplication := FServer.Engine.AddRoute(TKWebApplication.Create) as TKWebApplication;
+
+  RecreateServer;
 
   FLogEndPoint := TKMainFormLogEndpoint.Create;
   FLogEndPoint.OnLog := DoLog;
@@ -419,9 +418,7 @@ end;
 
 procedure TKMainForm.StartActionExecute(Sender: TObject);
 begin
-  Assert(Assigned(FServer));
-  Assert(Assigned(FApplication));
-  FServer.Setup(FApplication.Config);
+  RecreateServer;
   FServer.Active := True;
   SessionCountLabel.Visible := True;
   DoLog(_('Listener started'));
@@ -432,6 +429,17 @@ end;
 procedure TKMainForm.StartActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := HasConfigFileName and not IsStarted;
+end;
+
+procedure TKMainForm.RecreateServer;
+begin
+  FreeAndNil(FServer);
+
+  FServer := TKWebServer.Create(nil);
+  FServer.Engine.OnSessionStart := SessionListUpdateHandler;
+  FServer.Engine.OnSessionEnd := SessionListUpdateHandler;
+  FApplication := FServer.Engine.AddRoute(TKWebApplication.Create) as TKWebApplication;
+  FServer.Setup(FApplication.Config);
 end;
 
 { TKMainFormLogEndpoint }
