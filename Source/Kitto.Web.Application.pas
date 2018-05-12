@@ -869,17 +869,13 @@ begin
     LView := GetHomeView(TKWebSession.Current.ViewportWidthInInches);
 
   TKWebSession.Current.HomeController := DisplayNewController(LView);
-  TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.HomeController.AsJSObject, 'var kittoHomeContainer = ' + TKWebSession.Current.HomeController.AsJSObject.JSName + ';');
+  //TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.HomeController.AsJSObject, 'var kittoHomeContainer = ' + TKWebSession.Current.HomeController.AsJSObject.JSName + ';');
 
   if TKWebSession.Current.AutoOpenViewName <> '' then
   begin
     DisplayView(TKWebSession.Current.AutoOpenViewName);
     TKWebSession.Current.AutoOpenViewName := '';
   end;
-
-  { TODO : remove dependency }
-//  if TKWebSession.Current.HomeController is TExtContainer then
-//    TExtContainer(TKWebSession.Current.HomeController).UpdateLayout;
 end;
 
 procedure TKWebApplication.DisplayLoginView;
@@ -1010,7 +1006,11 @@ Duplicates must be handled/ignored. }
     AddReference('js/kitto-core-desktop.js', True);
     AddReference('js/kitto-core-desktop.css', True);
   end;
+
   AddReference('js/kitto-init.js', True);
+  if (TKWebSession.Current.Language <> 'en') and (TKWebSession.Current.Language <> '') then
+    AddReference('js/kitto-locale-' + TKWebSession.Current.Language + '.js', False);
+
   AddReference('js/application.js');
   AddReference('js/application.css');
 

@@ -459,7 +459,7 @@ function showKittoLoadMask(amount)
   else
     window.kittoLoadMaskShowCount += amount;
   if ((window.kittoLoadMaskShowCount > 0) && !Ext.getBody().isMasked())
-    Ext.getBody().mask("Loading...");
+    Ext.getBody().mask(Kitto.Strings.loadingMsg);
   else
     Ext.getBody().unmask();
 }

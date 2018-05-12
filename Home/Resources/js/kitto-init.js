@@ -1,5 +1,10 @@
 function kittoInit()
 {
+  Ext.define('Kitto.Strings', {
+    singleton: true,
+    loadingMsg: 'Loading...'
+  });
+
   Ext.override(Ext.Component, {
     getTopOwner: function() {
       var o = this.ownerCt;
