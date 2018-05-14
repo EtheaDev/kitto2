@@ -88,6 +88,8 @@ type
     function IsActionVisible(const AActionName: string): Boolean; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
     procedure AddUsedViewFields; override;
+  protected
+    function GetObjectNamePrefix: string; override;
   public
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     procedure Activate; override;
@@ -127,6 +129,11 @@ uses
   ;
 
 { TKExtGridPanel }
+
+function TKExtGridPanel.GetObjectNamePrefix: string;
+begin
+  Result := 'grid';
+end;
 
 function TKExtGridPanel.GetOrderByClause: string;
 var

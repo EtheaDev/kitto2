@@ -60,6 +60,7 @@ type
     procedure InitComponents; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
     function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; override;
+    function GetObjectNamePrefix: string; override;
   public
     function GetFilterExpression: string; override;
   end;
@@ -270,6 +271,11 @@ begin
   Result := inherited GetFilterExpression;
   if Assigned(FFilterPanel) then
     Result := SmartConcat(Result, ' and ', FFilterPanel.GetFilterExpression);
+end;
+
+function TKExtListPanelController.GetObjectNamePrefix: string;
+begin
+  Result := 'list';
 end;
 
 procedure TKExtListPanelController.CreateFilterPanel;

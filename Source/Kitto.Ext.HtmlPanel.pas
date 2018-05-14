@@ -27,6 +27,7 @@ type
   TKExtHtmlPanelController = class(TKExtPanelControllerBase)
   strict protected
     procedure DoDisplay; override;
+    function GetObjectNamePrefix: string; override;
   end;
 
 implementation
@@ -69,6 +70,11 @@ begin
     else
       Html := LHtml;
   end
+end;
+
+function TKExtHtmlPanelController.GetObjectNamePrefix: string;
+begin
+  Result := 'html';
 end;
 
 initialization

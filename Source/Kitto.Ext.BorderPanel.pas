@@ -37,7 +37,8 @@ type
     procedure CreateController(const ARegion: TExtBoxComponentRegion);
   strict protected
     function FindRegionControllerConfig(
-  const ARegion: TExtBoxComponentRegion; out AFreeIt: Boolean): TEFNode; virtual;
+      const ARegion: TExtBoxComponentRegion; out AFreeIt: Boolean): TEFNode; virtual;
+    function GetObjectNamePrefix: string; override;
   protected
     procedure DoDisplay; override;
     function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; virtual;
@@ -68,6 +69,11 @@ end;
 function TKExtBorderPanelController.GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string;
 begin
   Result := GetRegionName(ARegion) + 'View';
+end;
+
+function TKExtBorderPanelController.GetObjectNamePrefix: string;
+begin
+  Result := 'border';
 end;
 
 function TKExtBorderPanelController.GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string;

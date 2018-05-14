@@ -51,6 +51,8 @@ type
     FRootVisible: Boolean; // true
     procedure SetRootVisible(const AValue: Boolean);
     procedure SetRoot(const AValue: TExtTreeTreeNode);
+  strict protected
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     property Root: TExtTreeTreeNode read FRoot write SetRoot;
@@ -138,6 +140,11 @@ end;
 procedure TExtTreeTreePanel.SetRootVisible(const AValue: Boolean);
 begin
   FRootVisible := SetConfigItem('rootVisible', AValue);
+end;
+
+function TExtTreeTreePanel.GetObjectNamePrefix: string;
+begin
+  Result := 'tree';
 end;
 
 class function TExtTreeTreePanel.JSClassName: string;

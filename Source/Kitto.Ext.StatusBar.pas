@@ -48,6 +48,7 @@ type
     function GetDefaultSplit: Boolean; override;
     procedure InitDefaults; override;
     procedure DoDisplay; override;
+    function GetObjectNamePrefix: string; override;
   end;
 
 implementation
@@ -81,6 +82,11 @@ end;
 function TKExtStatusBarController.GetDefaultWidth: Integer;
 begin
   Result := 0;
+end;
+
+function TKExtStatusBarController.GetObjectNamePrefix: string;
+begin
+  Result := 'status';
 end;
 
 procedure TKExtStatusBarController.InitDefaults;
