@@ -203,7 +203,7 @@ type
     function Hide: TExtExpression;
     function SetDisabled(const AValue: Boolean): TExtExpression;
     function SetVisible(const AValue: Boolean): TExtExpression;
-    function Show: TExtExpression;
+    function Show(const AAnimateTarget: string = ''): TExtExpression;
     property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property Disabled: Boolean read FDisabled write _SetDisabled;
     property Draggable: Boolean read FDraggable write SetDraggable;
@@ -379,6 +379,7 @@ type
     function GetLayoutConfig: TExtObject;
   protected
     procedure InitDefaults; override;
+    procedure RemoveChild(const AChild: TJSBase); override;
   public
     class function JSClassName: string; override;
     function UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtExpression; overload;
@@ -704,7 +705,7 @@ type
   end;
 
   // Procedural types for events TExtTabPanel
-  TExtTabPanelOnTabChange = procedure(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent) of object;
+  TExtTabPanelOnTabChange = procedure(ATabPanel: TExtTabPanel; ANewTab: TExtComponent) of object;
 
   TExtTabPanel = class(TExtPanel)
   private
@@ -1094,9 +1095,9 @@ begin
     .AsExpression;
 end;
 
-function TExtComponent.Show: TExtExpression;
+function TExtComponent.Show(const AAnimateTarget: string = ''): TExtExpression;
 begin
-  Result := TKWebResponse.Current.Items.CallMethod(Self, 'show').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'show').AddParam(AAnimateTarget).AsExpression;
 end;
 
 procedure TExtComponent.SetAfterRender(const AValue: TExtComponentAfterRender);
@@ -1392,6 +1393,13 @@ begin
     .AddParam(AComponent)
     .AddParam(AAutoDestroy)
     .AsExpression;
+end;
+
+procedure TExtContainer.RemoveChild(const AChild: TJSBase);
+begin
+  inherited;
+  if AChild is TJSObject then
+    Items.Remove(TJSObject(AChild));
 end;
 
 procedure TExtButton.SetAllowDepress(const AValue: Boolean);
@@ -2085,7 +2093,7 @@ procedure TExtTabPanel.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'tabchange') and Assigned(FOnTabChange) then
-    FOnTabChange(TExtTabPanel(ParamAsObject('TabPanel')), TExtComponent(ParamAsObject('NewTab')), TExtComponent(ParamAsObject('OldTab')));
+    FOnTabChange(TExtTabPanel(ParamAsObject('TabPanel')), TExtComponent(ParamAsObject('NewTab')));
 end;
 
 procedure TExtPagingToolbar.SetDisplayInfo(const AValue: Boolean);

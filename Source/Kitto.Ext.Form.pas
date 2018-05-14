@@ -133,7 +133,7 @@ type
     property StoreRecord: TKViewTableRecord read FStoreRecord write SetStoreRecord;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    procedure TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
+    procedure TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);
     procedure RefreshEditorValues(const AStartIndex: Integer = 0);
     procedure RefreshEditorFields;
     function ExpandExpression(const AExpression: string): string; override;
@@ -1033,7 +1033,7 @@ begin
   FMainPage.On('afterrender', GenerateAnonymousFunction(FMainPage.JSName + '.body.dom.scrollTop = 0;'));
 end;
 
-procedure TKExtFormPanelController.TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
+procedure TKExtFormPanelController.TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);
 var
   LViewTable: TKViewTable;
   LDetailIndex: Integer;

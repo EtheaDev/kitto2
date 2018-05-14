@@ -793,24 +793,15 @@ end;
 procedure TKExtPanelControllerBase.Display;
 begin
   if Container <> nil then
-  begin
-    if Config.GetBoolean('AllowClose', GetDefaultAllowClose) then
-    begin
-      Closable := True;
-      &On('close',
-        TKWebResponse.Current.Items.AjaxCallMethod(Container.AsJSObject, 'PanelClosed')
-          .AddParam('Panel', JSName).AsFunction);
-    end
-    else
-      Closable := False;
-  end;
+    Closable := Config.GetBoolean('AllowClose', GetDefaultAllowClose);
   DoDisplay;
   &On('render', GenerateAnonymousFunction(UpdateLayout));
   if Floating then
   begin
-//    &On('show', GenerateAnonymousFunction(
-//      'Ext.Function.defer(function () { ' + JSName + '.toFront(); }, 250)'));
-    Show;
+    if Assigned(TKWebSession.Current.ControllerContainer) then
+      Show(TKWebSession.Current.ControllerContainer.AsJSObject.JSName)
+    else
+      Show;
   end;
 end;
 
@@ -915,8 +906,6 @@ begin
     Collapsible := LCollapsible.AsBoolean
   else
     Collapsible := False;
-
-  Closable := Config.GetBoolean('AllowClose');
 
   CreateTopToolbar;
 

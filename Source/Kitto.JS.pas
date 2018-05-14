@@ -720,8 +720,15 @@ begin
 end;
 
 function TJSObject.ParamAsObject(const AParamName: string): TJSObject;
+var
+  LObjectName: string;
+  //LObjects: string;
 begin
-  Result := TJSObject(TKWebSession.Current.ObjectSpace.FindChildByJSName(TKWebRequest.Current.GetQueryField(AParamName)));
+  LObjectName := TKWebRequest.Current.GetQueryField(AParamName);
+  Assert(LObjectName <> '');
+  //LObjects := TKWebSession.Current.ObjectSpace.GetChildrenNameTree;
+  Result := TJSObject(TKWebSession.Current.ObjectSpace.FindChildByJSName(LObjectName));
+  Assert(Assigned(Result));
 end;
 
 function TJSObject.ParamAsString(const AParamName: string): string;

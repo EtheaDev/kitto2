@@ -22,7 +22,7 @@ type
     procedure SetOwner(const AValue: TJSBase);
   strict protected
     procedure AddChild(const AChild: TJSBase);
-    procedure RemoveChild(const AChild: TJSBase);
+    procedure RemoveChild(const AChild: TJSBase); virtual;
     procedure InitDefaults; virtual;
   public
     destructor Destroy; override;
@@ -38,6 +38,11 @@ type
 
     function FindChildByJSName(const AJSName: string): TJSBase;
     procedure FreeAllChildren;
+
+    /// <summary>
+    ///  Returns a string representation of the tree of children for debugging purposes.
+    /// </summary>
+    function GetChildrenNameTree: string;
   end;
   TJSBaseClass = class of TJSBase;
 
@@ -118,6 +123,7 @@ implementation
 
 uses
   SysUtils
+  , StrUtils
   , EF.StrUtils
   , Kitto.JS
   ;
@@ -218,6 +224,21 @@ end;
 procedure TJSBase.FreeAllChildren;
 begin
   FChildren.Clear;
+end;
+
+function TJSBase.GetChildrenNameTree: string;
+var
+  I: Integer;
+  LChildrenTree: string;
+begin
+  Result := '';
+  for I := 0 to FChildren.Count - 1 do
+  begin
+    Result := Result + IfThen(FChildren[I].JSName <> '', FChildren[I].JSName, '?');
+    LChildrenTree := FChildren[I].GetChildrenNameTree;
+    if LChildrenTree <> '' then
+      Result := Result + ' (' + LChildrenTree + ') ';
+  end;
 end;
 
 procedure TJSBase.InitDefaults;

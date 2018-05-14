@@ -48,7 +48,7 @@ type
     function TabsVisible: Boolean; virtual;
     procedure ApplyTabSize;
     function GetDefaultTabSize: string; virtual;
-    procedure TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent); virtual;
+    procedure TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent); virtual;
     procedure InitSubController(const ASubController: IJSController);
     procedure SetActiveSubController(const ASubController: IJSController);
   public
@@ -58,8 +58,6 @@ type
     destructor Destroy; override;
     procedure ClosePanel(const APanel: TExtComponent);
     function AsObject: TObject;
-  //published
-    procedure PanelClosed;
   end;
   TKExtTabPanelClass = class of TKExtTabPanel;
 
@@ -71,6 +69,7 @@ type
     procedure DoDisplay; override;
     function GetTabPanelClass: TKExtTabPanelClass; virtual;
     function GetDefaultTabIconsVisible: Boolean; virtual;
+    function GetObjectNamePrefix: string; override;
   protected
     function TabIconsVisible: Boolean;
     procedure InitSubController(const ASubController: IJSController); override;
@@ -105,6 +104,11 @@ begin
   Result := True;
 end;
 
+function TKExtTabPanelController.GetObjectNamePrefix: string;
+begin
+  Result := 'tab';
+end;
+
 function TKExtTabPanelController.GetTabPanelClass: TKExtTabPanelClass;
 begin
   Result := TKExtTabPanel;
@@ -125,7 +129,6 @@ end;
 
 procedure TKExtTabPanelController.SetActiveSubController(const ASubController: IJSController);
 begin
-
 end;
 
 function TKExtTabPanelController.TabIconsVisible: Boolean;
@@ -233,15 +236,6 @@ begin
   end;
 end;
 
-procedure TKExtTabPanel.PanelClosed;
-var
-  LPanel: TExtComponent;
-begin
-  LPanel := ParamAsObject('Panel') as TExtComponent;
-  Items.Remove(LPanel);
-  LPanel.Free;
-end;
-
 procedure TKExtTabPanel.SetActiveSubController(const ASubController: IJSController);
 begin
   SetActiveTab(ASubController.AsObject as TExtComponent);
@@ -257,7 +251,7 @@ begin
   Result := 'normal';
 end;
 
-procedure TKExtTabPanel.TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
+procedure TKExtTabPanel.TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);
 var
   LIntf: IKExtActivable;
 begin
