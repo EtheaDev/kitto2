@@ -193,6 +193,8 @@ type
   strict protected
     function FindOwnerToolbar: TKExtToolbar;
     function GetOwnerToolbar: TKExtToolbar;
+  protected
+    procedure InitDefaults; override;
   public
     // Unique Id of the button in its toolbar (if any).
     property UniqueId: string read FUniqueId write FUniqueId;
@@ -796,13 +798,8 @@ begin
     Closable := Config.GetBoolean('AllowClose', GetDefaultAllowClose);
   DoDisplay;
   &On('render', GenerateAnonymousFunction(UpdateLayout));
-  if Floating then
-  begin
-    if Assigned(TKWebSession.Current.ControllerContainer) then
-      Show(TKWebSession.Current.ControllerContainer.AsJSObject.JSName)
-    else
-      Show;
-  end;
+  //if Floating then
+  Show(JSExpressionFromCodeBlock('getAnimationOrigin()'));
 end;
 
 procedure TKExtPanelControllerBase.EnsureAllSupportFiles;
@@ -1444,6 +1441,12 @@ begin
   Result := FindOwnerToolbar;
   if Result = nil then
     raise Exception.Create('Owner Toolbar not found');
+end;
+
+procedure TKExtButton.InitDefaults;
+begin
+  inherited;
+  &On('click', GenerateAnonymousFunction('comp', 'setAnimationOrigin(comp.id)'));
 end;
 
 procedure TKExtButton.SetIconAndScale(const AIconName: string; const AScale: string);

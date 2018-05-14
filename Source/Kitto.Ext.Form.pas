@@ -130,6 +130,7 @@ type
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
+    function GetObjectNamePrefix: string; override;
     property StoreRecord: TKViewTableRecord read FStoreRecord write SetStoreRecord;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
@@ -907,6 +908,11 @@ end;
 function TKExtFormPanelController.GetFilterExpression: string;
 begin
   Result := Config.GetExpandedString('FilterExpression');
+end;
+
+function TKExtFormPanelController.GetObjectNamePrefix: string;
+begin
+  Result := 'form';
 end;
 
 procedure TKExtFormPanelController.InitFlags;

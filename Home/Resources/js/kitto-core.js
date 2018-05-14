@@ -509,3 +509,16 @@ function finishedLoadingHomeView()
 {
   Ext.get("loading").remove();
 }
+
+var
+  kAnimationOrigin;
+ 
+function setAnimationOrigin(comp)
+{
+  kAnimationOrigin = comp;
+}
+
+function getAnimationOrigin()
+{
+  return kAnimationOrigin;
+}
