@@ -205,6 +205,8 @@ type
     function SetVisible(const AValue: Boolean): TExtExpression;
     function Show(const AAnimateTarget: string = ''): TExtExpression; overload;
     function Show(const AAnimateTarget: TExtExpression): TExtExpression; overload;
+    // Kitto specific.
+    function ShowModal: TExtExpression; overload;
     property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property Disabled: Boolean read FDisabled write _SetDisabled;
     property Draggable: Boolean read FDraggable write SetDraggable;
@@ -1099,6 +1101,12 @@ end;
 function TExtComponent.Show(const AAnimateTarget: TExtExpression): TExtExpression;
 begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'show').AddParam(AAnimateTarget).AsExpression;
+end;
+
+function TExtComponent.ShowModal: TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'showModal')
+    .AsExpression;
 end;
 
 function TExtComponent.Show(const AAnimateTarget: string = ''): TExtExpression;

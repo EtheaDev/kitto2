@@ -15,8 +15,30 @@ function kittoInit()
     }
   });
 
-  Ext.override(Ext.TabPanel, {
+  Ext.override(Ext.Panel, {
+    showModal: function () {
+	  var w = new Ext.Window({
+        layout: "fit",
+        title: this.title,
+        header: true,
+        width: this.width + 5,
+        height: this.height + 5,
+        closable: this.closable,
+        modal: true,
+        items: [this]
+      });
+      this.title = '';
+      this.header = false;
+      this.closable = false;
+	  this.floating = false;
+	  this.draggable = false;
+	  // In case it has custom close buttons...
+	  this.on('close', function() { w.close(); });
+      w.show();
+    }
+  });
 
+  Ext.override(Ext.TabPanel, {
     goPrevious: function() {
       var activeTab = this.getActiveTab();
       if (activeTab) {
@@ -26,7 +48,6 @@ function kittoInit()
 		}
 	  }
     },
-
     goNext: function() {
       var activeTab = this.getActiveTab();
       if (activeTab) {
@@ -36,7 +57,6 @@ function kittoInit()
 	    }
 	  }
     }
-	
   });
 
   // Used by TKExtForceUpperCase and siblings.

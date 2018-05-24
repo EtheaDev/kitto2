@@ -518,8 +518,8 @@ end;
 
 procedure TKExtWindowControllerBase.SetModal;
 begin
-  Floating := True;
-  Modal := True;
+//  Floating := True;
+//  Modal := True;
 end;
 
 procedure TKExtWindowControllerBase.SetSizeFromTree(const ATree: TEFTree; const APath: string);
@@ -798,8 +798,11 @@ begin
     Closable := Config.GetBoolean('AllowClose', GetDefaultAllowClose);
   DoDisplay;
   &On('render', GenerateAnonymousFunction(UpdateLayout));
+  if Modal then
   //if Floating then
-  Show(JSExpressionFromCodeBlock('getAnimationOrigin()'));
+    ShowModal
+  else
+    Show(JSExpressionFromCodeBlock('getAnimationOrigin()'));
 end;
 
 procedure TKExtPanelControllerBase.EnsureAllSupportFiles;
@@ -1081,9 +1084,9 @@ end;
 
 procedure TKExtPanelControllerBase.SetModal;
 begin
-  Floating := True;
+//  Floating := True;
   Modal := True;
-  RenderToExpression := JSExpressionFromCodeBlock('Ext.getBody()');
+//  RenderToExpression := JSExpressionFromCodeBlock('Ext.getBody()');
 end;
 
 procedure TKExtPanelControllerBase.SetView(const AValue: TKView);
