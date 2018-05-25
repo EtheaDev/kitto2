@@ -411,29 +411,29 @@ end;
 
 procedure TKExtDataPanelController.DisplayEditController(const ARecord: TKViewTableRecord; const AOperation: string);
 var
-  LFormController: IJSController;
+  LEditController: IJSController;
 begin
   Assert((AOperation = 'Add') or Assigned(ARecord));
   Assert(ViewTable <> nil);
 
-  LFormController := InitEditController(nil, ARecord, AOperation);
-  LFormController.SetModal;
-  LFormController.Display;
+  LEditController := InitEditController(nil, ARecord, AOperation);
+  LEditController.SetModal;
+  LEditController.Display;
 end;
 
 function TKExtDataPanelController.InitEditController(const AContainer: IJSControllerContainer;
   const ARecord: TKViewTableRecord; const AOperation: string): IJSController;
 var
-  LFormControllerType: string;
-  LFormControllerNode: TEFNode;
+  LEditControllerType: string;
+  LEditControllerNode: TEFNode;
 begin
-  LFormControllerNode := ViewTable.FindNode('Controller/FormController');
-  if Assigned(LFormControllerNode) then
-    LFormControllerType := LFormControllerNode.AsString;
-  if LFormControllerType = '' then
-    LFormControllerType := GetDefaultEditControllerType;
+  LEditControllerNode := ViewTable.FindNode('Controller/EditController');
+  if Assigned(LEditControllerNode) then
+    LEditControllerType := LEditControllerNode.AsString;
+  if LEditControllerType = '' then
+    LEditControllerType := GetDefaultEditControllerType;
   Result := TKExtControllerFactory.Instance.CreateController(Self,
-    ViewTable.View, AContainer, LFormControllerNode, Self, LFormControllerType);
+    ViewTable.View, AContainer, LEditControllerNode, Self, LEditControllerType);
   Result.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
     Result.Config.SetObject('Sys/Record', ARecord)

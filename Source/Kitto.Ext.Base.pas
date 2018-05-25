@@ -935,7 +935,8 @@ begin
 
   if Assigned(AConfigNode) and (AConfigNode.ChildCount > 0) then
   begin
-    TExtToolbarSeparator.CreateAndAddToArray(AToolbar.Items);
+    if AToolbar.Items.Count > 0 then
+      TExtToolbarSeparator.CreateAndAddToArray(AToolbar.Items);
     for I := 0 to AConfigNode.ChildCount - 1 do
     begin
       LNode := AConfigNode.Children[I];

@@ -1,7 +1,6 @@
 ﻿Type: Data
 
 Controller: List
-  ShowNavigationButtons: True
   Filters:
     DisplayLabel: _(Choose Mom)
     Items:
@@ -21,6 +20,7 @@ MainTable:
   Model: Doll
 
   EditController:
+    ShowNavigationButtons: True
     Width: 520
     Height: 480
 

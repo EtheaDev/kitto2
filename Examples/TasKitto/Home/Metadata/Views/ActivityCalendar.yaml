@@ -6,8 +6,7 @@ MainTable:
   Model: ACTIVITY_CALENDAR
   Controller:
     DateFieldName: ActivityDate
-    FormController:
-      CloneButton:
   EditController:
     Width: 600
     Height: 400
+    CloneButton:

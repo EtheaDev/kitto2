@@ -779,7 +779,7 @@ begin
   begin
     FPreviousButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FPreviousButton.SetIconAndScale('previous', Config.GetString('ButtonScale', 'medium'));
-    LPreviousButtonNode := ViewTable.FindNode('Controller/FormController/PreviousButton');
+    LPreviousButtonNode := Config.FindNode('PreviousButton');
     if Assigned(LPreviousButtonNode) then
     begin
       FPreviousButton.Text := LPreviousButtonNode.GetString('Caption');
@@ -793,7 +793,7 @@ begin
 
     FNextButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FNextButton.SetIconAndScale('next', Config.GetString('ButtonScale', 'medium'));
-    LNextButtonNode := ViewTable.FindNode('Controller/FormController/NextButton');
+    LNextButtonNode := Config.FindNode('NextButton');
     if Assigned(LNextButtonNode) then
     begin
       FNextButton.Text := LNextButtonNode.GetString('Caption');
@@ -809,7 +809,7 @@ begin
   TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
   // Apply button
   FApplyButton := nil;
-  LApplyButtonNode := ViewTable.FindNode('Controller/FormController/ApplyButton');
+  LApplyButtonNode := Config.FindNode('ApplyButton');
   if Assigned(LApplyButtonNode) and not ViewTable.IsDetail then
   begin
     FApplyButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
@@ -978,7 +978,7 @@ begin
   else if SameText(FOperation, 'Dup') and FIsReadOnly then
     raise EEFError.Create(_('Operation Duplicate not supported on read-only data.'));
 
-  LLabelAlignNode := ViewTable.FindNode('Controller/FormController/LabelAlign');
+  LLabelAlignNode := Config.FindNode('LabelAlign');
   if FindLayout <> nil then
     LLabelAlign := laTop
   else if Assigned(LLabelAlignNode) then

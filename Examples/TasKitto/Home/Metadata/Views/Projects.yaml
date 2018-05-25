@@ -29,16 +29,15 @@ MainTable:
   EditController:
     Width: 800
     Height: 500
+    LabelAlign: left
+    ToolViews:
+      DownloadText:
+        DisplayLabel: Donwload content in XML
+        Controller: ExportXMLTool
+          RequireSelection: False
+          IncludeHeader: False
+          ClientFileName: {PROJECT_NAME}.xml
   Controller:
-    FormController:
-      LabelAlign: left
-      ToolViews:
-        DownloadText:
-          DisplayLabel: Donwload content in XML
-          Controller: ExportXMLTool
-            RequireSelection: False
-            IncludeHeader: False
-            ClientFileName: ProjectList.xml
     ToolViews:
       UploadFile:
         DisplayLabel: Upload a file
