@@ -445,6 +445,9 @@ begin
 
   if SameText(AOperation, 'View') and not IsActionAllowed('Edit') then
     Result.Config.SetBoolean('PreventEditing', True);
+
+  // Merge config values.
+  Result.Config.Merge(ViewTable.FindNode('EditController'));
 end;
 
 function TKExtDataPanelController.GetCurrentViewRecord: TKViewTableRecord;

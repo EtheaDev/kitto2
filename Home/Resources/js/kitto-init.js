@@ -17,24 +17,29 @@ function kittoInit()
 
   Ext.override(Ext.Panel, {
     showModal: function () {
-	  var w = new Ext.Window({
+      this.hostWindow = new Ext.Window({
         layout: "fit",
         title: this.title,
-        header: true,
         width: this.width + 5,
         height: this.height + 5,
         closable: this.closable,
+        iconCls: this.iconCls,
         modal: true,
         items: [this]
       });
       this.title = '';
-      this.header = false;
       this.closable = false;
-	  this.floating = false;
-	  this.draggable = false;
-	  // In case it has custom close buttons...
-	  this.on('close', function() { w.close(); });
-      w.show();
+      this.draggable = false;
+      this.header = false;
+      this.setIconCls('');
+      // In case it has custom close buttons...
+      this.on('close', function() { this.hostWindow.close(); });
+      this.hostWindow.show();
+    },
+
+    updateHostWindowTitle: function(title) {
+      if (this.hostWindow)
+        this.hostWindow.setTitle(title);
     }
   });
 
@@ -45,17 +50,17 @@ function kittoInit()
         var previousTab = activeTab.previousSibling();
         if (previousTab) {
           this.setActiveTab(previousTab);
-		}
-	  }
+        }
+      }
     },
     goNext: function() {
       var activeTab = this.getActiveTab();
       if (activeTab) {
-	    var nextTab = activeTab.nextSibling();
+      var nextTab = activeTab.nextSibling();
         if (nextTab) {
           this.setActiveTab(nextTab);
-	    }
-	  }
+        }
+      }
     }
   });
 

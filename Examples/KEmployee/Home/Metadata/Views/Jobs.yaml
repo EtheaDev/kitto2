@@ -1,9 +1,6 @@
 ﻿Type: Data
 IsLookup: True
 Controller: List
-  PopUpWindow:
-    Width: 800
-    Height: 400
   Filters:
     DisplayLabel: Search Jobs
     Items:
@@ -24,6 +21,9 @@ MainTable:
     JobDescription:
       IsVisible: False
   Controller:
+    EditController:
+      Width: 800
+      Height: 400
     FormController:
       ApplyButton:
     PageRecordCount: 20

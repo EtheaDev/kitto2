@@ -4,9 +4,8 @@ ImageName: Doll_add
 Controller: Form
   IsModal: True
   Operation: Add
-  PopupWindow:
-    Height: 600
-    Width: 500
+  Height: 600
+  Width: 500
 
 MainTable:
   Model: Doll

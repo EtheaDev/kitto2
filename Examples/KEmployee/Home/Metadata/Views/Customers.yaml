@@ -22,11 +22,10 @@ MainTable:
     PostalCode:
     OnHold:
     CountryRef:
+  EditController:
+    Width: 800
+    Height: 500
   Controller:
-    PopupWindow:
-      Width: 800
-      Height: 500
-
     ToolViews:
       DownloadCSV:
         DisplayLabel: Download in CSV

@@ -15,10 +15,10 @@ Controller: List
 MainTable:
   Model: Party
 
+  EditController:
+    Width: 700
+    Height: 640
   Controller:
-    PopupWindow:
-      Width: 700
-      Height: 640
     ToolViews:
       DownloadCSV:
         DisplayLabel: _(Download in CSV)

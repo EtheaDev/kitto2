@@ -5,7 +5,6 @@ CenterController:
 Filters:
 InplaceEditing: True
   Default: False
-PopUpWindow:
 WestController:
 NorthController:
 EastController:

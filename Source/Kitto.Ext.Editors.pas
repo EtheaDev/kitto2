@@ -483,7 +483,6 @@ type
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
     function AsObject: TObject;
-    procedure SetReadOnly(const AValue: Boolean);
   //published
     procedure DoClear; override;
   end;
@@ -3369,11 +3368,6 @@ procedure TKExtLookupEditor.SetOption(const ANode: TEFNode);
 begin
   if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
     TKExtEditorManager.InvalidOption(ANode);
-end;
-
-procedure TKExtLookupEditor.SetReadOnly(const AValue: Boolean);
-begin
-  ReadOnly := AValue;
 end;
 
 procedure TKExtLookupEditor.SetRecordField(const AValue: TKViewTableField);
