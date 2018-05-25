@@ -43,11 +43,11 @@ uses
 procedure TKExtWindowController.DoDisplay;
 begin
   Title := _(View.GetExpandedString('DisplayLabel'));
-  Width := View.GetInteger('Controller/Width', 800);
-  Height := View.GetInteger('Controller/Height', 600);
-  ResizeHandles := View.GetString('Controller/ResizeHandles');
+  Width := Config.GetInteger('Width', DEFAULT_WINDOW_WIDTH);
+  Height := Config.GetInteger('Height', DEFAULT_WINDOW_HEIGHT);
+  ResizeHandles := Config.GetString('ResizeHandles');
   Resizable := ResizeHandles <> '';
-  Maximizable := View.GetBoolean('Controller/Maximizable', Resizable);
+  Maximizable := Config.GetBoolean('Maximizable', Resizable);
   inherited;
 end;
 

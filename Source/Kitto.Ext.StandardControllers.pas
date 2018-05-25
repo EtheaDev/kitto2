@@ -24,6 +24,7 @@ uses
   Classes
   , SysUtils
   , HTTPApp
+  , Ext.Base
   , Kitto.Metadata.Views
   , Kitto.Ext.Base
   , Kitto.Ext.DataTool
@@ -255,7 +256,7 @@ type
   TKExtUploadFileController = class(TKExtDataToolController)
   strict private
     FTempFileNames: TStrings;
-    FWindow: TKExtModalWindow;
+    FUploadFileDialog: TExtPanel;
     function GetContentType: string;
     function GetPath: string;
     function GetMaxUploadSize: Integer;
@@ -305,7 +306,6 @@ uses
   , EF.Tree
   , EF.RegEx
   , EF.Localization
-  , Ext.Base
   , Ext.Form
   , Kitto.Metadata.DataView
   , Kitto.JS
@@ -602,25 +602,24 @@ var
   LUploadFormField: TExtFormFileField;
   LAcceptedWildcards: string;
   LToolbar: TKExtToolbar;
+  LCancelButton: TKExtButton;
 begin
-  if Assigned(FWindow) then
-    FWindow.Delete;
-  FreeAndNil(FWindow);
-  LAcceptedWildcards := AcceptedWildcards;
-  FWindow := TKExtModalWindow.Create(Self);
-  FWindow.Width := 500;
-  FWindow.Height := 200;
-  FWindow.Closable := True;
-  FWindow.Title := _('File upload');
+  FreeAndNil(FUploadFileDialog);
+  FUploadFileDialog := TExtPanel.Create(Self);
+  FUploadFileDialog.Title := _('File upload');
+  FUploadFileDialog.Width := 550;
+  FUploadFileDialog.Height := 150;
 
-  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FWindow.Items);
-  LFormPanel.Region := rgCenter;
-  LFormPanel.Frame := True;
+  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FUploadFileDialog.Items);
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
-  LFormPanel.LabelWidth := 100;
+  LFormPanel.LabelWidth := 50;
+  LFormPanel.Padding := '20px 10px 0 10px'; // top right bottom left
+  LFormPanel.Border := False;
+
   LUploadFormField := TExtFormFileField.CreateInlineAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(Self.DisplayLabel);
+  LAcceptedWildcards := AcceptedWildcards;
   if LAcceptedWildcards <> '' then
     LUploadFormField.EmptyText := Format(_('File matching %s'), [LAcceptedWildcards])
   else
@@ -629,12 +628,18 @@ begin
   LUploadFormField.Anchor := '0 5 0 0';
   LToolbar := TKExtToolbar.Create(Self);
   TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
-  LFormPanel.Fbar := LToolbar;
+  FUploadFileDialog.Fbar := LToolbar;
+
   LUploadButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
   LUploadButton.Text := _('Upload');
   LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser,'medium', 'small'));
 
-  LSubmitAction := TExtFormActionSubmit.CreateInline(FWindow);
+  LCancelButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
+  LCancelButton.Text := _('Cancel');
+  LCancelButton.SetIconAndScale('Cancel', IfThen(TKWebRequest.Current.IsMobileBrowser, 'medium', 'small'));
+  LCancelButton.Handler := GenerateAnonymousFunction(FUploadFileDialog.Close);
+
+  LSubmitAction := TExtFormActionSubmit.CreateInline(LFormPanel);
   LSubmitAction.Url := GetMethodURL(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
@@ -646,7 +651,7 @@ begin
   LUploadButton.Handler := GenerateAnonymousFunction(Format(
     'var form = this.up("form"); if (form.isValid()) form.submit({%s});',
     [LSubmitAction.JSConfig.AsFormattedText]));
-  FWindow.Show;
+  FUploadFileDialog.ShowModal;
 end;
 
 procedure TKExtUploadFileController.Upload;
@@ -739,7 +744,7 @@ end;
 
 procedure TKExtUploadFileController.PostUpload;
 begin
-  FWindow.Close;
+  FUploadFileDialog.Close;
 end;
 
 procedure TKExtUploadFileController.ProcessUploadedFile(const AFile: TAbstractWebRequestFile);

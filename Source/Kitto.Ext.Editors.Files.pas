@@ -57,18 +57,18 @@ type
   TKExtFormFileEditor = class(TExtFormFieldContainer, IKExtEditItem, IKExtEditor)
   strict private
     FDescriptionField: TExtFormTextField;
-    FWindow: TKExtModalWindow;
     FDownloadButton: TKExtButton;
     FIsReadOnly: Boolean;
     FClearButton: TKExtButton;
     FTotalCharWidth: Integer;
     FPictureView: TExtPanel;
     FUploadButton: TKExtButton;
+    FUploadFileDialog: TExtPanel;
+    const EMPTY_DESCRIPTION = 'Empty';
     function GetContentDescription: string;
     procedure UpdateGUI(const AUpdatePicture: Boolean);
     procedure PictureViewAfterRender(This: TExtComponent);
-    const EMPTY_DESCRIPTION = 'Empty';
-  private
+  private // friends
     FAdditionalWidth: Integer;
   strict protected
     FFieldName: string;
@@ -565,27 +565,24 @@ end;
 procedure TKExtFormFileEditor.ShowUploadFileDialog;
 var
   LUploadButton: TKExtButton;
-  LFormPanel: TExtFormFormPanel;
   LSubmitAction: TExtFormActionSubmit;
   LUploadFormField: TKExtFormFileUploadField;
   LToolbar: TKExtToolbar;
   LCancelButton: TKExtButton;
+  LFormPanel: TExtFormFormPanel;
 begin
-  if Assigned(FWindow) then
-    FWindow.Delete;
-  FreeAndNil(FWindow);
-  FWindow := TKExtModalWindow.Create(Self);
-  FWindow.Width := 550;
-  FWindow.Height := 150;
-  FWindow.Title := _('File upload');
+  FreeAndNil(FUploadFileDialog);
+  FUploadFileDialog := TExtPanel.Create(Self);
+  FUploadFileDialog.Title := _('File upload');
+  FUploadFileDialog.Width := 550;
+  FUploadFileDialog.Height := 150;
 
-  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FWindow.Items);
-  LFormPanel.Region := rgCenter;
-  LFormPanel.Frame := True;
+  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FUploadFileDialog.Items);
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 50;
-  LFormPanel.Padding := '15px 15px 15px 5px'; // top right bottom left
+  LFormPanel.Padding := '20px 10px 0 10px'; // top right bottom left
+  LFormPanel.Border := False;
 
   LUploadFormField := TKExtFormFileUploadField.CreateInlineAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
@@ -594,7 +591,7 @@ begin
   LUploadFormField.Anchor := '0 5 0 0';
   LToolbar := TKExtToolbar.Create(Self);
   TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
-  FWindow.Fbar := LToolbar;
+  FUploadFileDialog.Fbar := LToolbar;
 
   LUploadButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
   LUploadButton.Text := _('Upload');
@@ -603,9 +600,9 @@ begin
   LCancelButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
   LCancelButton.Text := _('Cancel');
   LCancelButton.SetIconAndScale('Cancel', IfThen(TKWebRequest.Current.IsMobileBrowser, 'medium', 'small'));
-  LCancelButton.Handler := GenerateAnonymousFunction(FWindow.Close);
+  LCancelButton.Handler := GenerateAnonymousFunction(FUploadFileDialog.Close);
 
-  LSubmitAction := TExtFormActionSubmit.CreateInline(FWindow);
+  LSubmitAction := TExtFormActionSubmit.CreateInline(LFormPanel);
   LSubmitAction.Url := GetMethodURL(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
@@ -619,7 +616,7 @@ begin
     [LFormPanel.JSName,
      LFormPanel.JSName,
      LSubmitAction.JSConfig.AsFormattedText]));
-  FWindow.Show;
+  FUploadFileDialog.ShowModal;
 end;
 
 procedure TKExtFormFileEditor.StartDownload;
@@ -722,7 +719,7 @@ end;
 
 procedure TKExtFormFileEditor.PostUpload;
 begin
-  FWindow.Close;
+  FUploadFileDialog.Close;
   UpdateGUI(True);
 end;
 

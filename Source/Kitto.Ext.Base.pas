@@ -84,24 +84,7 @@ type
     procedure Display;
     procedure SetModal;
   //published
-    procedure PanelClosed; virtual;
     procedure WindowClosed;
-  end;
-
-  /// <summary>
-  ///  A modal window used to host panels.
-  /// </summary>
-  TKExtModalWindow = class(TKExtWindowControllerBase)
-  protected
-    procedure InitDefaults; override;
-  public
-    /// <summary>
-    ///  Call this after adding the panel so that the window can hook its
-    ///  beforeclose event and close itself.
-    /// <summary>
-    procedure HookPanel(const APanel: TExtComponent);
-  //published
-    procedure PanelClosed; override;
   end;
 
   /// <summary>
@@ -493,11 +476,6 @@ begin
   Result := False;
 end;
 
-procedure TKExtWindowControllerBase.PanelClosed;
-begin
-  NotifyObservers('Closed');
-end;
-
 procedure TKExtWindowControllerBase.SetActiveSubController(const ASubController: IJSController);
 begin
   // This container does not support the concept of an active subcontroller.
@@ -693,42 +671,6 @@ begin
       LController.Display;
     end;
   end;
-end;
-
-{ TKExtModalWindow }
-
-procedure TKExtModalWindow.HookPanel(const APanel: TExtComponent);
-begin
-  Assert(Assigned(APanel));
-
-  APanel.&On('close',
-    TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PanelClosed)
-      .AddParam('Panel', APanel.JSName).AsFunction);
-  APanel.&On('beforedestroy',
-    TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PanelClosed)
-      .AddParam('Panel', APanel.JSName).AsFunction);
-end;
-
-procedure TKExtModalWindow.InitDefaults;
-var
-  LWidth: Integer;
-  LHeight: Integer;
-begin
-  inherited;
-  LWidth := GetDefaultWidth;
-  if LWidth <> 0 then
-    Width := LWidth;
-  LHeight := GetDefaultHeight;
-  if LHeight <> 0 then
-    Height := LHeight;
-  Closable := False;
-  Modal := True;
-end;
-
-procedure TKExtModalWindow.PanelClosed;
-begin
-  inherited;
-  Close;
 end;
 
 { TKExtFormComboBox }
