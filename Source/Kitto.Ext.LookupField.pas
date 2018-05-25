@@ -39,7 +39,7 @@ type
     FSubjObserverImpl: TEFSubjectAndObserver;
     FLookupController: IJSController;
     FViewField: TKViewField;
-    procedure ConfigureTriggers;
+    procedure UpdateTriggers;
   protected
     procedure InitDefaults; override;
   strict protected
@@ -59,6 +59,7 @@ type
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string); override;
     function AsExtObject: TExtObject;
     class function SupportsViewField(const AViewField: TKViewField): Boolean; static;
+    procedure SetReadOnly(const AValue: Boolean);
   //published
     procedure DoSelect;
     procedure DoClear; virtual; abstract;
@@ -179,23 +180,28 @@ begin
     end);
 end;
 
-procedure TKExtLookupField.ConfigureTriggers;
+procedure TKExtLookupField.UpdateTriggers;
 begin
-  if ReadOnly then
-    Triggers := nil
-  else
+  if Triggers = nil then
   begin
     Triggers := TExtFormTriggers.CreateInline(Self);
     { TODO : check whether Post('null') is still required or not. }
     Triggers.AddSimpleTrigger('select', 'x-form-search-trigger', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoSelect).Post('null').AsFunction);
     Triggers.AddSimpleTrigger('clear', 'x-form-clear-trigger', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoClear).Post('null').AsFunction);
   end;
+  HideTrigger := ReadOnly;
+end;
+
+procedure TKExtLookupField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+  UpdateTriggers;
 end;
 
 procedure TKExtLookupField.SetViewField(const AValue: TKViewField);
 begin
   FViewField := AValue;
-  ConfigureTriggers;
+  UpdateTriggers;
 end;
 
 class function TKExtLookupField.SupportsViewField(const AViewField: TKViewField): Boolean;

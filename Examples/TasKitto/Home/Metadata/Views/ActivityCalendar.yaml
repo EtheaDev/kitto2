@@ -8,6 +8,6 @@ MainTable:
     DateFieldName: ActivityDate
     FormController:
       CloneButton:
-    PopupWindow:
-      Width: 600
-      Height: 400
+  EditController:
+    Width: 600
+    Height: 400

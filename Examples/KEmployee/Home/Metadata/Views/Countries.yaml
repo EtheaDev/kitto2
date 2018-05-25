@@ -4,7 +4,6 @@ Controller: List
 MainTable:
   Model: Country
 
-  Controller:
-    PopupWindow:
-      Width: 660
-      Height: 430
+  EditController:
+    Width: 660
+    Height: 430

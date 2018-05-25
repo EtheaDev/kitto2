@@ -26,11 +26,10 @@ Controller: List
 
 MainTable:
   Model: PROJECT
+  EditController:
+    Width: 800
+    Height: 500
   Controller:
-    PopupWindow:
-      Width: 800
-      Height: 500
-
     FormController:
       LabelAlign: left
       ToolViews:

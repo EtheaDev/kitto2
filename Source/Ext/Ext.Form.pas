@@ -220,6 +220,7 @@ type
     FTriggers: TExtFormTriggers;
     FValidator: TExtExpression;
     FEditable: Boolean;
+    FHideTrigger: Boolean;
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetBlankText(const AValue: string);
     procedure SetEmptyClass(const AValue: string);
@@ -237,6 +238,7 @@ type
     procedure SetMaskRe(const AValue: string);
     procedure SetTriggers(const AValue: TExtFormTriggers);
     procedure SetEditable(const AValue: Boolean);
+    procedure SetHideTrigger(const AValue: Boolean);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -249,6 +251,7 @@ type
     property EmptyText: string read FEmptyText write SetEmptyText;
     property EnableKeyEvents: Boolean read FEnableKeyEvents write SetEnableKeyEvents;
     property Grow: Boolean read FGrow write SetGrow;
+    property HideTrigger: Boolean read FHideTrigger write SetHideTrigger;
     property MaskRe: string read FMaskRe write SetMaskRe;
     property MaxLength: Integer read FMaxLength write SetMaxLength;
     property MaxLengthText: string read FMaxLengthText write SetMaxLengthText;
@@ -923,6 +926,11 @@ end;
 procedure TExtFormTextField.SetGrow(const AValue: Boolean);
 begin
   FGrow := SetConfigItem('grow', AValue);
+end;
+
+procedure TExtFormTextField.SetHideTrigger(const AValue: Boolean);
+begin
+  FHideTrigger := SetConfigItem('hideTrigger', 'setHideTrigger', AValue);
 end;
 
 procedure TExtFormTextField.SetMaskRe(const AValue: string);

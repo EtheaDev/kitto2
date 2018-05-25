@@ -3,7 +3,6 @@ CenterController:
 Filters:
 IsModal: True
   Default: False
-PopUpWindow:
 WestController:
 NorthController:
 EastController:

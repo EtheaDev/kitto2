@@ -23,11 +23,12 @@ MainTable:
     Aspect:
     Picture:
 
+  EditController:
+    Height: 500
+    Width: 400
+
   Controller:
     AllowViewing: True
-    PopupWindow:
-      Height: 500
-      Width: 400
     Form:
       Layout: Dolls_Form
     ToolViews:

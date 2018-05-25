@@ -53,7 +53,6 @@ type
   TKExtDetailFormButton = class(TKExtButton)
   private
     FViewTable: TKViewTable;
-    FDetailHostWindow: TKExtModalWindow;
     FServerStore: TKViewTableStore;
     procedure SetViewTable(const AValue: TKViewTable);
   public
@@ -635,7 +634,7 @@ end;
 
 procedure TKExtFormPanelController.SwitchToEditMode;
 var
-  LHostWindow: TExtWindow;
+  LNewTitle: string;
 begin
   FStoreRecord.ApplyEditRecordRules;
   FEditButton.SetVisible(False);
@@ -651,9 +650,11 @@ begin
   FOperation := 'Edit';
   InitFlags;
   ChangeEditorsState;
-  LHostWindow := GetHostWindow;
-  if Assigned(LHostWindow) then
-    LHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
+  LNewTitle := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
+  if Modal then
+    UpdateHostWindowTitle(LNewTitle)
+  else
+    Title := LNewTitle;
   StartOperation;
 end;
 
@@ -1262,24 +1263,12 @@ var
 begin
   Assert(Assigned(FViewTable));
 
-  if Assigned(FDetailHostWindow) then
-  begin
-    FDetailHostWindow.Delete;
-    FreeAndNil(FDetailHostWindow);
-  end;
-  FDetailHostWindow := TKExtModalWindow.Create(Self);
-
-  FDetailHostWindow.Title := _(ViewTable.PluralDisplayLabel);
-  FDetailHostWindow.Closable := True;
-
   LController := TKExtControllerFactory.Instance.CreateController(
-    FDetailHostWindow, FViewTable.View, FDetailHostWindow);
+    Self, FViewTable.View, nil);
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
-  LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);
-  FDetailHostWindow.SetSizeFromTree(FViewTable, 'Controller/PopupWindow/');
+  LController.SetModal;
   LController.Display;
-  FDetailHostWindow.Show;
 end;
 
 { TKExtDetailPanel }

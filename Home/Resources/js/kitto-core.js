@@ -210,10 +210,10 @@ function ajaxDataViewSelection(buttonId, text, obj)
     for (var i = 0; i < fieldNames.length; i++)
     {
       for (var j = 0; j < selNodes.length; j++)
-	  {
+      {
         var fieldValues = selNodes[j].id.split(',');
         ajaxParams[fieldNames[i]] = fieldValues[i];
-	  }
+      }
     }
     return Ext.Ajax.request({
       url: obj.params.methodURL,

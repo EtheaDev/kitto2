@@ -80,13 +80,6 @@ type
     function IsSynchronous: Boolean;
     property Config: TEFNode read GetConfig;
 
-    /// <summary>
-    ///  Reads the Width, Height, FullScreen properties under <APath> from ATree
-    ///  and sets its size accordingly. Applies defaults if properties are not
-    ///  specified.
-    /// </summry>
-    procedure SetSizeFromTree(const ATree: TEFTree; const APath: string);
-
     property View: TKView read GetView write SetView;
     procedure Display;
     procedure SetModal;
@@ -176,7 +169,6 @@ type
     FConfig: TEFNode;
   strict protected
     function GetConfig: TEFNode;
-    function GetHostWindow: TExtWindow;
     procedure InitDefaults; override;
     procedure LoadHtml(const AFileName: string; const APostProcessor: TFunc<string, string> = nil);
   public
@@ -522,28 +514,6 @@ begin
 //  Modal := True;
 end;
 
-procedure TKExtWindowControllerBase.SetSizeFromTree(const ATree: TEFTree; const APath: string);
-var
-  LWidth: Integer;
-  LHeight: Integer;
-  LFullScreen: Boolean;
-begin
-  LWidth := ATree.GetInteger(APath + 'Width', GetDefaultWidth);
-  LHeight := ATree.GetInteger(APath + 'Height', Height);
-  LFullScreen := ATree.GetBoolean(APath + 'FullScreen', TKWebRequest.Current.IsMobileBrowser);
-
-  if LFullScreen then
-  begin
-    Maximized := True;
-    Border := not Maximized;
-  end
-  else
-  begin
-    Width := LWidth;
-    Height := LHeight;
-  end;
-end;
-
 procedure TKExtWindowControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
@@ -592,11 +562,6 @@ begin
   if not Assigned(FConfig) then
     FConfig := TEFNode.Create;
   Result := FConfig;
-end;
-
-function TKExtPanelBase.GetHostWindow: TExtWindow;
-begin
-  Result := Config.GetObject('Sys/HostWindow') as TExtWindow;
 end;
 
 procedure TKExtPanelBase.InitDefaults;
@@ -873,7 +838,7 @@ begin
   end
   else if LWidthStr <> '' then
     WidthString := LWidthStr
-  else if Floating then
+  else if Modal then
     Width := GetDefaultWidth;
 
   LHeightStr := Config.GetString('Height');
@@ -886,7 +851,7 @@ begin
   end
   else if LHeightStr <> '' then
     HeightString := LHeightStr
-  else if Floating then
+  else if Modal then
     Height := GetDefaultHeight;
 
   LSplit := Config.FindNode('Split');
@@ -1449,7 +1414,7 @@ end;
 procedure TKExtButton.InitDefaults;
 begin
   inherited;
-  &On('click', GenerateAnonymousFunction('comp', 'setAnimationOrigin(comp.id)'));
+  //&On('click', GenerateAnonymousFunction('b, e', 'setAnimationOrigin(b.id)'));
 end;
 
 procedure TKExtButton.SetIconAndScale(const AIconName: string; const AScale: string);

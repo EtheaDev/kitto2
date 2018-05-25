@@ -10,10 +10,9 @@ Controller: List
       Size: 800
 MainTable:
   Model: Biolife
-  Controller:
-    PopUpWindow:
-      Width: 800
-      Height: 600
+  EditController:
+    Width: 800
+    Height: 600
   Fields:
     SpeciesNo:
     Category:
