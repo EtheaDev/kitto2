@@ -705,9 +705,8 @@ begin
     Closable := Config.GetBoolean('AllowClose', GetDefaultAllowClose);
   DoDisplay;
   &On('render', GenerateAnonymousFunction(UpdateLayout));
-  if Modal then
-  //if Floating then
-    ShowModal
+  if Container = nil then
+    ShowFloating(Modal)
   else
     Show(JSExpressionFromCodeBlock('getAnimationOrigin()'));
 end;

@@ -16,7 +16,7 @@ function kittoInit()
   });
 
   Ext.override(Ext.Panel, {
-    showModal: function () {
+    showFloating: function (isModal) {
       this.hostWindow = new Ext.Window({
         layout: "fit",
         title: this.title,
@@ -24,7 +24,7 @@ function kittoInit()
         height: this.height + 5,
         closable: this.closable,
         iconCls: this.iconCls,
-        modal: true,
+        modal: isModal,
         items: [this]
       });
       this.title = '';
@@ -34,7 +34,7 @@ function kittoInit()
       this.setIconCls('');
       // In case it has custom close buttons...
       this.on('close', function() { this.hostWindow.close(); });
-      this.hostWindow.show();
+      this.hostWindow.show(getAnimationOrigin());
     },
 
     updateHostWindowTitle: function(title) {

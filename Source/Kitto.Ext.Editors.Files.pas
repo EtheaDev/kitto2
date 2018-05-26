@@ -160,6 +160,7 @@ uses
   , EF.JSON
   , EF.Localization
   , EF.Sys
+  , Kitto.Ext.UploadFileDialog
   , Kitto.Ext.Utils
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -563,60 +564,11 @@ begin
 end;
 
 procedure TKExtFormFileEditor.ShowUploadFileDialog;
-var
-  LUploadButton: TKExtButton;
-  LSubmitAction: TExtFormActionSubmit;
-  LUploadFormField: TKExtFormFileUploadField;
-  LToolbar: TKExtToolbar;
-  LCancelButton: TKExtButton;
-  LFormPanel: TExtFormFormPanel;
 begin
   FreeAndNil(FUploadFileDialog);
-  FUploadFileDialog := TExtPanel.Create(Self);
-  FUploadFileDialog.Title := _('File upload');
-  FUploadFileDialog.Width := 550;
-  FUploadFileDialog.Height := 150;
-
-  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FUploadFileDialog.Items);
-  LFormPanel.FileUpload := True;
-  LFormPanel.LabelAlign := laRight;
-  LFormPanel.LabelWidth := 50;
-  LFormPanel.Padding := '20px 10px 0 10px'; // top right bottom left
-  LFormPanel.Border := False;
-
-  LUploadFormField := TKExtFormFileUploadField.CreateInlineAndAddToArray(LFormPanel.Items);
-  LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
-  LUploadFormField.EmptyText := _('Select a file to upload');
-  LUploadFormField.AllowBlank := False;
-  LUploadFormField.Anchor := '0 5 0 0';
-  LToolbar := TKExtToolbar.Create(Self);
-  TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
-  FUploadFileDialog.Fbar := LToolbar;
-
-  LUploadButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
-  LUploadButton.Text := _('Upload');
-  LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser, 'medium', 'small'));
-
-  LCancelButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
-  LCancelButton.Text := _('Cancel');
-  LCancelButton.SetIconAndScale('Cancel', IfThen(TKWebRequest.Current.IsMobileBrowser, 'medium', 'small'));
-  LCancelButton.Handler := GenerateAnonymousFunction(FUploadFileDialog.Close);
-
-  LSubmitAction := TExtFormActionSubmit.CreateInline(LFormPanel);
-  LSubmitAction.Url := GetMethodURL(Upload);
-  LSubmitAction.WaitMsg := _('File upload in progress...');
-  LSubmitAction.WaitTitle := _('Please wait...');
-  //LSubmitAction.Success := Ajax(PostUpload);
-  LSubmitAction.Success := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PostUpload).AsFunction;
-  { TODO : find a way to substitute action.result.msg }
-  LSubmitAction.Failure := GenerateAnonymousFunction('form, action', ExtMessageBox.Alert(_('File upload error'), 'action.result.msg'));
-
-  LUploadButton.Handler := GenerateAnonymousFunction(Format(
-    'if (%s.isValid()) %s.submit({%s});',
-    [LFormPanel.JSName,
-     LFormPanel.JSName,
-     LSubmitAction.JSConfig.AsFormattedText]));
-  FUploadFileDialog.ShowModal;
+  FUploadFileDialog := Kitto.Ext.UploadFileDialog.ShowUploadFileDialog(Self,
+    _(FRecordField.ViewField.DisplayLabel), GetMethodURL(Upload),
+    TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PostUpload).AsFunction);
 end;
 
 procedure TKExtFormFileEditor.StartDownload;

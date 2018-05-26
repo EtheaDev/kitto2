@@ -206,7 +206,7 @@ type
     function Show(const AAnimateTarget: string = ''): TExtExpression; overload;
     function Show(const AAnimateTarget: TExtExpression): TExtExpression; overload;
     // Kitto specific.
-    function ShowModal: TExtExpression;
+    function ShowFloating(const AIsModal: Boolean): TExtExpression;
     // Kitto specific.
     function UpdateHostWindowTitle(const ATitle: string): TExtExpression;
     property CollapseMode: string read FCollapseMode write SetCollapseMode;
@@ -1107,9 +1107,10 @@ begin
     .AsExpression;
 end;
 
-function TExtComponent.ShowModal: TExtExpression;
+function TExtComponent.ShowFloating(const AIsModal: Boolean): TExtExpression;
 begin
-  Result := TKWebResponse.Current.Items.CallMethod(Self, 'showModal')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'showFloating')
+    .AddParam(AIsModal)
     .AsExpression;
 end;
 
