@@ -91,6 +91,7 @@ type
     function GetMaxRecords: Integer;
     function GetDefaultAutoOpen: Boolean;
     procedure SetURLFieldValues(const ARecord: TKViewTableRecord);
+    function HasURLFields: Boolean;
     procedure SetFieldValue(const AField: TKViewTableField; const ANode: TEFNode);
     function GetFieldFilterFunc: TKFieldFilterFunc;
     procedure ExecuteDeferredFileOps(const ARecord: TKViewTableRecord; const AEvent: TKFileOpEvent);
@@ -601,6 +602,16 @@ begin
   Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
+function TKExtDataPanelController.HasURLFields: Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 0 to ViewTable.FieldCount - 1 do
+    if ViewTable.Fields[I].IsPicture then
+      Exit(True);
+end;
+
 procedure TKExtDataPanelController.SetURLFieldValues(const ARecord: TKViewTableRecord);
 var
   I: Integer;
@@ -655,6 +666,7 @@ procedure TKExtDataPanelController.DoGetRecordPage(const AStart, ALimit: Integer
 var
   LTotal: Integer;
   LData: string;
+  LForEachRecordProc: TProc<TEFNode>;
 begin
   try
     // Don't refresh if there are pending changes.
@@ -666,12 +678,17 @@ begin
     end
     else
     begin
-      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetRecordPageFilter, GetOrderByClause, AStart, ALimit,
-        procedure (ARecord: TEFNode)
-        begin
-          Assert(ARecord is TKViewTableRecord);
-          SetURLFieldValues(TKViewTableRecord(ARecord));
-        end);
+      // Optimization: no URLFields, no need to execute the record proc.
+      if HasURLFields then
+        LForEachRecordProc :=
+          procedure (ARecord: TEFNode)
+          begin
+            Assert(ARecord is TKViewTableRecord);
+            SetURLFieldValues(TKViewTableRecord(ARecord));
+          end
+      else
+        LForEachRecordProc := nil;
+      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetRecordPageFilter, GetOrderByClause, AStart, ALimit, LForEachRecordProc);
       if AFillResponse then
       begin
         if (AStart <> 0) or (ALimit <> 0) then
