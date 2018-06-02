@@ -85,6 +85,7 @@ type
     FExpanders: TObjectList<TEFMacroExpander>;
     FPrevious: TEFMacroExpansionEngine;
     FOnGetFormatSettings: TFunc<TFormatSettings>;
+    FDisableCount: Integer;
     class var FInstance: TEFMacroExpansionEngine;
     class var FOnGetInstance: TEFGetMacroExpansionEngine;
     function CallExpanders(const AString: string): string;
@@ -150,6 +151,18 @@ type
     ///  If not specified, global FormatSettings variable is used.
     /// </summary>
     property OnGetFormatSettings: TFunc<TFormatSettings> read FOnGetFormatSettings write FOnGetFormatSettings;
+
+    /// <summary>
+    ///  Disables macro expansion (meaning that strings are returned untouched).
+    ///  Calls can be nested. Each call to Disable must be matched by a call to Enable.
+    /// </summary>
+    procedure Disable;
+
+    /// <summary>
+    ///  Re-enables macro expansion after a call to Disable.
+    ///  Calls can be nested. Each call to Disable must be matched by a call to Enable.
+    /// </summary>
+    procedure Enable;
   end;
 
   /// <summary>
@@ -615,6 +628,11 @@ begin
   inherited;
 end;
 
+procedure TEFMacroExpansionEngine.Disable;
+begin
+  Inc(FDisableCount);
+end;
+
 procedure TEFMacroExpansionEngine.AddExpander(const AExpander: TEFMacroExpander);
 begin
   Assert(Assigned(AExpander));
@@ -655,12 +673,20 @@ begin
   FExpanders.Clear;
 end;
 
+procedure TEFMacroExpansionEngine.Enable;
+begin
+  Dec(FDisableCount);
+end;
+
 function TEFMacroExpansionEngine.Expand(const AString: string): string;
 var
   LText: string;
 begin
   // Keep iterating until all macros in all included files are expanded.
   // This also allows to support macros in macros, at a performance cost.
+  if FDisableCount > 0 then
+    Exit(AString);
+
   LText := AString;
   Result := CallExpanders(LText);
   while LText <> Result do

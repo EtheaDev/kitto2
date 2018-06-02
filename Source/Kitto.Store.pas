@@ -466,6 +466,7 @@ uses
   , FmtBcd
   , Variants
   , StrUtils
+  , EF.Macros
   , EF.StrUtils
   , EF.Localization
   , EF.JSON
@@ -754,13 +755,18 @@ begin
         Records.Clear;
       if not ADBQuery.IsOpen then
         ADBQuery.Open;
-      while not ADBQuery.DataSet.Eof do
-      begin
-        LRecord := Records.AppendAndInitialize;
-        LRecord.ReadFromFields(ADBQuery.DataSet.Fields, AFieldsByIndex);
-        if Assigned(AForEachRecord) then
-          AForEachRecord(LRecord);
-        ADBQuery.DataSet.Next;
+      TEFMacroExpansionEngine.Instance.Disable;
+      try
+        while not ADBQuery.DataSet.Eof do
+        begin
+          LRecord := Records.AppendAndInitialize;
+          LRecord.ReadFromFields(ADBQuery.DataSet.Fields, AFieldsByIndex);
+          if Assigned(AForEachRecord) then
+            AForEachRecord(LRecord);
+          ADBQuery.DataSet.Next;
+        end;
+      finally
+        TEFMacroExpansionEngine.Instance.Enable;
       end;
     end);
 end;
