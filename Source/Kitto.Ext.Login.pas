@@ -30,10 +30,8 @@ uses
   ;
 
 type
-  // Utility class uses in login controllers. A form panel with standard login
-  // controls and logic. It can be embedded in a login window, viewport or other
-  // container for flexible login page appearance.
-  TKExtLoginFormPanel = class(TExtFormFormPanel)
+  // A login controller.
+  TKExtLoginPanel = class(TKExtPanelControllerBase)
   private
     FUserName: TExtFormTextField;
     FPassword: TExtFormTextField;
@@ -44,34 +42,19 @@ type
     FStatusBar: TKExtStatusBar;
     FLocalStorageMode: string;
     FLocalStorageAskUser: Boolean;
-    FAfterLogin: TProc;
     FResetPassword: TEFNode;
     function GetEnableButtonJS: string;
     function GetSubmitJS: string;
     function GetLocalStorageSaveJSCode(const AMode: string; const AAskUser: Boolean): string;
     function GetLocalStorageRetrieveJSCode(const AMode: string; const AAutoLogin: Boolean): string;
-  protected
-    procedure InitDefaults; override;
+    function StartEnableTask: TExtExpression;
+    function StopEnableTask: TExtExpression;
+  strict protected
+    procedure DoDisplay; override;
   public
-    property AfterLogin: TProc read FAfterLogin write FAfterLogin;
-    procedure Display(const AEditWidth: Integer; const AConfig: TEFNode; var ACurrentHeight: Integer);
   //published
     procedure DoLogin;
     procedure DoResetPassword;
-  end;
-
-  // A login window, suitable as a stand-alone login interface.
-  TKExtLoginWindow = class(TKExtWindowControllerBase)
-  strict protected
-    procedure DoDisplay; override;
-  end;
-
-  // A login panel, suitable for embedding into HTML code.
-  // requires the ContainerElementId config property to be set,
-  // otherwise it is not displayed.
-  TKExtLoginPanel = class(TKExtPanelControllerBase)
-  strict protected
-    procedure DoDisplay; override;
   end;
 
 implementation
@@ -91,47 +74,27 @@ uses
   , Kitto.Ext.Controller
   ;
 
-{ TKExtLoginWindow }
+{ TKExtLoginPanel }
 
-procedure TKExtLoginWindow.DoDisplay;
+procedure TKExtLoginPanel.DoDisplay;
 const
   STANDARD_WIDTH = 380;
-  STANDARD_HEIGHT = 160;
+  STANDARD_HEIGHT = 130;
+  CONTROL_HEIGHT = 32;
 var
-  LBorderPanel: TKExtBorderPanelController;
-  LFormPanel: TKExtLoginFormPanel;
-  LWidth, LHeight, LLabelWidth, LEditWidth: Integer;
+  LHeight: Integer;
+  LFormPanel: TExtFormFormPanel;
   LFormPanelBodyStyle: string;
   LTitle: TEFNode;
-
-  function GetHorizontalMargin: Integer;
-  begin
-    if Maximized then
-      Result := TKWebSession.Current.ViewportWidth div 4
-    else
-      Result := 20;
-  end;
-
+  LLocalStorageAskUserDefault: Boolean;
+  LLocalStorageAutoLogin: Boolean;
+  LLocalStorageOptions: TEFNode;
+  LLoginHandler: TJSAjaxCall;
+  LResetPasswordClickCode: string;
+  LEditWidth: Integer;
 begin
-  Draggable := View.GetBoolean('Controller/Movable', False);
-  if Maximized then
-    LWidth := TKWebSession.Current.ViewportWidth
-  else
-    LWidth := Max(Config.GetInteger('ExtraWidth'), STANDARD_WIDTH);
-  LHeight := Max(Config.GetInteger('ExtraHeight'), 0) + STANDARD_HEIGHT;
-
-  if Maximized then
-  begin
-    LLabelWidth := Trunc(TKWebSession.Current.ViewportWidth * 0.4);
-    LEditWidth := Trunc(TKWebSession.Current.ViewportWidth * 0.6) - GetHorizontalMargin;
-  end
-  else
-  begin
-    LLabelWidth := Max(Config.GetInteger('LabelWidth'), 100);
-    LEditWidth := Max(LWidth - LLabelWidth - GetHorizontalMargin * 2, 96);
-  end;
-  if not Maximized then
-    Width := LWidth;
+  inherited;
+  Layout := lyFit;
 
   LTitle := Config.FindNode('Title');
   if Assigned(LTitle) then
@@ -140,114 +103,44 @@ begin
     Title := _(TKWebApplication.Current.Config.AppTitle);
   Closable := False;
   Resizable := False;
+  Draggable := View.GetBoolean('Controller/Movable', False);
 
-  LBorderPanel := TKExtBorderPanelController.CreateAndAddToArray(Items);
-  LBorderPanel.Config.Assign(Config.FindNode('BorderPanel'));
-  //FBorderPanel.Border := False;
-  LBorderPanel.Frame := False;
-  LBorderPanel.View := View;
-  LBorderPanel.Display;
-
-  LFormPanel := TKExtLoginFormPanel.CreateAndAddToArray(LBorderPanel.Items);
-  LFormPanel.Region := rgCenter;
-  LFormPanel.LabelWidth := LLabelWidth;
-  LFormPanelBodyStyle := Config.GetString('FormPanel/BodyStyle');
-  if LFormPanelBodyStyle <> '' then
-    LFormPanel.BodyStyle := LFormPanelBodyStyle;
-  LFormPanel.AfterLogin :=
-    procedure
-    begin
-      Close;
-      NotifyObservers('LoggedIn');
-    end;
-  LFormPanel.Display(LEditWidth, Config, LHeight);
-  Height := LHeight;
-  inherited;
-end;
-
-{ TKExtLoginPanel }
-
-procedure TKExtLoginPanel.DoDisplay;
-var
-  LDummyHeight: Integer;
-  LFormPanel: TKExtLoginFormPanel;
-  LFormPanelBodyStyle: string;
-begin
-  inherited;
-  Frame := False;
-  Border := False;
-  Layout := lyFit;
-  Title := Config.GetString('Title');
-  Width := Config.GetInteger('Width', 300);
-  Height := Config.GetInteger('Height', 160);
-  Padding := Config.GetString('Padding', '10px');
-
-  LFormPanel := TKExtLoginFormPanel.CreateAndAddToArray(Items);
+  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(Items);
   LFormPanel.LabelWidth := Config.GetInteger('FormPanel/LabelWidth', 150);
   LFormPanelBodyStyle := Config.GetString('FormPanel/BodyStyle');
   if LFormPanelBodyStyle <> '' then
     LFormPanel.BodyStyle := LFormPanelBodyStyle;
-  LFormPanel.AfterLogin :=
-    procedure
-    begin
-      Delete;
-      NotifyObservers('LoggedIn');
-    end;
-  LDummyHeight := 0;
-  LFormPanel.Display(Config.GetInteger('FormPanel/EditWidth', 150), Config.FindNode('LocalStorage'), LDummyHeight);
-  inherited;
-end;
+  LFormPanel.MonitorValid := True;
+  LFormPanel.LabelAlign := laRight;
+  LFormPanel.Border := False;
+  LFormPanel.Frame := False;
+  LFormPanel.AutoScroll := True;
 
-{ TKExtLoginFormPanel }
+  LHeight := STANDARD_HEIGHT;
 
-function TKExtLoginFormPanel.GetEnableButtonJS: string;
-begin
-  Result := Format(
-    '%s.setDisabled(%s.getValue() == "" || %s.getValue() == "");',
-    [FLoginButton.JSName, FUserName.JSName, FPassword.JSName]);
-end;
-
-function TKExtLoginFormPanel.GetSubmitJS: string;
-begin
-  Result := Format(
-    // For some reason != does not survive rendering.
-    'if (e.getKey() == 13 && !(%s.getValue() == "") && !(%s.getValue() == "")) %s.handler.call(%s.scope, %s);',
-    [FUserName.JSName, FPassword.JSName, FLoginButton.JSName, FLoginButton.JSName, FLoginButton.JSName]);
-end;
-
-procedure TKExtLoginFormPanel.Display(const AEditWidth: Integer; const AConfig: TEFNode; var ACurrentHeight: Integer);
-const
-  CONTROL_HEIGHT = 32;
-var
-  LLocalStorageAskUserDefault: Boolean;
-  LLocalStorageAutoLogin: Boolean;
-  LLocalStorageOptions: TEFNode;
-  LLoginHandler: TJSAjaxCall;
-  LResetPasswordClickCode: string;
-begin
-  FStatusBar := TKExtStatusBar.Create(Self);
+  FStatusBar := TKExtStatusBar.Create(LFormPanel);
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Logging in...');
-  Bbar := FStatusBar;
+  LFormPanel.Bbar := FStatusBar;
 
   FLoginButton := TKExtButton.CreateAndAddToArray(FStatusBar.Items);
   FLoginButton.SetIconAndScale('login', 'medium');
   FLoginButton.Text := _('Login');
 
-  with TExtBoxComponent.CreateAndAddToArray(Items) do
-    Height := 20;
+  LFormPanel.Padding := '20px 0 0 0';
+  LEditWidth := Config.GetInteger('FormPanel/EditWidth', 150);
 
-  FUserName := TExtFormTextField.CreateAndAddToArray(Items);
+  FUserName := TExtFormTextField.CreateAndAddToArray(LFormPanel.Items);
   FUserName.Name := 'UserName';
   FUserName.Value := TKWebSession.Current.AuthData.GetExpandedString('UserName');
   FUserName.FieldLabel := _('User Name');
   FUserName.AllowBlank := False;
   FUserName.EnableKeyEvents := True;
   FUserName.SelectOnFocus := True;
-  FUserName.Width := AEditWidth + LabelWidth;
-  Inc(ACurrentHeight, CONTROL_HEIGHT);
+  FUserName.Width := LEditWidth + LabelWidth;
+  Inc(LHeight, CONTROL_HEIGHT);
 
-  FPassword := TExtFormTextField.CreateAndAddToArray(Items);
+  FPassword := TExtFormTextField.CreateAndAddToArray(LFormPanel.Items);
   FPassword.Name := 'Password';
   FPassword.Value := TKWebSession.Current.AuthData.GetExpandedString('Password');
   FPassword.FieldLabel := _('Password');
@@ -255,21 +148,18 @@ begin
   FPassword.AllowBlank := False;
   FPassword.EnableKeyEvents := True;
   FPassword.SelectOnFocus := True;
-  FPassword.Width := AEditWidth + LabelWidth;
-  Inc(ACurrentHeight, CONTROL_HEIGHT);
+  FPassword.Width := LEditWidth + LabelWidth;
+  Inc(LHeight, CONTROL_HEIGHT);
 
   FUserName.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
   FPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
 
-  TKWebResponse.Current.Items.ExecuteJSCode(Self, Format(
-    '%s.enableTask = Ext.TaskManager.start({ ' + sLineBreak +
-    '  run: function() {' + GetEnableButtonJS + '},' + sLineBreak +
-    '  interval: 500});', [JSName]));
+  StartEnableTask;
 
-  FResetPassword := AConfig.FindNode('ResetPassword');
+  FResetPassword := Config.FindNode('ResetPassword');
   if Assigned(FResetPassword) and FResetPassword.AsBoolean then
   begin
-    FResetPasswordLink := TExtBoxComponent.CreateAndAddToArray(Items);
+    FResetPasswordLink := TExtBoxComponent.CreateAndAddToArray(LFormPanel.Items);
     LResetPasswordClickCode := GetJSCode(
       procedure
       begin
@@ -278,15 +168,15 @@ begin
     FResetPasswordLink.Html := Format(
       '<div style="text-align:right;"><a href="#" onclick="%s">%s</a></div>',
       [HTMLEncode(LResetPasswordClickCode), HTMLEncode(_('Password forgotten?'))]);
-    FResetPasswordLink.Width := AEditWidth + LabelWidth;
-    Inc(ACurrentHeight, CONTROL_HEIGHT);
+    FResetPasswordLink.Width := LEditWidth + LabelWidth;
+    Inc(LHeight, CONTROL_HEIGHT);
   end
   else
     FResetPasswordLink := nil;
 
   if TKWebApplication.Current.Config.LanguagePerSession then
   begin
-    FLanguage := TExtFormComboBox.CreateAndAddToArray(Items);
+    FLanguage := TExtFormComboBox.CreateAndAddToArray(LFormPanel.Items);
     // Don't call JSArray on the window, as it will generate a dependency cycle.
 	{ TODO: Verify if this still holds true }
     FLanguage.StoreArray := FLanguage.JSArray('["it", "Italiano"], ["en", "English"]');
@@ -299,13 +189,13 @@ begin
     //FLanguage.SelectOnFocus := True;
     FLanguage.ForceSelection := True;
     FLanguage.TriggerAction := 'all'; // Disable filtering list items based on current value.
-    FLanguage.Width := AEditWidth + LabelWidth;
-    Inc(ACurrentHeight, CONTROL_HEIGHT);
+    FLanguage.Width := LEditWidth + LabelWidth;
+    Inc(LHeight, CONTROL_HEIGHT);
   end
   else
     FLanguage := nil;
 
-  LLocalStorageOptions := AConfig.FindNode('LocalStorage');
+  LLocalStorageOptions := Config.FindNode('LocalStorage');
   if Assigned(LLocalStorageOptions) then
   begin
     FLocalStorageMode := LLocalStorageOptions.GetString('Mode');
@@ -323,20 +213,22 @@ begin
 
   if (FLocalStorageMode <> '') and FLocalStorageAskUser then
   begin
-    FLocalStorageEnabled := TExtFormCheckbox.CreateAndAddToArray(Items);
+    FLocalStorageEnabled := TExtFormCheckbox.CreateAndAddToArray(LFormPanel.Items);
     FLocalStorageEnabled.Name := 'LocalStorageEnabled';
     FLocalStorageEnabled.Checked := LLocalStorageAskUserDefault;
     if SameText(FLocalStorageMode, 'Password') then
       FLocalStorageEnabled.FieldLabel := _('Remember Credentials')
     else
       FLocalStorageEnabled.FieldLabel := _('Remember User Name');
-    Inc(ACurrentHeight, CONTROL_HEIGHT);
+    Inc(LHeight, CONTROL_HEIGHT);
   end
   else
     FLocalStorageEnabled := nil;
 
   LLoginHandler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoLogin)
-    .AddParam('Dummy', FStatusBar.ShowBusy)
+    .AddParam('Dummy1', FStatusBar.ShowBusy)
+    .AddParam('Dummy2', FLoginButton.Disable)
+    .AddParam('Dummy3', StopEnableTask)
     .AddParam('UserName', FUserName.GetValue)
     .AddParam('Password', FPassword.GetValue)
     .AddParam('UserName', FUserName.GetValue);
@@ -357,35 +249,58 @@ begin
     FUserName.Focus(False, 750);
 
   &On('render', GenerateAnonymousFunction(GetLocalStorageRetrieveJSCode(FLocalStorageMode, LLocalStorageAutoLogin)));
-end;
 
-procedure TKExtLoginFormPanel.InitDefaults;
-begin
+  Height := LHeight;
+  Width := Config.GetInteger('Width', STANDARD_WIDTH);
   inherited;
-  LabelAlign := laRight;
-  Border := False;
-  Frame := False;
-  AutoScroll := True;
-  MonitorValid := True;
 end;
 
-procedure TKExtLoginFormPanel.DoLogin;
+function TKExtLoginPanel.GetEnableButtonJS: string;
+begin
+  Result := Format(
+    '%s.setDisabled(%s.getValue() == "" || %s.getValue() == "");',
+    [FLoginButton.JSName, FUserName.JSName, FPassword.JSName]);
+end;
+
+function TKExtLoginPanel.GetSubmitJS: string;
+begin
+  Result := Format(
+    // For some reason != does not survive rendering.
+    'if (e.getKey() == 13 && !(%s.getValue() == "") && !(%s.getValue() == "")) %s.handler.call(%s.scope, %s);',
+    [FUserName.JSName, FPassword.JSName, FLoginButton.JSName, FLoginButton.JSName, FLoginButton.JSName]);
+end;
+
+function TKExtLoginPanel.StartEnableTask: TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.ExecuteJSCode(Self, Format(
+    '%s.enableTask = Ext.TaskManager.start({ ' + sLineBreak +
+    '  run: function() {' + GetEnableButtonJS + '},' + sLineBreak +
+    '  interval: 500});', [JSName])).AsExpression;
+end;
+
+function TKExtLoginPanel.StopEnableTask: TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.ExecuteJSCode(Format('Ext.TaskManager.stop(%s.enableTask);', [JSName])).AsExpression;
+end;
+
+procedure TKExtLoginPanel.DoLogin;
 begin
   if TKWebApplication.Current.Authenticate then
   begin
-    TKWebResponse.Current.Items.ExecuteJSCode(Format('Ext.TaskManager.stop(%s.enableTask);', [JSName]));
     TKWebResponse.Current.Items.ExecuteJSCode(GetLocalStorageSaveJSCode(FLocalStorageMode, FLocalStorageAskUser));
-    Assert(Assigned(FAfterLogin));
-    FAfterLogin();
+    Close;
+    NotifyObservers('LoggedIn');
   end
   else
   begin
     FStatusBar.SetErrorStatus(_('Invalid login.'));
     FPassword.Focus(False, 750);
+    FLoginButton.Disabled := False;
+    StartEnableTask;
   end;
 end;
 
-procedure TKExtLoginFormPanel.DoResetPassword;
+procedure TKExtLoginPanel.DoResetPassword;
 begin
   Assert(Assigned(FResetPassword));
 
@@ -394,7 +309,7 @@ begin
   TKWebApplication.Current.DisplayView('ResetPassword');
 end;
 
-function TKExtLoginFormPanel.GetLocalStorageSaveJSCode(const AMode: string; const AAskUser: Boolean): string;
+function TKExtLoginPanel.GetLocalStorageSaveJSCode(const AMode: string; const AAskUser: Boolean): string;
 
   function IfChecked: string;
   begin
@@ -428,7 +343,7 @@ begin
     Result := GetDeleteCode;
 end;
 
-function TKExtLoginFormPanel.GetLocalStorageRetrieveJSCode(const AMode: string; const AAutoLogin: Boolean): string;
+function TKExtLoginPanel.GetLocalStorageRetrieveJSCode(const AMode: string; const AAutoLogin: Boolean): string;
 begin
   if SameText(AMode, 'UserName') or SameText(AMode, 'Password') then
     Result := Result + 'var u = localStorage.' + TKWebApplication.Current.Config.AppName + '_UserName; if (u) ' + FUserName.JSName + '.setValue(u);';
@@ -441,11 +356,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('Login', TKExtLoginWindow);
-  TKExtControllerRegistry.Instance.RegisterClass('LoginPanel', TKExtLoginPanel);
+  TKExtControllerRegistry.Instance.RegisterClass('Login', TKExtLoginPanel);
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('Login');
-  TKExtControllerRegistry.Instance.UnregisterClass('LoginPanel');
 
 end.

@@ -23,12 +23,15 @@ function kittoInit()
         width: this.width + 5,
         height: this.height + 5,
         closable: this.closable,
+        resizable: this.resizable,
+        draggable: this.draggable,
         iconCls: this.iconCls,
         modal: isModal,
         items: [this]
       });
       this.title = '';
       this.closable = false;
+      this.resizable = false;
       this.draggable = false;
       this.header = false;
       this.setIconCls('');

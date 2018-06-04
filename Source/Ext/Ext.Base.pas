@@ -198,6 +198,8 @@ type
     procedure DoHandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function AddCls(const AClsName: string): TExtExpression;
+    function Disable: TExtExpression;
+    function Enable: TExtExpression;
     function Focus(const ASelectText: Boolean = False; const ADelay: Boolean = False): TExtExpression; overload;
     function Focus(const ASelectText: Boolean; const ADelay: Integer): TExtExpression; overload;
     function Hide: TExtExpression;
@@ -303,6 +305,7 @@ type
     FHeight: Integer;
     FWidthExpression: TExtExpression;
     FOwnerCt: TExtContainer;
+    FResizable: Boolean;
     procedure SetAnchor(const AValue: string);
     procedure SetAutoHeight(const AValue: Boolean);
     procedure _SetAutoScroll(const AValue: Boolean);
@@ -316,6 +319,7 @@ type
     procedure SetWidthExpression(const AValue: TExtExpression);
     procedure SetHeightFunc(const AValue: TExtExpression);
     procedure SetOwnerCt(const AValue: TExtContainer);
+    procedure SetResizable(const AValue: Boolean);
   public
     class function JSClassName: string; override;
     property Anchor: string read FAnchor write SetAnchor;
@@ -328,6 +332,7 @@ type
     property Margins: string read FMargins write SetMargins;
     property OwnerCt: TExtContainer read FOwnerCt write SetOwnerCt;
     property Region: TExtBoxComponentRegion read FRegion write SetRegion;
+    property Resizable: Boolean read FResizable write SetResizable;
     property Width: Integer read FWidth write SetWidth;
     property WidthString: string read FWidthString write SetWidthString;
     property WidthExpression: TExtExpression read FWidthExpression write SetWidthExpression;
@@ -676,7 +681,6 @@ type
     FMinWidth: Integer; // 200
     FModal: Boolean;
     FPlain: Boolean;
-    FResizable: Boolean; // true
     FResizeHandles: string; // 'all'
     procedure _SetAnimateTarget(const AValue: string);
     procedure SetClosable(const AValue: Boolean);
@@ -685,7 +689,6 @@ type
     procedure SetMaximized(const AValue: Boolean);
     procedure SetModal(const AValue: Boolean);
     procedure SetPlain(const AValue: Boolean);
-    procedure SetResizable(const AValue: Boolean);
     procedure SetResizeHandles(const AValue: string);
   protected
     procedure InitDefaults; override;
@@ -705,7 +708,6 @@ type
     property Maximized: Boolean read FMaximized write SetMaximized;
     property Modal: Boolean read FModal write SetModal;
     property Plain: Boolean read FPlain write SetPlain;
-    property Resizable: Boolean read FResizable write SetResizable;
     property ResizeHandles: string read FResizeHandles write SetResizeHandles;
   end;
 
@@ -1138,11 +1140,21 @@ begin
   FAfterRender := AValue;
 end;
 
+function TExtComponent.Disable: TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'disable').AsExpression;
+end;
+
 procedure TExtComponent.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'afterrender') and Assigned(FAfterRender) then
     FAfterRender(TExtComponent(ParamAsObject('This')));
+end;
+
+function TExtComponent.Enable: TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'enable').AsExpression;
 end;
 
 procedure TExtLayer._SetZindex(const AValue: Integer);
@@ -1279,6 +1291,11 @@ procedure TExtBoxComponent.SetRegion(const AValue: TExtBoxComponentRegion);
 begin
   FRegion := AValue;
   SetConfigItem('region', TJS.EnumToJSString(TypeInfo(TExtBoxComponentRegion), Ord(AValue)));
+end;
+
+procedure TExtBoxComponent.SetResizable(const AValue: Boolean);
+begin
+  FResizable := SetConfigItem('resizable', 'setResizable', AValue);
 end;
 
 procedure TExtBoxComponent.SetWidth(const AValue: Integer);
@@ -1981,11 +1998,6 @@ begin
   FPlain := SetConfigItem('plain', AValue);
 end;
 
-procedure TExtWindow.SetResizable(const AValue: Boolean);
-begin
-  FResizable := SetConfigItem('resizable', AValue);
-end;
-
 procedure TExtWindow.SetResizeHandles(const AValue: string);
 begin
   FResizeHandles := SetConfigItem('resizeHandles', AValue);
@@ -2006,7 +2018,6 @@ begin
   FInitHidden := true;
   FMinHeight := 100;
   FMinWidth := 200;
-  FResizable := true;
   FResizeHandles := 'all';
   FBbar := CreateConfigObjectArray('bbar');
 end;

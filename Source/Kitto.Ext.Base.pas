@@ -707,8 +707,8 @@ begin
   if Container <> nil then
     Closable := Config.GetBoolean('AllowClose', GetDefaultAllowClose);
   DoDisplay;
-  &On('render', GenerateAnonymousFunction(UpdateLayout));
-  if Container = nil then
+//  &On('render', GenerateAnonymousFunction(UpdateLayout));
+  if (Container = nil) and (RenderTo = '') and (RenderToExpression = nil) then
     ShowFloating(Modal)
   else
     Show(JSExpressionFromCodeBlock('getAnimationOrigin()'));
