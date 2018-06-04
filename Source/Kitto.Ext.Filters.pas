@@ -1464,7 +1464,10 @@ end;
 function TKLookupFilter.GetExpression: string;
 begin
   if Assigned(FCurrentValues) and (FCurrentValues.RecordCount > 0) then
-    Result := FCurrentValues.Records[0].ExpandExpression(FConfig.GetExpandedString('ExpressionTemplate'))
+  begin
+    Result := FConfig.GetExpandedString('ExpressionTemplate');
+    FCurrentValues.Records[0].ExpandExpression(Result);
+  end
   else
     Result := '';
 end;

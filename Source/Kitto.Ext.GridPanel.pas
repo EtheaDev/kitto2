@@ -314,6 +314,7 @@ var
       LAllowedValues: TEFPairs;
       LJSCode: string;
       LColorValueFieldName: string;
+      LColorPair: string;
     begin
       Result := False;
 
@@ -366,7 +367,9 @@ var
         for I := 0 to High(LColorPairs) do
         begin
           LTriples[I].Value1 := LColorPairs[I].Key;
-          LTriples[I].Value2 := TEFMacroExpansionEngine.Instance.Expand(LColorPairs[I].Value);
+          LColorPair := LColorPairs[I].Value;
+          TEFMacroExpansionEngine.Instance.Expand(LColorPair);
+          LTriples[I].Value2 := LColorPair;
           LTriples[I].Value3 := AViewField.DisplayTemplate;
         end;
         // Pass array to the client-side renderer.

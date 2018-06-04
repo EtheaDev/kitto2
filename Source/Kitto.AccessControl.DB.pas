@@ -362,7 +362,7 @@ begin
     // Only trigger macro expansion if a macro is found. Ugly, but more
     // efficient.
     if Pos('%', LPattern) > 0 then
-      LPattern := TKConfig.Instance.MacroExpansionEngine.Expand(LPattern);
+      TKConfig.Instance.MacroExpansionEngine.Expand(LPattern);
 
     // A match is found only if the resource URI pattern matches the given
     // resource URI and if the given access mode is equal to or part of the

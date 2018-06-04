@@ -84,15 +84,17 @@ var
 begin
   LFileName := TKWebApplication.Current.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
   if LFileName <> '' then
-    FView.Tpl := ProcessTemplate(TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName, TEncoding.UTF8)))
+    LTemplate := TextFileToString(LFileName, TEncoding.UTF8)
+  else
+    LTemplate := Config.GetString('Template');
+  if LTemplate = '' then
+    FView.Tpl := 'TemplateFileName or Template parameters not specified.'
   else
   begin
-    LTemplate := Config.GetExpandedString('Template');
-    if LTemplate = '' then
-      FView.Tpl := _('TemplateFileName or Template parameters not specified.')
-    else
-      FView.Tpl := ProcessTemplate(LTemplate);
+    TEFMacroExpansionEngine.Instance.Expand(LTemplate);
+    FView.Tpl := ProcessTemplate(LTemplate);
   end;
+  FView.Store := ClientStore;
 end;
 
 function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;

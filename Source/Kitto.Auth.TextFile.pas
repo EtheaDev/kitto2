@@ -124,14 +124,14 @@ var
   LStoredPasswordHash: string;
   LUserName: string;
 begin
-  LSuppliedPasswordHash := TKConfig.Instance.MacroExpansionEngine.Expand(
-    AAuthData.GetString('Password'));
+  LSuppliedPasswordHash := AAuthData.GetString('Password');
+  TKConfig.Instance.MacroExpansionEngine.Expand(LSuppliedPasswordHash);
 
   if not Config.GetBoolean('IsClearPassword') then
     LSuppliedPasswordHash := GetStringHash(LSuppliedPasswordHash);
 
-  LUserName := TKConfig.Instance.MacroExpansionEngine.Expand(
-    AAuthData.GetString('UserName'));
+  LUserName := AAuthData.GetString('UserName');
+  TKConfig.Instance.MacroExpansionEngine.Expand(LUserName);
 
   if LUserName <> '' then
   begin

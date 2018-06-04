@@ -387,7 +387,11 @@ end;
 
 function SQLQuotedStr(const AString: string): string;
 begin
-  Result := SQLQuote + StringReplace(AString, SQLQuote, SQLQuote + SQLQuote, [rfReplaceAll]) + SQLQuote;
+  Result := AString;
+  ReplaceAllCaseSensitive(Result, SQLQuote, SQLQuote + SQLQuote);
+  // Insert is faster than concatenation + assignment.
+  Insert(SQLQuote, Result, 1);
+  Insert(SQLQuote, Result, Length(AString) + 1);
 end;
 
 function RemoveSQLQuotes(const AString: string): string;
@@ -495,8 +499,8 @@ var
 begin
   Result := AStrippedSQLString;
   for LPartIndex := 0 to FStrippedParts.Count - 1 do
-    Result := StringReplace(Result, FStrippedParts.Names[LPartIndex],
-      FStrippedParts.ValueFromIndex[LPartIndex], []);
+    ReplaceAllCaseSensitive(Result, FStrippedParts.Names[LPartIndex],
+      FStrippedParts.ValueFromIndex[LPartIndex]);
 end;
 
 {

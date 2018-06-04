@@ -45,17 +45,17 @@ type
   strict protected
     /// <summary>
     ///   Utility method: replaces all occurrences of AMacroName in AString with
-    ///   AMacroValue, and returns the resulting string. Should be used by all
-    ///   inherited classes to expand macros. Implements support for control
-    ///   sequences (such as %Q, that encapsulates QuotedStr()).
+    ///   AMacroValue. Should be used by all inherited classes to expand macros.
+    ///   Implements support for control sequences (such as %Q, that encapsulates QuotedStr()).
     /// </summary>
-    function ExpandMacros(const AString, AMacroName, AMacroValue: string): string;
+    procedure ExpandMacros(var AString: string; const AMacroName, AMacroValue: string); inline;
 
     /// <summary>
-    ///   Implements Expand. The default implementation just returns the input
-    ///   argument unchanged.
+    ///  Implements Expand. The default implementation doesn't change
+    ///  the input argument except for translating parts of it that are
+    ///  enclosed between '_(' and ')'.
     /// </summary>
-    function InternalExpand(const AString: string): string; virtual;
+    procedure InternalExpand(var AString: string); virtual;
 
     function GetFormatSettings: TFormatSettings;
   public
@@ -66,7 +66,7 @@ type
     ///   string with macros expanded. Calls the virtual protected method
     ///   InternalExpand to do the job.
     /// </summary>
-    function Expand(const AString: string): string;
+    procedure Expand(var AString: string); inline;
   end;
   TEFMacroExpanderClass = class of TEFMacroExpander;
 
@@ -88,7 +88,7 @@ type
     FDisableCount: Integer;
     class var FInstance: TEFMacroExpansionEngine;
     class var FOnGetInstance: TEFGetMacroExpansionEngine;
-    function CallExpanders(const AString: string): string;
+    procedure CallExpanders(var AString: string);
     class function GetInstance: TEFMacroExpansionEngine; static;
   private
     function GetFormatSettings: TFormatSettings;
@@ -109,7 +109,7 @@ type
     ///   no macro expanders are used, the result is the same as the input
     ///   string.
     /// </summary>
-    function Expand(const AString: string): string;
+    procedure Expand(var AString: string);
 
     /// <summary>
     ///   Adds an expander to the list used by the Expand method. Acquires
@@ -204,7 +204,7 @@ type
   /// </summary>
   TEFPathMacroExpander = class(TEFMacroExpander)
   strict protected
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   end;
 
   /// <summary>
@@ -249,7 +249,7 @@ type
   /// </summary>
   TEFSysMacroExpander = class(TEFMacroExpander)
   strict protected
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   end;
 
   /// <summary>
@@ -261,7 +261,7 @@ type
   /// <seealso cref="EF.Sys.ExpandEnvironmentVariables"></seealso>
   TEFEnvironmentVariableMacroExpander = class(TEFMacroExpander)
   strict protected
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   end;
 
   /// <summary>Expands named parameters passed on the command line. A named
@@ -278,7 +278,7 @@ type
     FParams: TStringList;
     procedure ReadCmdLineParams;
   strict protected
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -377,7 +377,7 @@ type
   /// </summary>
   TEFDateTimeStrMacroExpander = class(TEFMacroExpander)
   strict protected
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   end;
 
   /// <summary>
@@ -402,7 +402,7 @@ type
   /// <seealso cref="CreateCompactGuidStr"></seealso>
   TEFGUIDMacroExpander = class(TEFMacroExpander)
   strict protected
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   end;
 
   /// <summary>
@@ -427,7 +427,7 @@ type
   /// <seealso cref="CreateCompactGuidStr"></seealso>
   TEFEntityMacroExpander = class(TEFMacroExpander)
   strict protected
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   end;
 
   TStringArray = TArray<string>;
@@ -445,7 +445,7 @@ type
     /// GetMacroNames) and call inherited for any unsupported case.</summary>
     function ExpandParameterizedMacro(const AMacroName: string; const AParams: TArray<string>): string; virtual;
 
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   end;
 
   /// <summary>
@@ -552,16 +552,13 @@ end;
 
 { TEFMacroExpander }
 
-function TEFMacroExpander.ExpandMacros(const AString, AMacroName,
-  AMacroValue: string): string;
+procedure TEFMacroExpander.ExpandMacros(var AString: string; const AMacroName, AMacroValue: string);
 begin
   // First try control sequences, then standard, as the latter format is part
   // of the former (almost all standard macros begin with '%'.
-  Result := StringReplace(AString, '%Q' + AMacroName, QuotedStr(AMacroValue),
-    [rfReplaceAll, rfIgnoreCase]);
+  ReplaceAllCaseSensitive(AString, '%Q' + AMacroName, QuotedStr(AMacroValue));
   // Standard.
-  Result := StringReplace(Result, AMacroName, AMacroValue,
-    [rfReplaceAll, rfIgnoreCase]);
+  ReplaceAllCaseSensitive(AString, AMacroName, AMacroValue);
 end;
 
 function TEFMacroExpander.GetFormatSettings: TFormatSettings;
@@ -572,29 +569,33 @@ begin
     Result :=  FormatSettings;
 end;
 
-function TEFMacroExpander.InternalExpand(const AString: string): string;
+procedure TEFMacroExpander.InternalExpand(var AString: string);
 var
-  LTranStartPos, LTranStopPos: integer;
-  LTempString: string;
+  LLocalizableStartPos, LLocalizableEndPos: integer;
+  LLocalizableString: string;
+  LLocalizableStringLength: Integer;
+  LLocalizedString: string;
 begin
-  Result := AString;
-
-  //Translation of internal string translation directives
-  //e.g. <p>_(User: %Auth:UserName%)</p>
-  //returns: <p>_(Utente: %Auth:UserName%)</p>
-  LTranStartPos := Pos('_(', Result);
-  if (LTranStartPos > 1) then
+  // If parts of the string are enclosed between '_(' and ')', extract and translate them.
+  // e.g. <p>_(User: %Auth:UserName%)</p>
+  // returns: <p>_(Utente: %Auth:UserName%)</p>
+  // Fully-enclosed localizable strings are taken care of elsewhere.
+  LLocalizableStartPos := Pos('_(', AString);
+  while LLocalizableStartPos > 1 do
   begin
-    //Searching _(xxxx)
-    LTempString := Copy(Result,LTranStartPos+2,MaxInt);
-    LTranStopPos := pos(')',LTempString);
-    if LTranStopPos > 1 then
+    LLocalizableString := Copy(AString, LLocalizableStartPos + 2, MaxInt);
+    LLocalizableEndPos := Pos(')', LLocalizableString);
+    if LLocalizableEndPos > 1 then
     begin
-      LTempString := Copy(LTempString,1,LTranStopPos-1);
-      Result := Copy(Result,1,LTranStartPos-1)+
-        _(LTempString)+
-        Copy(Result,LTranStartPos+LTranStopPos+2,MaxInt);
+      Delete(LLocalizableString, LLocalizableEndPos, MaxInt);
+      LLocalizableStringLength := Length(LLocalizableString);
+      LLocalizedString := _(LLocalizableString);
+      // Remove localizable string and localization directive.
+      Delete(AString, LLocalizableStartPos, LLocalizableStringLength + 3);
+      // Replace with localized string.
+      Insert(LLocalizedString, AString, LLocalizableStartPos);
     end;
+    LLocalizableStartPos := Pos('_(', AString);
   end;
 end;
 
@@ -602,9 +603,9 @@ constructor TEFMacroExpander.Create;
 begin
 end;
 
-function TEFMacroExpander.Expand(const AString: string): string;
+procedure TEFMacroExpander.Expand(var AString: string);
 begin
-  Result := InternalExpand(AString);
+  InternalExpand(AString);
 end;
 
 { TEFMacroExpansionManager }
@@ -678,22 +679,19 @@ begin
   Dec(FDisableCount);
 end;
 
-function TEFMacroExpansionEngine.Expand(const AString: string): string;
+procedure TEFMacroExpansionEngine.Expand(var AString: string);
 var
-  LText: string;
+  LPreviousString: string;
 begin
   // Keep iterating until all macros in all included files are expanded.
   // This also allows to support macros in macros, at a performance cost.
   if FDisableCount > 0 then
-    Exit(AString);
+    Exit;
 
-  LText := AString;
-  Result := CallExpanders(LText);
-  while LText <> Result do
-  begin
-    LText := Result;
-    Result := CallExpanders(LText);
-  end;
+  LPreviousString := AString;
+  CallExpanders(AString);
+  while LPreviousString <> AString do
+    CallExpanders(LPreviousString);
 end;
 
 function TEFMacroExpansionEngine.GetFormatSettings: TFormatSettings;
@@ -720,67 +718,78 @@ begin
   end;
 end;
 
-function TEFMacroExpansionEngine.CallExpanders(const AString: string): string;
+procedure TEFMacroExpansionEngine.CallExpanders(var AString: string);
 var
   I: Integer;
 begin
   if Assigned(FPrevious) then
-    Result := FPrevious.Expand(AString)
-  else
-    Result := AString;
+    FPrevious.Expand(AString);
   for I := 0 to FExpanders.Count - 1 do
-    Result := TEFMacroExpander(FExpanders[I]).Expand(Result);
+    TEFMacroExpander(FExpanders[I]).Expand(AString);
 end;
 
 { TEFPathMacroExpander }
 
-function TEFPathMacroExpander.InternalExpand(const AString: string): string;
+procedure TEFPathMacroExpander.InternalExpand(var AString: string);
 var
   LMajorVersion, LMinorVersion, LRelease, LBuild : integer;
 begin
-  Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%APP_PATH%', ExtractFilePath(ParamStr(0)));
-  Result := ExpandMacros(Result, '%APP_NAME%', ParamStr(0));
-  Result := ExpandMacros(Result, '%APP_FILENAME%', ExtractFileName(ParamStr(0)));
-  Result := ExpandMacros(Result, '%APP_BASENAME%', ChangeFileExt(ExtractFileName(ParamStr(0)), ''));
+  inherited InternalExpand(AString);
+  if AString.Contains('%APP_PATH%') then
+    ExpandMacros(AString, '%APP_PATH%', ExtractFilePath(ParamStr(0)));
+  if AString.Contains('%APP_NAME%') then
+    ExpandMacros(AString, '%APP_NAME%', ParamStr(0));
+  if AString.Contains('%APP_FILENAME%') then
+    ExpandMacros(AString, '%APP_FILENAME%', ExtractFileName(ParamStr(0)));
+  if AString.Contains('%APP_BASENAME%') then
+    ExpandMacros(AString, '%APP_BASENAME%', ChangeFileExt(ExtractFileName(ParamStr(0)), ''));
   {$IFDEF MSWINDOWS}
-  Result := ExpandMacros(Result, '%WIN_DIR%', IncludeTrailingPathDelimiter(SafeGetWindowsDirectory));
-  Result := ExpandMacros(Result, '%SYS_DIR%', IncludeTrailingPathDelimiter(SafeGetSystemDirectory));
-  if (pos('%APP_VERSION%', AString) > 0) or (pos('%APP_VERSION_FULL%', AString) > 0) then
+  if AString.Contains('%WIN_DIR%') then
+    ExpandMacros(AString, '%WIN_DIR%', IncludeTrailingPathDelimiter(SafeGetWindowsDirectory));
+  if AString.Contains('%SYS_DIR%') then
+    ExpandMacros(AString, '%SYS_DIR%', IncludeTrailingPathDelimiter(SafeGetSystemDirectory));
+  if AString.Contains('%APP_VERSION') then
   begin
     GetVerInfo(ParamStr(0), LMajorVersion, LMinorVersion, LRelease, LBuild);
-    Result := ExpandMacros(Result, '%APP_VERSION%', Format('%d.%d',[LMajorVersion, LMinorVersion]));
-    Result := ExpandMacros(Result, '%APP_VERSION_FULL%', Format('%d.%d.%d',[LMajorVersion, LMinorVersion, LRelease]));
+    ExpandMacros(AString, '%APP_VERSION%', Format('%d.%d', [LMajorVersion, LMinorVersion]));
+    ExpandMacros(AString, '%APP_VERSION_FULL%', Format('%d.%d.%d', [LMajorVersion, LMinorVersion, LRelease]));
   end;
   {$ENDIF}
 end;
 
 { TEFSysMacroExpander }
 
-function TEFSysMacroExpander.InternalExpand(const AString: string): string;
+procedure TEFSysMacroExpander.InternalExpand(var AString: string);
 var
   LFormatSettings: TFormatSettings;
 begin
-  Result := inherited InternalExpand(AString);
+  inherited InternalExpand(AString);
   LFormatSettings := GetFormatSettings;
-  Result := ExpandMacros(Result, '%DATE%', FormatDateTime(LFormatSettings.ShortDateFormat, Date));
-  Result := ExpandMacros(Result, '%YESTERDAY%', FormatDateTime(LFormatSettings.ShortDateFormat, Date - 1));
-  Result := ExpandMacros(Result, '%TOMORROW%', FormatDateTime(LFormatSettings.ShortDateFormat, Date + 1));
-  Result := ExpandMacros(Result, '%TIME%', FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
-  Result := ExpandMacros(Result, '%DATETIME%', FormatDateTime(LFormatSettings.ShortDateFormat, Now)+' '+ FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
+  if AString.Contains('%DATE%') then
+    ExpandMacros(AString, '%DATE%', FormatDateTime(LFormatSettings.ShortDateFormat, Date));
+  if AString.Contains('%YESTERDAY%') then
+    ExpandMacros(AString, '%YESTERDAY%', FormatDateTime(LFormatSettings.ShortDateFormat, Date - 1));
+  if AString.Contains('%TOMORROW%') then
+    ExpandMacros(AString, '%TOMORROW%', FormatDateTime(LFormatSettings.ShortDateFormat, Date + 1));
+  if AString.Contains('%TIME%') then
+    ExpandMacros(AString, '%TIME%', FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
+  if AString.Contains('%DATETIME%') then
+    ExpandMacros(AString, '%DATETIME%', FormatDateTime(LFormatSettings.ShortDateFormat, Now)+' '+ FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
   {$IFDEF MSWINDOWS}
-  Result := ExpandMacros(Result, '%PROCESS_ID%', IntToStr(GetCurrentProcessId));
-  Result := ExpandMacros(Result, '%THREAD_ID%', IntToStr(GetCurrentThreadId));
+  if AString.Contains('%PROCESS_ID%') then
+    ExpandMacros(AString, '%PROCESS_ID%', IntToStr(GetCurrentProcessId));
+  if AString.Contains('%THREAD_ID%') then
+    ExpandMacros(AString, '%THREAD_ID%', IntToStr(GetCurrentThreadId));
   {$ENDIF}
 end;
 
 { TEFEnvironmentVariableMacroExpander }
 
-function TEFEnvironmentVariableMacroExpander.InternalExpand(const AString: string): string;
+procedure TEFEnvironmentVariableMacroExpander.InternalExpand(var AString: string);
 begin
-  Result := inherited InternalExpand(AString);
+  inherited InternalExpand(AString);
   { TODO : Implement for linux? }
-  Result := ExpandEnvironmentVariables(Result);
+  ExpandEnvironmentVariables(AString);
 end;
 
 { TEFCmdLineParamMacroExpander }
@@ -813,42 +822,59 @@ begin
   end;
 end;
 
-function TEFCmdLineParamMacroExpander.InternalExpand(
-  const AString: string): string;
+procedure TEFCmdLineParamMacroExpander.InternalExpand(var AString: string);
 var
   LParamIndex: Integer;
 begin
-  Result := inherited InternalExpand(AString);
+  inherited InternalExpand(AString);
   for LParamIndex := 0 to FParams.Count - 1 do
-    Result := ExpandMacros(Result, '%Cmd:' + FParams.Names[LParamIndex] + '%',
+    ExpandMacros(AString, '%Cmd:' + FParams.Names[LParamIndex] + '%',
       FParams.ValueFromIndex[LParamIndex]);
 end;
 
 { TEFDateTimeStrMacroExpander }
 
-function TEFDateTimeStrMacroExpander.InternalExpand(
-  const AString: string): string;
+procedure TEFDateTimeStrMacroExpander.InternalExpand(var AString: string);
 begin
-  Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%YYYYMMDD_DATE%', FormatDateTime('yyyymmdd', Date));
-  Result := ExpandMacros(Result, '%YYYYMMDD_YESTERDAY%', FormatDateTime('yyyymmdd', Date - 1));
-  Result := ExpandMacros(Result, '%YYYYMMDD_TOMORROW%', FormatDateTime('yyyymmdd', Date + 1));
-  Result := ExpandMacros(Result, '%YYMMDD_DATE%', FormatDateTime('yymmdd', Date));
-  Result := ExpandMacros(Result, '%YYMMDD_YESTERDAY%', FormatDateTime('yymmdd', Date - 1));
-  Result := ExpandMacros(Result, '%YYMMDD_TOMORROW%', FormatDateTime('yymmdd', Date + 1));
-  Result := ExpandMacros(Result, '%MMDD_DATE%', FormatDateTime('mmdd', Date));
-  Result := ExpandMacros(Result, '%DD_DATE%', FormatDateTime('dd', Date));
-  Result := ExpandMacros(Result, '%MM_DATE%', FormatDateTime('mm', Date));
-  Result := ExpandMacros(Result, '%YYYY_DATE%', FormatDateTime('yyyy', Date));
-  Result := ExpandMacros(Result, '%WEEKDAYNAME_SHORT%', FormatDateTime('ddd', Date));
-  Result := ExpandMacros(Result, '%WEEKDAYNAME_LONG%', FormatDateTime('dddd', Date));
-  Result := ExpandMacros(Result, '%WEEKDAYNR%', IntToStr(DayOfWeek(Date)));
-  Result := ExpandMacros(Result, '%ISOWEEKDAYNR%', IntToStr(DayOfTheWeek(Date)));
-  Result := ExpandMacros(Result, '%HHMMSS_TIME%', FormatDateTime('hhnnss', Now));
-  Result := ExpandMacros(Result, '%HHMM_TIME%', FormatDateTime('hhnn', Now));
-  Result := ExpandMacros(Result, '%HH_TIME%', FormatDateTime('hh', Now));
-  Result := ExpandMacros(Result, '%MM_TIME%', FormatDateTime('nn', Now));
-  Result := ExpandMacros(Result, '%SS_TIME%', FormatDateTime('ss', Now));
+  inherited InternalExpand(AString);
+  if AString.Contains('%YYYYMMDD_DATE%') then
+    ExpandMacros(AString, '%YYYYMMDD_DATE%', FormatDateTime('yyyymmdd', Date));
+  if AString.Contains('%YYYYMMDD_YESTERDAY%') then
+    ExpandMacros(AString, '%YYYYMMDD_YESTERDAY%', FormatDateTime('yyyymmdd', Date - 1));
+  if AString.Contains('%YYYYMMDD_TOMORROW%') then
+    ExpandMacros(AString, '%YYYYMMDD_TOMORROW%', FormatDateTime('yyyymmdd', Date + 1));
+  if AString.Contains('%YYMMDD_DATE%') then
+    ExpandMacros(AString, '%YYMMDD_DATE%', FormatDateTime('yymmdd', Date));
+  if AString.Contains('%YYMMDD_YESTERDAY%') then
+    ExpandMacros(AString, '%YYMMDD_YESTERDAY%', FormatDateTime('yymmdd', Date - 1));
+  if AString.Contains('%YYMMDD_TOMORROW%') then
+    ExpandMacros(AString, '%YYMMDD_TOMORROW%', FormatDateTime('yymmdd', Date + 1));
+  if AString.Contains('%MMDD_DATE%') then
+    ExpandMacros(AString, '%MMDD_DATE%', FormatDateTime('mmdd', Date));
+  if AString.Contains('%DD_DATE%') then
+    ExpandMacros(AString, '%DD_DATE%', FormatDateTime('dd', Date));
+  if AString.Contains('%MM_DATE%') then
+    ExpandMacros(AString, '%MM_DATE%', FormatDateTime('mm', Date));
+  if AString.Contains('%YYYY_DATE%') then
+    ExpandMacros(AString, '%YYYY_DATE%', FormatDateTime('yyyy', Date));
+  if AString.Contains('%WEEKDAYNAME_SHORT%') then
+    ExpandMacros(AString, '%WEEKDAYNAME_SHORT%', FormatDateTime('ddd', Date));
+  if AString.Contains('%WEEKDAYNAME_LONG%') then
+    ExpandMacros(AString, '%WEEKDAYNAME_LONG%', FormatDateTime('dddd', Date));
+  if AString.Contains('%WEEKDAYNR%') then
+    ExpandMacros(AString, '%WEEKDAYNR%', IntToStr(DayOfWeek(Date)));
+  if AString.Contains('%ISOWEEKDAYNR%') then
+    ExpandMacros(AString, '%ISOWEEKDAYNR%', IntToStr(DayOfTheWeek(Date)));
+  if AString.Contains('%HHMMSS_TIME%') then
+    ExpandMacros(AString, '%HHMMSS_TIME%', FormatDateTime('hhnnss', Now));
+  if AString.Contains('%HHMM_TIME%') then
+    ExpandMacros(AString, '%HHMM_TIME%', FormatDateTime('hhnn', Now));
+  if AString.Contains('%HH_TIME%') then
+    ExpandMacros(AString, '%HH_TIME%', FormatDateTime('hh', Now));
+  if AString.Contains('%MM_TIME%') then
+    ExpandMacros(AString, '%MM_TIME%', FormatDateTime('nn', Now));
+  if AString.Contains('%SS_TIME%') then
+    ExpandMacros(AString, '%SS_TIME%', FormatDateTime('ss', Now));
 end;
 
 { TEFFileMacroExpander }
@@ -873,7 +899,8 @@ begin
 
       if FileExists(LFileName) then
       begin
-        Result := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName));
+        Result := TextFileToString(LFileName);
+        TEFMacroExpansionEngine.Instance.Expand(Result);
         if Length(AParams) > 1 then
         begin
           SetLength(LOtherParams, Length(AParams) - 1);
@@ -933,27 +960,28 @@ end;
 
 { TEFGUIDMacroExpander }
 
-function TEFGUIDMacroExpander.InternalExpand(const AString: string): string;
+procedure TEFGUIDMacroExpander.InternalExpand(var AString: string);
 begin
-  Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%GUID%', CreateGuidStr);
-  Result := ExpandMacros(Result, '%COMPACT_GUID%', CreateCompactGuidStr);
+  inherited InternalExpand(AString);
+  if AString.Contains('GUID%') then
+  begin
+    ExpandMacros(AString, '%GUID%', CreateGuidStr);
+    ExpandMacros(AString, '%COMPACT_GUID%', CreateCompactGuidStr);
+  end;
 end;
 
 { TEFEntityMacroExpander }
 
-function TEFEntityMacroExpander.InternalExpand(const AString: string): string;
+procedure TEFEntityMacroExpander.InternalExpand(var AString: string);
 begin
-  Result := inherited InternalExpand(AString);
-
-  Result := ExpandMacros(Result, '%TAB%', #9);
-  Result := ExpandMacros(Result, '%SPACE', ' ');
+  inherited InternalExpand(AString);
+  ExpandMacros(AString, '%TAB%', #9);
+  ExpandMacros(AString, '%SPACE', ' ');
 end;
 
 { TEFParameterizedMacroExpanderBase }
 
-function TEFParameterizedMacroExpanderBase.InternalExpand(
-  const AString: string): string;
+procedure TEFParameterizedMacroExpanderBase.InternalExpand(var AString: string);
 const
   MACRO_TAIL = ')%';
 var
@@ -965,29 +993,32 @@ var
   LParams: TStrings;
   LParamsArray: TArray<string>;
   I: Integer;
+  LRest: string;
 begin
-  Result := inherited InternalExpand(AString);
+  inherited InternalExpand(AString);
 
   LMacroNames := GetMacroNames;
   for LMacroName in LMacroNames do
   begin
     LMacroHead := '%' + LMacroName + '(';
 
-    LPosHead := Pos(LMacroHead, Result);
+    LPosHead := Pos(LMacroHead, AString);
     if LPosHead > 0 then
     begin
-      LPosTail := PosEx(MACRO_TAIL, Result, LPosHead + 1);
+      LPosTail := PosEx(MACRO_TAIL, AString, LPosHead + 1);
       if LPosTail > 0 then
       begin
         LParams := TStringList.Create;
         try
-          LParams.CommaText := Copy(Result, LPosHead + Length(LMacroHead),
+          LParams.CommaText := Copy(AString, LPosHead + Length(LMacroHead),
             LPosTail - (LPosHead + Length(LMacroHead)));
           LParamsArray := LParams.ToStringArray;
           for I := 0 to High(LParamsArray) do
-            LParamsArray[I] := TEFMacroExpansionEngine.Instance.Expand(LParamsArray[I]);
-          Result := Copy(Result, 1, LPosHead - 1) + ExpandParameterizedMacro(LMacroName, LParamsArray)
-            + InternalExpand(Copy(Result, LPosTail + Length(MACRO_TAIL), MaxInt));
+            TEFMacroExpansionEngine.Instance.Expand(LParamsArray[I]);
+          LRest := Copy(AString, LPosTail + Length(MACRO_TAIL), MaxInt);
+          InternalExpand(LRest);
+          { TODO : Can be optimized by using Insert/Delete instead of concatenation/assignment. }
+          AString := Copy(AString, 1, LPosHead - 1) + ExpandParameterizedMacro(LMacroName, LParamsArray) + LRest;
         finally
           LParams.Free;
         end;

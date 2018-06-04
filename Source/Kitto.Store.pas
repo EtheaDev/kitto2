@@ -177,7 +177,7 @@ type
     ///  Replaces occurrencess of {FieldName} tags in the specified string
     ///  with actual field values, formatted as strings.
     /// </summary>
-    function ExpandExpression(const AExpression: string): string; virtual;
+    procedure ExpandExpression(var AExpression: string); virtual;
 
     /// <summary>
     ///  Marks the record as new. An insert instruction will be executed when
@@ -1082,16 +1082,15 @@ begin
   end;
 end;
 
-function TKRecord.ExpandExpression(const AExpression: string): string;
+procedure TKRecord.ExpandExpression(var AExpression: string);
 var
   I: Integer;
   LField: TKField;
 begin
-  Result := AExpression;
   for I := 0 to FieldCount - 1 do
   begin
     LField := Fields[I];
-    Result := ReplaceText(Result, Format('{%s}',[LField.FieldName]), LField.AsString);
+    ReplaceAllCaseSensitive(AExpression, Format('{%s}',[LField.FieldName]), LField.AsString);
   end;
 end;
 

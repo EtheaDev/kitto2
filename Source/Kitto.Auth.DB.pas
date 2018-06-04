@@ -397,14 +397,16 @@ end;
 function TKDBAuthenticator.GetSuppliedPasswordHash(
   const AAuthData: TEFNode; const AHashNeeded: Boolean): string;
 begin
-  Result := TKConfig.Instance.MacroExpansionEngine.Expand(AAuthData.GetString('Password'));
+  Result := AAuthData.GetString('Password');
+  TKConfig.Instance.MacroExpansionEngine.Expand(Result);
   if AHashNeeded then
     Result := GetStringHash(Result);
 end;
 
 function TKDBAuthenticator.GetSuppliedUserName(const AAuthData: TEFNode): string;
 begin
-  Result := TKConfig.Instance.MacroExpansionEngine.Expand(AAuthData.GetString('UserName'));
+  Result := AAuthData.GetString('UserName');
+  TKConfig.Instance.MacroExpansionEngine.Expand(Result);
 end;
 
 procedure TKDBAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);

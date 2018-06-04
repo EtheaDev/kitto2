@@ -58,12 +58,18 @@ end;
 
 procedure TEFTextFileLogEndpoint.Configure(const AConfig: TEFNode;
   const AMacroExpansionEngine: TEFMacroExpansionEngine);
+var
+  LFileName: string;
 begin
   inherited;
   if IsEnabled and Assigned(AConfig) and Assigned(AMacroExpansionEngine) then
+  begin
     // Explicitly calling Expoand here makes sure macros are
     // expanded even now that we have no session thus no macros.
-    FileName := AMacroExpansionEngine.Expand(AConfig.GetString(GetConfigPath + 'FileName', FileName));
+    LFileName := AConfig.GetString(GetConfigPath + 'FileName', FileName);
+    AMacroExpansionEngine.Expand(LFileName);
+    FileName := LFileName;
+  end;
 end;
 
 class procedure TEFTextFileLogEndpoint.CreateSingletonInstance;

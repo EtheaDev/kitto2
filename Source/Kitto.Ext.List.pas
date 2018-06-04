@@ -71,6 +71,7 @@ uses
   SysUtils
   , StrUtils
   , EF.Localization
+  , EF.Macros
   , EF.StrUtils
   , Kitto.Types
   , Kitto.Config
@@ -302,10 +303,16 @@ begin
 end;
 
 procedure TKExtListPanelController.InitComponents;
+var
+  LTitle: string;
 begin
   inherited;
   if Title = '' then
-    Title := _(TKWebApplication.Current.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
+  begin
+    LTitle := ViewTable.PluralDisplayLabel;
+    TEFMacroExpansionEngine.Instance.Expand(LTitle);
+    Title := _(LTitle);
+  end;
 end;
 
 function TKExtListPanelController.GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string;

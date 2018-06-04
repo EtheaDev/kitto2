@@ -155,7 +155,7 @@ type
   const ARecord: TKViewTableRecord; const AOperation: string): IJSController;
     function GetDefaultEditControllerType: string; virtual;
     property EditItems: TKEditItemList read GetEditItems;
-    function ExpandExpression(const AExpression: string): string; virtual;
+    procedure ExpandExpression(var AExpression: string); virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -274,9 +274,9 @@ begin
     inherited;
 end;
 
-function TKExtDataPanelController.ExpandExpression(const AExpression: string): string;
+procedure TKExtDataPanelController.ExpandExpression(var AExpression: string);
 begin
-  Result := TEFMacroExpansionEngine.Instance.Expand(AExpression);
+  TEFMacroExpansionEngine.Instance.Expand(AExpression);
 end;
 
 procedure TKExtDataPanelController.DefaultAction;
@@ -465,7 +465,8 @@ begin
   LLayoutNode := ViewTable.FindNode('Controller/' + ALayoutName + '/Layout');
   if Assigned(LLayoutNode) then
   begin
-    LLayoutName := ExpandExpression(LLayoutNode.AsString);
+    LLayoutName := LLayoutNode.AsString;
+    ExpandExpression(LLayoutName);
     if LLayoutName <> '' then
       Result := View.Catalog.Layouts.FindLayout(LLayoutName)
     else
@@ -522,7 +523,7 @@ begin
   // a selected row. We must handle all combinations.
   LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
   // Cleanup Linebreaks with <br> tag
-  LConfirmationMessage := StringReplace(LConfirmationMessage, sLineBreak, '<br>',[rfReplaceAll]);
+  ReplaceAllCaseSensitive(LConfirmationMessage, sLineBreak, '<br>');
   LRequireSelection := AView.GetBoolean('Controller/RequireSelection', True);
 
   if LRequireSelection then

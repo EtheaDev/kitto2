@@ -362,8 +362,9 @@ var
 
   function ExpandExpression(const AExpression: string): string;
   begin
-    Result := LRecord.ExpandFieldJSONValues(AExpression, True);
-    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+    Result := AExpression;
+    LRecord.ExpandFieldJSONValues(Result, True);
+    TEFMacroExpansionEngine.Instance.Expand(Result);
   end;
 
 begin

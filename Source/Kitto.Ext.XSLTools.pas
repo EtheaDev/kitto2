@@ -173,7 +173,7 @@ begin
     //Expand macros contained into xsl file like:
     // %FILENAME_TO_URL(%APP_PATH%ReportTemplates/logo.jpg)%
     // or %DATE% or %TIME%
-    LXSLContent := TEFMacroExpansionEngine.Instance.Expand(LXSLContent);
+    TEFMacroExpansionEngine.Instance.Expand(LXSLContent);
 
     //Transform XSL + XML to HTML via MSXML
     LHTMLText := TransformXMLText(LXMLContent, LXSLContent);

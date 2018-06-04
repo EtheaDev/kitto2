@@ -543,7 +543,7 @@ type
 
     /// <summary>
     ///  Replaces all field name markers in AText with the current field values
-    ///  in JSON format and returns the resulting expanded string.
+    ///  in JSON format.
     ///  A field name marker is in the form {FieldName}.
     ///  Pass True in AEmptyNulls to expand null fields to empty strings,
     ///  otherwise they are expanded as 'null'.
@@ -551,8 +551,8 @@ type
     ///  is not expanded (useful to avoid infinite recursion when this method
     ///  is called by TKViewTableField.GetAsJSONValue).
     /// </summary>
-    function ExpandFieldJSONValues(const AText: string;
-      const AEmptyNulls: Boolean; const ASender: TKViewField = nil): string;
+    procedure ExpandFieldJSONValues(var AText: string;
+      const AEmptyNulls: Boolean; const ASender: TKViewField = nil);
 
     /// <summary>
     ///  Replaces occurrencess of {FieldName} tags in the specified string
@@ -561,7 +561,7 @@ type
     ///  occurrences of {MasterRecord.FieldName} with string representations of
     ///  master record field values.
     /// </summary>
-    function ExpandExpression(const AExpression: string): string; override;
+    procedure ExpandExpression(var AExpression: string); override;
   end;
 
   TKViewTableRecords = class(TKRecords)
@@ -1975,12 +1975,18 @@ begin
 end;
 
 function TKViewField.GetDefaultValue: Variant;
+var
+  LStringValue: string;
 begin
   Result := EvalExpression(GetValue('DefaultValue'));
   if VarIsNull(Result) then
     Result := ModelField.DefaultValue;
   if DataType is TEFStringDataType then
-    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+  begin
+    LStringValue := Result;
+    TEFMacroExpansionEngine.Instance.Expand(LStringValue);
+    Result := LStringValue;
+  end;
 end;
 
 function TKViewField.GetDerivedFields: TArray<TKViewField>;
@@ -2911,35 +2917,34 @@ begin
     SetDetailFieldValues(Records.Store.MasterRecord);
 end;
 
-function TKViewTableRecord.ExpandExpression(const AExpression: string): string;
+procedure TKViewTableRecord.ExpandExpression(var AExpression: string);
 var
   I: Integer;
   LField: TKViewTableField;
 begin
-  Result := inherited ExpandExpression(AExpression);
+  inherited ExpandExpression(AExpression);
   if Assigned(Store) and Assigned(Store.MasterRecord) then
   begin
     for I := 0 to Store.MasterRecord.FieldCount - 1 do
     begin
       LField := Store.MasterRecord.Fields[I];
-      Result := ReplaceText(Result, Format('{MasterRecord.%s}',[LField.FieldName]), LField.AsString);
+      ReplaceAllCaseSensitive(AExpression, Format('{MasterRecord.%s}',[LField.FieldName]), LField.AsString);
     end;
   end;
 end;
 
-function TKViewTableRecord.ExpandFieldJSONValues(const AText: string;
-  const AEmptyNulls: Boolean; const ASender: TKViewField): string;
+procedure TKViewTableRecord.ExpandFieldJSONValues(var AText: string;
+  const AEmptyNulls: Boolean; const ASender: TKViewField = nil);
 var
   I: Integer;
   LField: TKViewTableField;
 begin
-  Result := AText;
   for I := 0 to FieldCount - 1 do
   begin
     LField := Fields[I];
     if LField.ViewField <> ASender then
     begin
-      Result := ReplaceText(Result, '{' + LField.FieldName + '}', LField.GetAsJSONValue(True, False, True));
+      ReplaceAllCaseSensitive(AText, '{' + LField.FieldName + '}', LField.GetAsJSONValue(True, False, True));
     end;
   end;
 end;
@@ -3038,7 +3043,9 @@ begin
       if LDisplayTemplate <> '' then
       begin
         // Replace other field values, this field's value and add back quotes.
-        Result := ParentRecord.ExpandFieldJSONValues(ReplaceText(LDisplayTemplate, '{value}', Result), AEmptyNulls, LViewField);
+        ReplaceAllCaseSensitive(LDisplayTemplate, '{value}', Result);
+        ParentRecord.ExpandFieldJSONValues(LDisplayTemplate, AEmptyNulls, LViewField);
+        Result := LDisplayTemplate;
       end;
     end;
   end;

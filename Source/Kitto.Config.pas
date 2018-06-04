@@ -260,7 +260,7 @@ type
     FConfig: TKConfig;
   strict protected
     property Config: TKConfig read FConfig;
-    function InternalExpand(const AString: string): string; override;
+    procedure InternalExpand(var AString: string); override;
   public
     constructor Create(const AConfig: TKConfig); reintroduce;
   end;
@@ -635,14 +635,14 @@ begin
   inherited Create(AConfig.Config, 'Config');
 end;
 
-function TKConfigMacroExpander.InternalExpand(const AString: string): string;
+procedure TKConfigMacroExpander.InternalExpand(var AString: string);
 begin
-  Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%HOME_PATH%', FConfig.AppHomePath); // Backward compatibility.
-  Result := ExpandMacros(Result, '%Config.AppName%', FConfig.AppName);
-  Result := ExpandMacros(Result, '%Config.AppHomePath%', FConfig.AppHomePath);
-  Result := ExpandMacros(Result, '%Config.AppTitle%', FConfig.Instance.AppTitle);
-  Result := ExpandMacros(Result, '%Config.AppIcon%', FConfig.AppIcon);
+  inherited InternalExpand(AString);
+  ExpandMacros(AString, '%HOME_PATH%', TKConfig.AppHomePath);
+  ExpandMacros(AString, '%Config.AppName%', FConfig.AppName);
+  ExpandMacros(AString, '%Config.AppHomePath%', FConfig.AppHomePath);
+  ExpandMacros(AString, '%Config.AppTitle%', FConfig.Instance.AppTitle);
+  ExpandMacros(AString, '%Config.AppIcon%', FConfig.AppIcon);
 end;
 
 end.

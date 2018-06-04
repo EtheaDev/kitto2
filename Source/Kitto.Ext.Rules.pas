@@ -423,6 +423,8 @@ end;
 { TKExtTemplate }
 
 procedure TKExtTemplate.ApplyToFormField(const AField: TExtFormField);
+var
+  LRule: string;
 begin
   Assert(Assigned(AField));
   Assert(Assigned(Rule));
@@ -430,9 +432,11 @@ begin
   inherited;
   if AField is TExtFormTextField then
   begin
+    LRule := Rule.AsExpandedString;
+    TEFMacroExpansionEngine.Instance.Expand(LRule);
     TExtFormTextField(AField).Validator :=
       TExtFormTextField(AField).GenerateAnonymousFunction('value',
-        ReplaceStr(TEFMacroExpansionEngine.Instance.Expand(Rule.AsExpandedString), '{errorMessage}', TJS.StrToJS(GetErrorMessage)));
+        ReplaceStr(LRule, '{errorMessage}', TJS.StrToJS(GetErrorMessage)));
   end;
 end;
 

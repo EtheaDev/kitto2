@@ -557,7 +557,10 @@ var
 begin
   LFullFileName := TKWebApplication.Current.FindResourcePathName(AFileName);
   if LFullFileName <> '' then
-    LHtml := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFullFileName, TEncoding.UTF8))
+  begin
+    LHtml := TextFileToString(LFullFileName, TEncoding.UTF8);
+    TEFMacroExpansionEngine.Instance.Expand(LHtml);
+  end
   else
     LHtml := '';
   if Assigned(APostProcessor) then
@@ -745,7 +748,10 @@ begin
 
   LRenderTo := Config.GetString('ContainerElementId');
   if LRenderTo <> '' then
-    RenderTo := TEFMacroExpansionEngine.Instance.Expand(LRenderTo);
+  begin
+    TEFMacroExpansionEngine.Instance.Expand(LRenderTo);
+    RenderTo := LRenderTo;
+  end;
 
   LLabelWidth := Config.FindNode('LabelWidth');
   if Assigned(LLabelWidth) then
@@ -855,7 +861,7 @@ begin
   // A Tool may or may not have a confirmation message.
   LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
   // Cleanup Linebreaks with <br> tag
-  LConfirmationMessage := StringReplace(LConfirmationMessage, sLineBreak, '<br>',[rfReplaceAll]);
+  ReplaceAllCaseSensitive(LConfirmationMessage, sLineBreak, '<br>');
   LConfirmationJS := Result.GetConfirmCall(LConfirmationMessage);
   if LConfirmationMessage <> '' then
     Result.On('click', GenerateAnonymousFunction(LConfirmationJS))

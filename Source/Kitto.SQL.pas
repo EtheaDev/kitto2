@@ -52,13 +52,8 @@ type
     /// <summary>
     ///  Replaces '{Q}' tags in AString with AQualification plus a dot.
     ///  If AQualification is '', tags are simply removed from the string.
-    ///  Returns the modified string.
     /// </summary>
-    /// <remarks>
-    ///  If AString does not contain any '{Q}' tags, it is assumed to have
-    ///  an implicit one at the beginning.
-    /// </remarks>
-    function ExpandQualification(const AString, AQualification: string): string;
+    procedure ExpandQualification(var AString: string; const AQualification: string);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -188,6 +183,7 @@ var
   I: Integer;
   LSelectClause, LFromClause, LWhereClause, LOrderByClause: string;
   LCommandText: string;
+  LOrderBy: string;
 begin
   Assert(Assigned(AViewTable));
 
@@ -206,16 +202,22 @@ begin
   ADBQuery.Params.BeginUpdate;
   try
     ADBQuery.Params.Clear;
-    LSelectClause := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName);
+    ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName);
+    LSelectClause := 'select ' +  FSelectTerms;
     LFromClause := 'from ' + GetFromClause;
     LWhereClause := GetSelectWhereClause(AFilter, ADBQuery);
-    if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
-      LOrderByClause := 'order by ' + IfThen(AOrderBy <> '',
-        ExpandQualification(AOrderBy, AViewTable.Model.DBTableName),
-        ExpandQualification(FViewTable.DefaultSorting, AViewTable.Model.DBTableName));
+    LOrderBy := AOrderBy;
+    if (LOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
+    begin
+      if LOrderBy = '' then
+        LOrderBy := FViewTable.DefaultSorting;
+      ExpandQualification(LOrderBy, AViewTable.Model.DBTableName);
+      LOrderByClause := 'order by ' + LOrderBy;
+    end;
     LCommandText := ADBQuery.Connection.DBEngineType.AddLimitClause(
       LSelectClause, LFromClause, LWhereClause, LOrderByClause, AFrom, AFor);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+    TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+    ADBQuery.CommandText := LCommandText;
   finally
     ADBQuery.Params.EndUpdate;
   end;
@@ -228,6 +230,7 @@ procedure TKSQLBuilder.BuildSingletonSelectQuery(
 var
   I: Integer;
   LCommandText: string;
+  LWhereClause: string;
 begin
   Assert(Assigned(AViewTable));
 
@@ -246,10 +249,12 @@ begin
   ADBQuery.Params.BeginUpdate;
   try
     ADBQuery.Params.Clear;
-    LCommandText := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName) +
-      ' from ' + GetFromClause +
-      ' where ' + ExpandQualification(GetModelKeyWhereClause(AViewTable.Model, ADBQuery), AViewTable.Model.DBTableName);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+    ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName);
+    LWhereClause := GetModelKeyWhereClause(AViewTable.Model, ADBQuery);
+    ExpandQualification(LWhereClause, AViewTable.Model.DBTableName);
+    LCommandText := 'select ' + FSelectTerms + ' from ' + GetFromClause + ' where ' + LWhereClause;
+    TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+    ADBQuery.CommandText := LCommandText;
   finally
     ADBQuery.Params.EndUpdate;
   end;
@@ -262,6 +267,7 @@ procedure TKSQLBuilder.BuildSingletonSelectQuery(const AModel: TKModel;
 var
   LCommandText: string;
   I: Integer;
+  LWhereClause: string;
 begin
   Assert(Assigned(AModel));
 
@@ -279,10 +285,12 @@ begin
   ADBQuery.Params.BeginUpdate;
   try
     ADBQuery.Params.Clear;
-    LCommandText :=
-      'select ' +  FSelectTerms +
-      ' from ' + AModel.DBTableName + ' where ' + ExpandQualification(GetModelKeyWhereClause(AModel, ADBQuery), AModel.DBTableName);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+    ExpandQualification(FSelectTerms, AModel.DBTableName);
+    LWhereClause := GetModelKeyWhereClause(AModel, ADBQuery);
+    ExpandQualification(LWhereClause, AModel.DBTableName);
+    LCommandText := 'select ' + FSelectTerms + ' from ' + AModel.DBTableName + ' where ' + LWhereClause;
+    TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+    ADBQuery.CommandText := LCommandText;
   finally
     ADBQuery.Params.EndUpdate;
   end;
@@ -317,7 +325,8 @@ build only those that affect the count (inner joins). }
   try
     ADBQuery.Params.Clear;
     LCommandText := 'select count(*) from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+    TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+    ADBQuery.CommandText := LCommandText;
   finally
     ADBQuery.Params.EndUpdate;
   end;
@@ -592,7 +601,11 @@ begin
   for LDerivedField in LDerivedFields do
   begin
     if SameText(LDerivedField.FieldName, AViewField.FieldName) then
-      LDBColumnName := ExpandQualification(LModel.CaptionField.DBColumnNameOrExpression, '') + ' ' + LDerivedField.ModelField.DBColumnName
+    begin
+      LDBColumnName := LModel.CaptionField.DBColumnNameOrExpression;
+      ExpandQualification(LDBColumnName, '');
+      Insert(' ' + LDerivedField.ModelField.DBColumnName, LDBColumnName, Length(LDBColumnName) + 1);
+    end
     else
       LDBColumnName := LDerivedField.ModelField.DBColumnName;
 
@@ -632,7 +645,8 @@ begin
         ADBQuery.Params.CreateParam(ftUnknown, LDBColumnName, ptInput);
       end;
       LCommandText := SetSQLWhereClause(LCommandText, LClause);
-      ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+      TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+      ADBQuery.CommandText := LCommandText;
       for I := 0 to ADBQuery.Params.Count - 1 do
         ADBQuery.Params[I].Value := LKeyValues[I];
       Result := True;
@@ -654,12 +668,12 @@ begin
   FreeAndNil(FUsedReferenceFields);
 end;
 
-function TKSQLBuilder.ExpandQualification(const AString, AQualification: string): string;
+procedure TKSQLBuilder.ExpandQualification(var AString: string; const AQualification: string);
 begin
   if AQualification = '' then
-    Result := ReplaceStr(AString, '{Q}', '')
+    ReplaceAllCaseSensitive(AString, '{Q}', '')
   else
-    Result := ReplaceStr(AString, '{Q}', AQualification + '.');
+    ReplaceAllCaseSensitive(AString, '{Q}', AQualification + '.');
 end;
 
 procedure TKSQLBuilder.Clear;
@@ -711,6 +725,9 @@ var
   LColumnNames: TStringDynArray;
   LQueryText: string;
   LLookupFilter: string;
+  LCaptionField: string;
+  LSearchTerm: string;
+  LOrderBy: string;
 begin
   Assert(Assigned(AViewField));
   Assert(Assigned(ADBQuery));
@@ -721,28 +738,51 @@ begin
   LQueryText := 'select ' + Join(LColumnNames, ', ');
   // Ensure caption field is contained in select list.
   if not LLookupModel.CaptionField.IsKey then
-    LQueryText := LQueryText + ', ' + ExpandQualification(LLookupModel.CaptionField.AliasedDBColumnNameOrExpression, '');
+  begin
+    LCaptionField := LLookupModel.CaptionField.AliasedDBColumnNameOrExpression;
+    ExpandQualification(LCaptionField, '');
+    LQueryText := LQueryText + ', ' + LCaptionField;
+  end;
   LQueryText := LQueryText + ' from ' + LLookupModel.DBTableName;
 
   LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
   if LLookupModelDefaultFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(ARecord.ExpandExpression(LLookupModelDefaultFilter), '') + ')');
+  begin
+    ARecord.ExpandExpression(LLookupModelDefaultFilter);
+    ExpandQualification(LLookupModelDefaultFilter, '');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + LLookupModelDefaultFilter + ')');
+  end;
 
   LDefaultFilter := AViewField.DefaultFilter;
   if LDefaultFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(ARecord.ExpandExpression(LDefaultFilter), '')  + ')', AViewField.DefaultFilterConnector);
+  begin
+    ARecord.ExpandExpression(LDefaultFilter);
+    ExpandQualification(LDefaultFilter, '');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + LDefaultFilter + ')', AViewField.DefaultFilterConnector);
+  end;
 
   LLookupFilter := AViewField.LookupFilter;
   if LLookupFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(ARecord.ExpandExpression(LLookupFilter), '')  + ')');
+  begin
+    ARecord.ExpandExpression(LLookupFilter);
+    ExpandQualification(LLookupFilter, '');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + LLookupFilter + ')');
+  end;
 
   if ASearchString <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '') + ' like ''%' + ASearchString + '%'')');
+  begin
+    LSearchTerm := LLookupModel.CaptionField.DBColumnNameOrExpression;
+    ExpandQualification(LSearchTerm, '');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + LSearchTerm + ' like ''%' + ASearchString + '%'')');
+  end;
 
-  LQueryText := LQueryText + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
+  LOrderBy := LLookupModel.CaptionField.DBColumnNameOrExpression;
+  ExpandQualification(LOrderBy, '');
+  LQueryText := LQueryText + ' order by ' + LOrderBy;
 
-  LQueryText := TEFMacroExpansionEngine.Instance.Expand(LQueryText);
-  ADBQuery.CommandText := ARecord.ExpandExpression(LQueryText);
+  TEFMacroExpansionEngine.Instance.Expand(LQueryText);
+  ARecord.ExpandExpression(LQueryText);
+  ADBQuery.CommandText := LQueryText;
   AddFilterBy(AViewField, ADBQuery, ARecord);
 end;
 
@@ -841,11 +881,17 @@ begin
 
   LReferencedModelDefaultFilter := AReferenceField.ReferencedModel.DefaultFilter;
   if LReferencedModelDefaultFilter <> '' then
-    Result := Result + ' and (' + ExpandQualification(LReferencedModelDefaultFilter, LCorrelationName) + ')';
+  begin
+    ExpandQualification(LReferencedModelDefaultFilter, LCorrelationName);
+    Result := Result + ' and (' + LReferencedModelDefaultFilter + ')';
+  end;
 
   LFieldDefaultFilter := AReferenceField.DefaultFilter;
   if LFieldDefaultFilter <> '' then
-    Result := Result + ' and (' + ExpandQualification(LFieldDefaultFilter, LCorrelationName) + ')';
+  begin
+    ExpandQualification(LFieldDefaultFilter, LCorrelationName);
+    Result := Result + ' and (' + LFieldDefaultFilter + ')';
+  end;
 
   Result := Result + ')';
 end;
@@ -858,7 +904,10 @@ var
   function GetQualifiedExpression(const AModelField: TKModelField): string;
   begin
     if AModelField.Expression <> '' then
-      Result := ExpandQualification(AModelField.Expression, AViewField.ModelField.DBColumnName)
+    begin
+      Result := AModelField.Expression;
+      ExpandQualification(Result, AViewField.ModelField.DBColumnName);
+    end
     else
       Result := AViewField.ModelField.DBColumnName + '.' + AModelField.DBColumnName;
   end;
@@ -887,12 +936,23 @@ var
   LMasterFieldDBColumnNames: TStringDynArray;
   LDetailFieldDBColumnNames: TStringDynArray;
   LClause, LParamName: string;
+  LDefaultFilter: string;
+  LFilter: string;
 begin
   Result := '';
-  if FViewTable.DefaultFilter <> '' then
-    Result := Result + ' where (' + ExpandQualification(FViewTable.DefaultFilter, FViewTable.Model.DBTableName) + ')';
-  if AFilter <> '' then
-    Result := AddToSQLWhereClause(Result, ExpandQualification(AFilter, FViewTable.Model.DBTableName));
+  LDefaultFilter := FViewTable.DefaultFilter;
+  if LDefaultFilter <> '' then
+  begin
+    ExpandQualification(LDefaultFilter, FViewTable.Model.DBTableName);
+    Result := Result + ' where (' + LDefaultFilter + ')';
+  end;
+
+  LFilter := AFilter;
+  if LFilter <> '' then
+  begin
+    ExpandQualification(LFilter, FViewTable.Model.DBTableName);
+    Result := AddToSQLWhereClause(Result, LFilter);
+  end;
 
   if FViewTable.IsDetail then
   begin
@@ -919,9 +979,15 @@ end;
 function TKSQLBuilder.GetSortClause(const AViewField: TKViewField; const AIsDescending: Boolean): string;
 begin
   if AViewField.Expression <> '' then
-    Result := ExpandQualification(AViewField.Expression, AViewField.Table.Model.DBTableName)
+  begin
+    Result := AViewField.Expression;
+    ExpandQualification(Result, AViewField.Table.Model.DBTableName);
+  end
   else if AViewField.IsReference then
-    Result := ExpandQualification(AViewField.DBNameOrExpression, AViewField.DBName)
+  begin
+    Result := AViewField.DBNameOrExpression;
+    ExpandQualification(Result, AViewField.DBName);
+  end
   else
     Result := AViewField.QualifiedDBNameOrExpression;
   if AIsDescending then

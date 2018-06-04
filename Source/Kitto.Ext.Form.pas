@@ -136,7 +136,7 @@ type
     procedure TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);
     procedure RefreshEditorValues(const AStartIndex: Integer = 0);
     procedure RefreshEditorFields;
-    function ExpandExpression(const AExpression: string): string; override;
+    procedure ExpandExpression(var AExpression: string); override;
   public
     procedure LoadData; override;
     destructor Destroy; override;
@@ -373,16 +373,16 @@ begin
   end;
 end;
 
-function TKExtFormPanelController.ExpandExpression(const AExpression: string): string;
+procedure TKExtFormPanelController.ExpandExpression(var AExpression: string);
 var
   LStoreRecord: TKViewTableRecord;
 begin
-  Result := inherited ExpandExpression(AExpression);
+  inherited ExpandExpression(AExpression);
   // This method is called earlier than when StoreRecord is available, so we
   // read the config directly.
   LStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
   if Assigned(LStoreRecord) then
-    Result := LStoreRecord.ExpandExpression(Result);
+    LStoreRecord.ExpandExpression(AExpression);
 end;
 
 function TKExtFormPanelController.CreateLayoutProcessor: TKExtLayoutProcessor;
