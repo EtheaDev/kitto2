@@ -984,12 +984,11 @@ begin
     ExpandQualification(Result, AViewField.Table.Model.DBTableName);
   end
   else if AViewField.IsReference then
-  begin
+    Result := AViewField.QualifiedDBNameOrExpression
+  else begin
     Result := AViewField.DBNameOrExpression;
     ExpandQualification(Result, AViewField.DBName);
-  end
-  else
-    Result := AViewField.QualifiedDBNameOrExpression;
+  end;
   if AIsDescending then
     Result := Result + ' desc';
 end;

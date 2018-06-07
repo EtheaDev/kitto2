@@ -683,15 +683,18 @@ procedure TEFMacroExpansionEngine.Expand(var AString: string);
 var
   LPreviousString: string;
 begin
-  // Keep iterating until all macros in all included files are expanded.
-  // This also allows to support macros in macros, at a performance cost.
   if FDisableCount > 0 then
     Exit;
 
+  // Keep iterating until all macros in all included files are expanded.
+  // This also allows to support macros in macros, at a performance cost.
   LPreviousString := AString;
   CallExpanders(AString);
   while LPreviousString <> AString do
-    CallExpanders(LPreviousString);
+  begin
+    LPreviousString := AString;
+    CallExpanders(AString);
+  end;
 end;
 
 function TEFMacroExpansionEngine.GetFormatSettings: TFormatSettings;

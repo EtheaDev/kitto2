@@ -391,7 +391,7 @@ begin
   ReplaceAllCaseSensitive(Result, SQLQuote, SQLQuote + SQLQuote);
   // Insert is faster than concatenation + assignment.
   Insert(SQLQuote, Result, 1);
-  Insert(SQLQuote, Result, Length(AString) + 1);
+  Insert(SQLQuote, Result, Length(Result) + 1);
 end;
 
 function RemoveSQLQuotes(const AString: string): string;
