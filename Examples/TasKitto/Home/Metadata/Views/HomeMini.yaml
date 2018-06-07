@@ -1,10 +1,7 @@
 ﻿DisplayLabel: %Config:AppTitle%
-# Valid top-level controllers are Window and Viewport
-Controller: Viewport
-
-  SubView:
-    Controller: TabPanel
-      # List of views to be auto-opened in tabs.
-      SubViews:
-        View: ActivityAddForm
-        View: ActivityInput
+Controller: TabPanel
+  DisplayMode: FullScreen
+  # List of views to be auto-opened in tabs.
+  SubViews:
+    View: ActivityAddForm
+    View: ActivityInput

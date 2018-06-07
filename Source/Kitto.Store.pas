@@ -755,8 +755,8 @@ begin
         Records.Clear;
       if not ADBQuery.IsOpen then
         ADBQuery.Open;
-      TEFMacroExpansionEngine.Instance.Disable;
-      try
+      //TEFMacroExpansionEngine.Instance.Disable;
+      //try
         while not ADBQuery.DataSet.Eof do
         begin
           LRecord := Records.AppendAndInitialize;
@@ -765,9 +765,9 @@ begin
             AForEachRecord(LRecord);
           ADBQuery.DataSet.Next;
         end;
-      finally
-        TEFMacroExpansionEngine.Instance.Enable;
-      end;
+      //finally
+      //  TEFMacroExpansionEngine.Instance.Enable;
+      //end;
     end);
 end;
 

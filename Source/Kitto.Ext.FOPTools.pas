@@ -19,11 +19,17 @@ unit Kitto.Ext.FOPTools;
 interface
 
 uses
-  DB,
-  SysUtils, Classes,
-  EF.Tree,
-  Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
-  Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
+  DB
+  , SysUtils
+  , Classes
+  , EF.Tree
+  , Kitto.Ext.Controller
+  , Kitto.Ext.DataTool
+  , Kitto.Ext.Base
+  , Kitto.Ext.Tools
+  , Kitto.Metadata.DataView
+  , Kitto.Ext.Files
+  ;
 
 type
   TFOPToolController = class(TKExtDownloadFileController)

@@ -1267,7 +1267,7 @@ begin
     Self, FViewTable.View, nil);
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
-  LController.SetModal;
+  LController.DisplayMode := 'Modal';
   LController.Display;
 end;
 

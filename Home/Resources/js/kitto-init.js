@@ -26,6 +26,7 @@ function kittoInit()
         resizable: this.resizable,
         draggable: this.draggable,
         iconCls: this.iconCls,
+        style: this.style,
         modal: isModal,
         items: [this]
       });
@@ -35,6 +36,7 @@ function kittoInit()
       this.draggable = false;
       this.header = false;
       this.setIconCls('');
+      this.style = '';
       // In case it has custom close buttons...
       this.on('close', function() { this.hostWindow.close(); });
       this.hostWindow.show(getAnimationOrigin());

@@ -293,13 +293,13 @@ type
 
   /// <summary>
   ///  <para>
-  ///   Boolean search. Displays a checkbox for activate a particular filter
-  ///   defined in Expression Template.
+  ///   Boolean search. Displays a checkbox that applies a filter
+  ///   defined in the ExpressionTemplate.
   ///  </para>
   /// </summary>
   TKBooleanSearchFilter = class(TKExtFormCheckBoxField, IKExtFilter)
   strict private
-    FCurrentValue: Boolean;
+    FIsCurrentValue: Boolean;
     FConfig: TEFNode;
     FViewTable: TKViewTable;
     procedure FieldChecked(This: TExtFormCheckBox; Checked: boolean);
@@ -1039,7 +1039,7 @@ begin
   Assert(Assigned(AConfig));
   FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
-  FCurrentValue := False;
+  FIsCurrentValue := False;
 
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
@@ -1059,17 +1059,16 @@ end;
 
 procedure TKBooleanSearchFilter.FieldChecked(This: TExtFormCheckBox; Checked: boolean);
 begin
-  if FCurrentValue <> Checked then
+  if FIsCurrentValue <> Checked then
   begin
-    FCurrentValue := Checked;
+    FIsCurrentValue := Checked;
     NotifyObservers('FilterChanged');
   end;
 end;
 
 function TKBooleanSearchFilter.GetExpression: string;
 begin
-  //A zero date is considered blank
-  if FCurrentValue then
+  if FIsCurrentValue then
     Result := FConfig.GetExpandedString('ExpressionTemplate')
   else
     Result := '';

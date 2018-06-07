@@ -36,6 +36,7 @@ uses
   SysUtils
   , Classes
   , EF.Logger
+  , EF.Macros
   , Kitto.Config
   {$IFDEF MSWINDOWS}
   , Vcl.Forms
@@ -57,7 +58,7 @@ class procedure TKStart.Start;
   begin
     LConfig := TKConfig.Create;
     try
-      TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
+      TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), TEFMacroExpansionEngine.Instance);
     finally
       FreeAndNil(LConfig);
     end;

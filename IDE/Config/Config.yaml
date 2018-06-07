@@ -77,8 +77,6 @@ DefaultDBConnections:
       Isolation: ReadCommitted
 View:
   Controller:
-    item: Viewport
-    item: Window
     item: TabPanel
     item: BorderPanel
     item: TilePanel

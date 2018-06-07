@@ -32,7 +32,7 @@ uses
   , Kitto.Ext.DataTool
   , Kitto.Ext.Base
   , Kitto.Ext.Tools
-  , Kitto.Ext.StandardControllers
+  , Kitto.Ext.Files
   ;
 
 type

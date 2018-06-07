@@ -1,49 +1,45 @@
 ﻿DisplayLabel: %Config:AppTitle%
-# Valid top-level controllers are Window and Viewport
-Controller: Viewport
+Controller: BorderPanel
+  DisplayMode: FullScreen
+  WestView:
+    DisplayLabel: Main Menu
+    Controller: TreePanel
+      TreeView: MainMenu
+      Width: 205
+      Collapsible: True
+      Border: True
+      Header: True
+  
+  CenterView:
+    Controller: TabPanel
+      TabIconsVisible: False
+      Border: True
+      # List of views to be auto-opened in tabs.
+      SubViews:
+        #View: Customers
 
-  SubView:
+  NorthView:
     Controller: BorderPanel
+      Height: 80
 
       WestView:
-        DisplayLabel: Main Menu
-        Controller: TreePanel
-          TreeView: MainMenu
+        Controller: HtmlPanel
           Width: 205
-          Collapsible: True
-          Border: True
-          Header: True
-      
+          Split: False
+          Html: <img src="%IMAGE(Firebird_Employee)%"></img>
+
       CenterView:
-        Controller: TabPanel
-          TabIconsVisible: False
-          Border: True
-          # List of views to be auto-opened in tabs.
-          SubViews:
-            #View: Customers
-
-      NorthView:
         Controller: BorderPanel
-          Height: 80
-
-          WestView:
+          NorthView:
             Controller: HtmlPanel
-              Width: 205
+              Height: 34
               Split: False
-              Html: <img src="%IMAGE(Firebird_Employee)%"></img>
-
+              Html: <div style="text-align: center; font-size: 125%; line-height: 34px; font-weight: bold;">An example of Employee - Customers - Sales application</div>
           CenterView:
-            Controller: BorderPanel
-              NorthView:
-                Controller: HtmlPanel
-                  Height: 34
-                  Split: False
-                  Html: <div style="text-align: center; font-size: 125%; line-height: 34px; font-weight: bold;">An example of Employee - Customers - Sales application</div>
-              CenterView:
-                Controller: ToolBar
-                  TreeView: MainMenu
+            Controller: ToolBar
+              TreeView: MainMenu
 
-      SouthView:
-        Controller: StatusBar
-          Text: <p>User: %Auth:UserName%</p>
-        ImageName: user
+  SouthView:
+    Controller: StatusBar
+      Text: <p>User: %Auth:UserName%</p>
+    ImageName: user

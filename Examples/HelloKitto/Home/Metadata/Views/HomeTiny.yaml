@@ -1,24 +1,20 @@
 ﻿DisplayLabel: %Config:AppTitle%
-# Valid top-level controllers are Window and Viewport
-Controller: Viewport
+Controller: BorderPanel
+  DisplayMode: FullScreen
+  CenterView:
+    Controller: TilePanel
+      ColorSet: Red
+      Border: True
+      TileHeight: 70
+      TileWidth: 100
+      ShowImage: True
+        Position: 5px 5px
+      TreeView: MainMenuTiny
 
-  SubView:
-    Controller: BorderPanel
-
-      CenterView:
-        Controller: TilePanel
-          ColorSet: Red
-          Border: True
-          TileHeight: 70
-          TileWidth: 100
-          ShowImage: True
-            Position: 5px 5px
-          TreeView: MainMenuTiny
-
-      .SouthView:
-        Controller: StatusBar
-          Text: _(User: %Auth:UserName%)
-        ImageName: user
+  .SouthView:
+    Controller: StatusBar
+      Text: _(User: %Auth:UserName%)
+    ImageName: user
 
 MobileSettings:
   ViewportContent:

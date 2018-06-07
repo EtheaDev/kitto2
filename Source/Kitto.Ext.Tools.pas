@@ -21,7 +21,7 @@ interface
 uses
   SysUtils, Classes,
   Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base,
-  Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
+  Kitto.Metadata.DataView, Kitto.Ext.Files;
 
 type
   TExportTextToolController = class;

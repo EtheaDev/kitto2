@@ -30,7 +30,10 @@ uses
   ;
 
 type
-  // A login controller.
+  /// <summary>
+  ///  A form that asks for user name and password and tries to authenticate
+  ///  the user.
+  /// </summary>
   TKExtLoginPanel = class(TKExtPanelControllerBase)
   private
     FUserName: TExtFormTextField;
@@ -55,6 +58,27 @@ type
   //published
     procedure DoLogin;
     procedure DoResetPassword;
+  end;
+
+  /// <summary>
+  ///  Logs the current user out ending the current session.
+  ///  Only useful if authentication is enabled.
+  /// </summary>
+  TKExtLogoutController = class(TKExtToolController)
+  protected
+    procedure ExecuteTool; override;
+  public
+    /// <summary>
+    ///  Returns the display label to use by default when not specified
+    ///  at the view or other level. Called through RTTI.
+    /// </summary>
+    class function GetDefaultDisplayLabel: string;
+
+    /// <summary>
+    ///  Returns the image name to use by default when not specified at
+    ///  the view or other level. Called through RTTI.
+    /// </summary>
+    class function GetDefaultImageName: string; override;
   end;
 
 implementation
@@ -355,10 +379,30 @@ begin
     Result := Result + Format('setTimeout(function(){ %s.getEl().dom.click(); }, 100);', [FLoginButton.JSName]);
 end;
 
+{ TKExtLogoutController }
+
+procedure TKExtLogoutController.ExecuteTool;
+begin
+  inherited;
+  TKWebApplication.Current.Logout;
+end;
+
+class function TKExtLogoutController.GetDefaultDisplayLabel: string;
+begin
+  Result := _('Logout');
+end;
+
+class function TKExtLogoutController.GetDefaultImageName: string;
+begin
+  Result := 'logout';
+end;
+
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('Login', TKExtLoginPanel);
+  TKExtControllerRegistry.Instance.RegisterClass('Logout', TKExtLogoutController);
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('Login');
+  TKExtControllerRegistry.Instance.UnregisterClass('Logout');
 
 end.

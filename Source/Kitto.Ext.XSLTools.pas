@@ -31,7 +31,7 @@ uses
   , Kitto.Ext.Base
   , Kitto.Ext.Tools
   , Kitto.Metadata.DataView
-  , Kitto.Ext.StandardControllers
+  , Kitto.Ext.Files
   ;
 
 type

@@ -21,6 +21,7 @@ type
   )
   private
     FTemplate: TProjectTemplate;
+    function GetProjectName(const AExtension: string): string;
   public
     // IOTACreator
     function GetCreatorType: string;
@@ -153,9 +154,10 @@ procedure TIOTAProjectCreator.NewDefaultProjectModule(const Project: IOTAProject
 var
   LModuleServices: IOTAModuleServices;
 begin
-  Assert(A
+  Assert(Assigned(FTemplate));
+
   LModuleServices := BorlandIDEServices as IOTAModuleServices;
-  LModuleServices.CreateModule(TIOTAMainFormCreator.Create());
+  LModuleServices.CreateModule(TIOTAMainFormCreator.Create(FTemplate));
   { TODO : Create modules based on expanded texts/bytes modules in project template (still some refactoring to do) }
 end;
 

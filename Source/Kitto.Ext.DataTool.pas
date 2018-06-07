@@ -46,7 +46,7 @@ type
     function ExpandServerRecordValues(const AString: string): string;
   end;
 
-  TKExtDataWindowToolController = class(TKExtWindowToolController)
+  TKExtDataPanelToolController = class(TKExtPanelToolController)
   strict private
     FSelectedRecords: TArray<TKViewTableRecord>;
     function GetServerRecord: TKViewTableRecord;
@@ -195,9 +195,9 @@ begin
     ServerRecord.Refresh;
 end;
 
-{ TKExtDataWindowToolController }
+{ TKExtDataPanelToolController }
 
-procedure TKExtDataWindowToolController.AfterExecuteTool;
+procedure TKExtDataPanelToolController.AfterExecuteTool;
 var
   LAutoRefresh: string;
 begin
@@ -207,7 +207,7 @@ begin
     RefreshData(SameText(LAutoRefresh, 'All'));
 end;
 
-procedure TKExtDataWindowToolController.ExecuteInTransaction(const AProc: TProc);
+procedure TKExtDataPanelToolController.ExecuteInTransaction(const AProc: TProc);
 var
   LDBConnection: TEFDBConnection;
 begin
@@ -228,7 +228,7 @@ begin
   end;
 end;
 
-procedure TKExtDataWindowToolController.StoreSelectedRecords;
+procedure TKExtDataPanelToolController.StoreSelectedRecords;
 var
   LKey: TEFNode;
   LRecordCount: Integer;
@@ -248,7 +248,7 @@ begin
   end;
 end;
 
-procedure TKExtDataWindowToolController.DoDisplay;
+procedure TKExtDataPanelToolController.DoDisplay;
 begin
   inherited;
   StoreSelectedRecords;
@@ -256,22 +256,22 @@ begin
     ServerRecord.LoadDetailStores;
 end;
 
-function TKExtDataWindowToolController.GetServerRecord: TKViewTableRecord;
+function TKExtDataPanelToolController.GetServerRecord: TKViewTableRecord;
 begin
   Result := Config.GetObject('Sys/Record') as TKViewTableRecord;
 end;
 
-function TKExtDataWindowToolController.GetServerStore: TKViewTableStore;
+function TKExtDataPanelToolController.GetServerStore: TKViewTableStore;
 begin
   Result := Config.GetObject('Sys/ServerStore') as TKViewTableStore;
 end;
 
-function TKExtDataWindowToolController.GetViewTable: TKViewTable;
+function TKExtDataPanelToolController.GetViewTable: TKViewTable;
 begin
   Result := Config.GetObject('Sys/ViewTable') as TKViewTable;
 end;
 
-procedure TKExtDataWindowToolController.RefreshData(const AAllRecords: Boolean);
+procedure TKExtDataPanelToolController.RefreshData(const AAllRecords: Boolean);
 begin
   if AAllRecords then
     NotifyObservers('RefreshAllRecords')

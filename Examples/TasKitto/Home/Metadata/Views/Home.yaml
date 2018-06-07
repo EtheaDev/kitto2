@@ -1,41 +1,37 @@
 ﻿DisplayLabel: %Config:AppTitle%
-# Valid top-level controllers are Window and Viewport
-Controller: Viewport
+Controller: BorderPanel
+  DisplayMode: FullScreen
+  WestView:
+    DisplayLabel: Main Menu
+    Controller: TreePanel
+      TreeView: MainMenu
+      Width: 220
+      Collapsible: True
+      Border: True
+      Header: True
 
-  SubView:
-    Controller: BorderPanel
+  CenterView:
+    Controller: TabPanel
+      Border: True
+      # List of views to be auto-opened in tabs.
+      SubViews:
+        View: ActivityInput
+        View: ActivityReport
+        View: Projects
+        #View: ActivityBarChart
+        #View: ActivityPieChart
 
-      WestView:
-        DisplayLabel: Main Menu
-        Controller: TreePanel
-          TreeView: MainMenu
-          Width: 220
-          Collapsible: True
-          Border: True
-          Header: True
+  NorthView:
+    Controller: HtmlPanel
+      Split: False
+      Html: |
+        <center>
+          <img src="%IMAGE(taskitto_logo_150)%"></img>
+          <h3>An example activity tracking application.</h3>
+        </center>
+      Height: 100
 
-      CenterView:
-        Controller: TabPanel
-          Border: True
-          # List of views to be auto-opened in tabs.
-          SubViews:
-            View: ActivityInput
-            View: ActivityReport
-            View: Projects
-            #View: ActivityBarChart
-            #View: ActivityPieChart
-
-      NorthView:
-        Controller: HtmlPanel
-          Split: False
-          Html: |
-            <center>
-              <img src="%IMAGE(taskitto_logo_150)%"></img>
-              <h3>An example activity tracking application.</h3>
-            </center>
-          Height: 100
-
-      SouthView:
-        Controller: StatusBar
-          Text: Connected user: %Auth:USER_NAME% - %Auth:FIRST_NAME% %Auth:LAST_NAME%
-        ImageName: user
+  SouthView:
+    Controller: StatusBar
+      Text: Connected user: %Auth:USER_NAME% - %Auth:FIRST_NAME% %Auth:LAST_NAME%
+    ImageName: user

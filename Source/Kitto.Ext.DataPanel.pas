@@ -418,7 +418,7 @@ begin
   Assert(ViewTable <> nil);
 
   LEditController := InitEditController(nil, ARecord, AOperation);
-  LEditController.SetModal;
+  LEditController.DisplayMode := 'Modal';
   LEditController.Display;
 end;
 

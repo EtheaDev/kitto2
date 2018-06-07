@@ -524,7 +524,7 @@ begin
     AAfterCreate(Result);
 
   if LIsModal then
-    Result.SetModal;
+    Result.DisplayMode := 'Modal';
 
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then

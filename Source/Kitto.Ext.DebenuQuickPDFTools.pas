@@ -19,11 +19,19 @@ unit Kitto.Ext.DebenuQuickPDFTools;
 interface
 
 uses
-  DB, DebenuPDFLibraryLite1112_TypeLibrary,
-  SysUtils, Classes, System.UITypes,
-  EF.Tree,
-  Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
-  Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
+  DB
+  , SysUtils
+  , Classes
+  , UITypes
+  , DebenuPDFLibraryLite1112_TypeLibrary
+  , EF.Tree
+  , Kitto.Ext.Controller
+  , Kitto.Ext.DataTool
+  , Kitto.Ext.Base
+  , Kitto.Ext.Tools
+  , Kitto.Metadata.DataView
+  , Kitto.Ext.Files
+  ;
 
 type
   ELsPDFError = class(Exception) end;

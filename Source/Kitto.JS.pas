@@ -193,14 +193,17 @@ type
     procedure SetContainer(const AValue: IJSContainer);
     property Container: IJSContainer read GetContainer write SetContainer;
 
+    function GetDisplayMode: string;
+    procedure SetDisplayMode(const AValue: string);
+    // FullScreen, Floating, Modal
+    property DisplayMode: string read GetDisplayMode write SetDisplayMode;
+
     /// <summary>
     ///  Returns True if the controller should be freed right after
     ///  calling Display because it does all its job inside that method, and
     ///  False if the controller stays on screen and is interactive instead.
     /// </summary>
     function IsSynchronous: Boolean;
-
-    procedure SetModal;
 
     function AsJSObject: TJSObject;
   end;

@@ -192,8 +192,6 @@
         <DCCReference Include="..\..\Source\Kitto.Ext.Tools.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.TreePanel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.Utils.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.Ext.Viewport.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.Ext.Window.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.XSLTools.pas"/>
         <DCCReference Include="..\..\Source\Kitto.JS.Base.pas"/>
         <DCCReference Include="..\..\Source\Kitto.JS.Formatting.pas"/>
@@ -225,6 +223,8 @@
             <DesignClass>TWebModule</DesignClass>
         </DCCReference>
         <DCCReference Include="..\..\Source\Kitto.Ext.ResetPassword.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Ext.Files.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Ext.UploadFileDialog.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -272,7 +272,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\KittoCore250.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\..\..\..\..\Public\Documents\Embarcadero\Studio\19.0\Bpl\KittoCore250.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>KittoCore.bpl</RemoteName>
                         <Overwrite>true</Overwrite>

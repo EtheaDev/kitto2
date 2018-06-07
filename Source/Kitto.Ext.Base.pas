@@ -45,81 +45,6 @@ const
   DEFAULT_WINDOW_TOOL_HEIGHT = 400;
 
 type
-  { TODO : move to TExtContainer }
-  TKExtContainerHelper = class helper for TExtContainer
-  public
-    procedure Apply(const AProc: TProc<TExtObject>);
-  end;
-
-  /// <summary>
-  ///  Base Ext window with subject, observer and controller capabilities.
-  /// </summary>
-  TKExtWindowControllerBase = class(TExtWindow, IJSController, IJSControllerContainer)
-  strict private
-    FView: TKView;
-    FConfig: TEFNode;
-    FContainer: IJSContainer;
-    function GetView: TKView;
-    function GetConfig: TEFNode;
-  strict protected
-    procedure SetView(const AValue: TKView);
-    procedure DoDisplay; virtual;
-    function GetContainer: IJSContainer;
-    procedure SetContainer(const AValue: IJSContainer);
-    procedure InitDefaults; override;
-    function GetControllerToRemove: IJSController; virtual;
-    function CreateSubController: IJSController; virtual;
-    procedure InitSubController(const ASubController: IJSController); virtual;
-    procedure SetActiveSubController(const ASubController: IJSController); virtual;
-    function GetDefaultWidth: Integer;
-    function GetDefaultHeight: Integer;
-  public
-    destructor Destroy; override;
-
-    class function SupportsContainer: Boolean;
-    function IsSynchronous: Boolean;
-    property Config: TEFNode read GetConfig;
-
-    property View: TKView read GetView write SetView;
-    procedure Display;
-    procedure SetModal;
-  //published
-    procedure WindowClosed;
-  end;
-
-  /// <summary>
-  ///  Base ext viewport with subject, observer and controller capabilities.
-  /// </summary>
-  { TODO : deprecate and replace with mixin }
-  TKExtViewportControllerBase = class(TExtViewport, IJSController, IJSControllerContainer)
-  private
-    FView: TKView;
-    FConfig: TEFNode;
-    FContainer: IJSContainer;
-    function GetView: TKView;
-    function GetConfig: TEFNode;
-    procedure CreateSubController;
-  protected
-    procedure SetView(const AValue: TKView);
-    procedure DoDisplay; virtual;
-    function GetContainer: IJSContainer;
-    procedure SetContainer(const AValue: IJSContainer);
-    procedure InitDefaults; override;
-  public
-    procedure InitSubController(const ASubController: IJSController); virtual;
-    procedure SetActiveSubController(const ASubController: IJSController); virtual;
-    property Config: TEFNode read GetConfig;
-
-    destructor Destroy; override;
-
-    class function SupportsContainer: Boolean;
-    function IsSynchronous: Boolean;
-
-    property View: TKView read GetView write SetView;
-    procedure Display;
-    procedure SetModal;
-  end;
-
   /// <summary>
   ///   Implemented by controllers that host panels and are able to close them
   ///   on request, such as the TabPanel controller.
@@ -204,8 +129,11 @@ type
     FView: TKView;
     FContainer: IJSContainer;
     FTopToolbar: TKExtToolbar;
+    FDisplayMode: string;
     procedure CreateTopToolbar;
     procedure EnsureAllSupportFiles;
+    function GetDisplayMode: string;
+    procedure SetDisplayMode(const AValue: string);
   strict protected
     procedure PerformDelayedClick(const AButton: TExtButton);
     procedure ExecuteNamedAction(const AActionName: string); virtual;
@@ -255,7 +183,7 @@ type
     function IsSynchronous: Boolean;
     property View: TKView read GetView write SetView;
     procedure Display;
-    procedure SetModal;
+    property DisplayMode: string read GetDisplayMode write SetDisplayMode;
   //published
     procedure Closed;
   end;
@@ -270,6 +198,8 @@ type
     FView: TKView;
     FContainer: IJSContainer;
     FConfig: TEFNode;
+    function GetDisplayMode: string;
+    procedure SetDisplayMode(const Value: string);
   protected
     function GetView: TKView;
     procedure SetView(const AValue: TKView);
@@ -283,6 +213,7 @@ type
     function IsSynchronous: Boolean; virtual;
     property View: TKView read GetView write SetView;
     procedure Display;
+    property DisplayMode: string read GetDisplayMode write SetDisplayMode;
     procedure SetModal;
     property Config: TEFNode read GetConfig;
     procedure Apply(const AProc: TProc<IJSController>); virtual;
@@ -314,7 +245,7 @@ type
   ///  Base class for tool controllers that display a (modal) window with
   ///  a set of ok/cancel buttons.
   /// </summary>
-  TKExtWindowToolController = class(TKExtWindowControllerBase)
+  TKExtPanelToolController = class(TKExtPanelControllerBase)
   strict private
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
@@ -384,145 +315,6 @@ begin
     raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Top", "Right".'), [AAlign]);
 end;
 
-{ TKExtWindowControllerBase }
-
-function TKExtWindowControllerBase.CreateSubController: IJSController;
-var
-  LSubView: TKView;
-  LNode: TEFNode;
-begin
-  Assert(Assigned(View));
-
-  Result := nil;
-  LNode := View.FindNode('Controller/SubView');
-  if Assigned(LNode) then
-  begin
-    LSubView := TKWebApplication.Current.Config.Views.FindViewByNode(LNode);
-    if Assigned(LSubView) then
-    begin
-      Result := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
-      InitSubController(Result);
-      Result.Display;
-    end;
-  end;
-end;
-
-destructor TKExtWindowControllerBase.Destroy;
-begin
-  FreeAndNil(FConfig);
-  if TKWebSession.Current <> nil then
-    TKWebSession.Current.RemoveController(Self);
-  inherited;
-end;
-
-procedure TKExtWindowControllerBase.Display;
-begin
-  DoDisplay;
-  &On('render', GenerateAnonymousFunction(UpdateLayout));
-end;
-
-procedure TKExtWindowControllerBase.DoDisplay;
-var
-  LStyle: TEFNode;
-begin
-  TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
-  TKWebSession.Current.EnsureViewSupportFiles(View);
-
-  LStyle := Config.FindNode('Style');
-  if Assigned(LStyle) and (LStyle.AsString <> '') then
-    Style := LStyle.AsExpandedString;
-
-  CreateSubController;
-  Show;
-end;
-
-function TKExtWindowControllerBase.GetConfig: TEFNode;
-begin
-  if not Assigned(FConfig) then
-    FConfig := TEFNode.Create;
-  Result := FConfig;
-end;
-
-function TKExtWindowControllerBase.GetContainer: IJSContainer;
-begin
-  Result := FContainer;
-end;
-
-function TKExtWindowControllerBase.GetView: TKView;
-begin
-  Result := FView;
-end;
-
-procedure TKExtWindowControllerBase.InitDefaults;
-begin
-  inherited;
-  Layout := lyFit;
-  if TKWebRequest.Current.IsMobileBrowser then
-    Maximized := True;
-  Border := not Maximized;
-  Plain := True;
-
-  &On('close',
-    TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(WindowClosed)
-      .AddParam('Window', JSName).AsFunction);
-end;
-
-procedure TKExtWindowControllerBase.InitSubController(const ASubController: IJSController);
-begin
-end;
-
-function TKExtWindowControllerBase.IsSynchronous: Boolean;
-begin
-  Result := False;
-end;
-
-procedure TKExtWindowControllerBase.SetActiveSubController(const ASubController: IJSController);
-begin
-  // This container does not support the concept of an active subcontroller.
-end;
-
-procedure TKExtWindowControllerBase.SetContainer(const AValue: IJSContainer);
-begin
-  FContainer := AValue;
-end;
-
-procedure TKExtWindowControllerBase.SetModal;
-begin
-//  Floating := True;
-//  Modal := True;
-end;
-
-procedure TKExtWindowControllerBase.SetView(const AValue: TKView);
-begin
-  FView := AValue;
-end;
-
-class function TKExtWindowControllerBase.SupportsContainer: Boolean;
-begin
-  Result := False;
-end;
-
-procedure TKExtWindowControllerBase.WindowClosed;
-begin
-  if TKWebSession.Current <> nil then
-    TKWebSession.Current.RemoveController(GetControllerToRemove);
-end;
-
-function TKExtWindowControllerBase.GetControllerToRemove: IJSController;
-begin
-  Result := Self;
-end;
-
-function TKExtWindowControllerBase.GetDefaultHeight: Integer;
-begin
-  Result := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Height', DEFAULT_WINDOW_HEIGHT);
-end;
-
-function TKExtWindowControllerBase.GetDefaultWidth: Integer;
-begin
-  Result := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Width', DEFAULT_WINDOW_WIDTH);
-end;
-
 { TKExtPanelBase }
 
 procedure TKExtPanelBase.Activate;
@@ -568,114 +360,6 @@ begin
   Html := LHtml;
 end;
 
-{ TKExtViewportControllerBase }
-
-destructor TKExtViewportControllerBase.Destroy;
-begin
-  FreeAndNil(FConfig);
-  if TKWebSession.Current <> nil then
-    TKWebSession.Current.RemoveController(Self);
-  inherited;
-end;
-
-procedure TKExtViewportControllerBase.Display;
-begin
-  DoDisplay;
-  &On('render', GenerateAnonymousFunction(UpdateLayout));
-end;
-
-procedure TKExtViewportControllerBase.DoDisplay;
-var
-  LStyle: TEFNode;
-begin
-  TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
-  TKWebSession.Current.EnsureViewSupportFiles(View);
-
-  LStyle := Config.FindNode('Style');
-  if Assigned(LStyle) and (LStyle.AsString <> '') then
-    Style := LStyle.AsExpandedString;
-
-  CreateSubController;
-  Show;
-end;
-
-function TKExtViewportControllerBase.GetConfig: TEFNode;
-begin
-  if not Assigned(FConfig) then
-    FConfig := TEFNode.Create;
-  Result := FConfig;
-end;
-
-function TKExtViewportControllerBase.GetContainer: IJSContainer;
-begin
-  Result := FContainer;
-end;
-
-function TKExtViewportControllerBase.GetView: TKView;
-begin
-  Result := FView;
-end;
-
-procedure TKExtViewportControllerBase.InitDefaults;
-begin
-  inherited;
-  Layout := lyBorder;
-end;
-
-procedure TKExtViewportControllerBase.InitSubController(const ASubController: IJSController);
-begin
-end;
-
-function TKExtViewportControllerBase.IsSynchronous: Boolean;
-begin
-  Result := False;
-end;
-
-procedure TKExtViewportControllerBase.SetActiveSubController(const ASubController: IJSController);
-begin
-  // This container does not support the concept of an active subcontroller.
-end;
-
-procedure TKExtViewportControllerBase.SetContainer(const AValue: IJSContainer);
-begin
-  FContainer := AValue;
-end;
-
-procedure TKExtViewportControllerBase.SetModal;
-begin
-  // Viewport cannot be floating.
-end;
-
-procedure TKExtViewportControllerBase.SetView(const AValue: TKView);
-begin
-  FView := AValue;
-end;
-
-class function TKExtViewportControllerBase.SupportsContainer: Boolean;
-begin
-  Result := False;
-end;
-
-procedure TKExtViewportControllerBase.CreateSubController;
-var
-  LSubView: TKView;
-  LController: IJSController;
-  LNode: TEFNode;
-begin
-  Assert(Assigned(View));
-
-  LNode := View.FindNode('Controller/SubView');
-  if Assigned(LNode) then
-  begin
-    LSubView := TKWebApplication.Current.Config.Views.FindViewByNode(LNode);
-    if Assigned(LSubView) then
-    begin
-      LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
-      LController.Display;
-    end;
-  end;
-end;
-
 { TKExtFormComboBox }
 
 function TKExtFormComboBox.GetEncodedValue: TExtExpression;
@@ -695,6 +379,11 @@ begin
   Result := TKWebApplication.Current.Config.Config.GetInteger('Defaults/Window/Width', DEFAULT_WINDOW_WIDTH);
 end;
 
+function TKExtPanelControllerBase.GetDisplayMode: string;
+begin
+  Result := FDisplayMode;
+end;
+
 destructor TKExtPanelControllerBase.Destroy;
 begin
   if TKWebSession.Current <> nil then
@@ -709,7 +398,12 @@ begin
   DoDisplay;
 //  &On('render', GenerateAnonymousFunction(UpdateLayout));
   if (Container = nil) and (RenderTo = '') and (RenderToExpression = nil) then
-    ShowFloating(Modal)
+  begin
+    if DisplayMode = 'FullScreen'  then
+      PluginsString := 'viewport'
+    else
+      ShowFloating(DisplayMode = 'Modal');
+  end
   else
     Show(JSExpressionFromCodeBlock('getAnimationOrigin()'));
 end;
@@ -745,6 +439,8 @@ var
   LRenderTo: string;
 begin
   EnsureAllSupportFiles;
+
+  DisplayMode := Config.GetString('DisplayMode');
 
   LRenderTo := Config.GetString('ContainerElementId');
   if LRenderTo <> '' then
@@ -995,11 +691,9 @@ begin
   FContainer := AValue;
 end;
 
-procedure TKExtPanelControllerBase.SetModal;
+procedure TKExtPanelControllerBase.SetDisplayMode(const AValue: string);
 begin
-//  Floating := True;
-  Modal := True;
-//  RenderToExpression := JSExpressionFromCodeBlock('Ext.getBody()');
+  FDisplayMode := AValue;
 end;
 
 procedure TKExtPanelControllerBase.SetView(const AValue: TKView);
@@ -1059,6 +753,11 @@ begin
   Result := FContainer;
 end;
 
+function TKExtControllerBase.GetDisplayMode: string;
+begin
+  Result := '';
+end;
+
 function TKExtControllerBase.GetView: TKView;
 begin
   Result := FView;
@@ -1072,6 +771,11 @@ end;
 procedure TKExtControllerBase.SetContainer(const AValue: IJSContainer);
 begin
   FContainer := AValue;
+end;
+
+procedure TKExtControllerBase.SetDisplayMode(const Value: string);
+begin
+  // Not supported.
 end;
 
 procedure TKExtControllerBase.SetModal;
@@ -1127,22 +831,6 @@ begin
   inherited;
   ExecuteTool;
   DoAfterExecuteTool;
-end;
-
-{ TKExtContainerHelper }
-
-procedure TKExtContainerHelper.Apply(const AProc: TProc<TExtObject>);
-var
-  I: Integer;
-begin
-  Assert(Assigned(AProc));
-
-  for I := 0 to Items.Count - 1 do
-  begin
-    AProc(Items[I]);
-    if Items[I] is TExtContainer then
-      TExtContainer(Items[I]).Apply(AProc);
-  end;
 end;
 
 { TKExtActionButton }
@@ -1241,26 +929,26 @@ begin
     Tooltip := LTooltip;
 end;
 
-{ TKExtWindowToolController }
+{ TKExtPanelToolController }
 
-procedure TKExtWindowToolController.AfterExecuteTool;
+procedure TKExtPanelToolController.AfterExecuteTool;
 begin
   NotifyObservers('ToolConfirmed');
   Close;
 end;
 
-procedure TKExtWindowToolController.Cancel;
+procedure TKExtPanelToolController.Cancel;
 begin
   NotifyObservers('ToolCanceled');
   Close;
 end;
 
-procedure TKExtWindowToolController.Confirm;
+procedure TKExtPanelToolController.Confirm;
 begin
   AfterExecuteTool;
 end;
 
-procedure TKExtWindowToolController.CreateButtons;
+procedure TKExtPanelToolController.CreateButtons;
 var
   LToolbar: TKExtToolbar;
 begin
@@ -1283,7 +971,7 @@ begin
   FCancelButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Cancel).AsFunction;
 end;
 
-procedure TKExtWindowToolController.DoDisplay;
+procedure TKExtPanelToolController.DoDisplay;
 begin
   inherited;
   Title := _(View.DisplayLabel);
@@ -1292,19 +980,19 @@ begin
     CreateButtons;
 end;
 
-function TKExtWindowToolController.GetConfirmJSFunction: TJSFunction;
+function TKExtPanelToolController.GetConfirmJSFunction: TJSFunction;
 begin
   //Result := GetPOSTAjaxCode(Confirm, [], GetConfirmJsonData);
   Result := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Confirm)
     .Post(GetConfirmJsonData).AsFunction;
 end;
 
-function TKExtWindowToolController.GetConfirmJsonData: string;
+function TKExtPanelToolController.GetConfirmJsonData: string;
 begin
   Result := '{}';
 end;
 
-procedure TKExtWindowToolController.InitDefaults;
+procedure TKExtPanelToolController.InitDefaults;
 begin
   inherited;
   Modal := True;
@@ -1312,7 +1000,7 @@ begin
   Layout := lyFit;
 end;
 
-procedure TKExtWindowToolController.InitSubController(const AController: IJSController);
+procedure TKExtPanelToolController.InitSubController(const AController: IJSController);
 var
   LSubject: IEFSubject;
 begin
@@ -1322,14 +1010,14 @@ begin
     LSubject.AttachObserver(Self);
 end;
 
-procedure TKExtWindowToolController.SetWindowSize;
+procedure TKExtPanelToolController.SetWindowSize;
 begin
-  Width := Config.GetInteger('WindowWidth', DEFAULT_WINDOW_TOOL_WIDTH);
-  Height := Config.GetInteger('WindowHeight', DEFAULT_WINDOW_TOOL_HEIGHT);
+  Width := Config.GetInteger('Width', DEFAULT_WINDOW_TOOL_WIDTH);
+  Height := Config.GetInteger('Height', DEFAULT_WINDOW_TOOL_HEIGHT);
   Resizable := False;
 end;
 
-procedure TKExtWindowToolController.UpdateObserver(const ASubject: IEFSubject;
+procedure TKExtPanelToolController.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
   inherited;

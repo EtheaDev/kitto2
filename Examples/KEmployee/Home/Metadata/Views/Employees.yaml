@@ -12,9 +12,8 @@ Controller: List
 MainTable:
   Model: Employee
   Controller:
-    PopuWindow:
-      Width: 600
-      Height: 300
+    Width: 600
+    Height: 300
   Fields:
     EmpNo:
     FirstName:

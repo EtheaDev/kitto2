@@ -97,19 +97,14 @@ Login:
         .Default: False
       AutoLogin: False
 
-HomeGirls:
-  Controller: Viewport
-    SubView: Girls
+HomeGirls: Girls
 
-HomeDolls:
-  Controller: Viewport
-    SubView: Dolls
+HomeDolls: Dolls
 
 HelloWorld:
-  Controller: Viewport
-    SubView:
-      Controller: HtmlPanel
-        Html: <h1>Hello World!</h1>
+  Controller: HtmlPanel
+    DisplayMode: FullScreen
+    Html: <h1>Hello World!</h1>
 
 ExtJS:
   Theme: triton

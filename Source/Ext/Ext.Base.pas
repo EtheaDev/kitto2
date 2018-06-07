@@ -4,6 +4,7 @@ interface
 
 uses
   Classes
+  , SysUtils
   , StrUtils
   , Kitto.JS.Base
   , Kitto.JS
@@ -164,6 +165,7 @@ type
     FFloating: Boolean;
     FModal: Boolean;
     FDraggable: Boolean;
+    FPluginsString: string;
     procedure _SetDisabled(const AValue: Boolean);
     procedure SetFieldLabel(const AValue: string);
     procedure SetHidden(const AValue: Boolean);
@@ -192,6 +194,7 @@ type
     procedure SetModal(const AValue: Boolean);
     procedure SetDraggable(const AValue: Boolean);
     procedure SetRenderToExpression(const AValue: TExtExpression);
+    procedure SetPluginsString(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
@@ -233,6 +236,7 @@ type
     property OverCls: string read FOverCls write SetOverCls;
     property Padding: string read FPadding write SetPadding;
     property Plugins: TJSObjectArray read GetPlugins;
+    property PluginsString: string read FPluginsString write SetPluginsString;
     property RenderTo: string read FRenderTo write SetRenderTo;
     property RenderToExpression: TExtExpression read FRenderToExpression write SetRenderToExpression;
     property Style: string read FStyle write SetStyle;
@@ -409,6 +413,8 @@ type
     // IJSContainer
     function AsJSObject: TJSObject;
     procedure AddItem(const AItem: TJSObject); overload;
+    // Calls the specified proc once for each of the Items.
+    procedure Apply(const AProc: TProc<TExtObject>);
   end;
 
   TExtButton = class(TExtBoxComponent)
@@ -796,8 +802,7 @@ function LabelAlignAsOption(const AValue: TExtContainerLabelAlign): string;
 implementation
 
 uses
-  SysUtils
-  , KItto.JS.Formatting
+  Kitto.JS.Formatting
   , Kitto.Web.Response
   , Kitto.Web.Application
   , Kitto.Web.Session
@@ -972,6 +977,11 @@ end;
 procedure TExtComponent.SetPadding(const AValue: string);
 begin
   FPadding := SetConfigItem('padding', AValue);
+end;
+
+procedure TExtComponent.SetPluginsString(const AValue: string);
+begin
+  FPluginsString := SetConfigItem('plugins', AValue);
 end;
 
 procedure TExtComponent.SetRenderTo(const AValue: string);
@@ -1444,6 +1454,22 @@ begin
   if AChild is TJSObject then
     Items.Remove(TJSObject(AChild));
 end;
+
+procedure TExtContainer.Apply(const AProc: TProc<TExtObject>);
+var
+  I: Integer;
+begin
+  Assert(Assigned(AProc));
+
+  for I := 0 to Items.Count - 1 do
+  begin
+    AProc(Items[I]);
+    if Items[I] is TExtContainer then
+      TExtContainer(Items[I]).Apply(AProc);
+  end;
+end;
+
+{ TExtButton }
 
 procedure TExtButton.SetAllowDepress(const AValue: Boolean);
 begin

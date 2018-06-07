@@ -85,13 +85,14 @@ type
     FExpanders: TObjectList<TEFMacroExpander>;
     FPrevious: TEFMacroExpansionEngine;
     FOnGetFormatSettings: TFunc<TFormatSettings>;
-    FDisableCount: Integer;
     class var FInstance: TEFMacroExpansionEngine;
     class var FOnGetInstance: TEFGetMacroExpansionEngine;
+    class threadvar FDisableCount: Integer;
     procedure CallExpanders(var AString: string);
     class function GetInstance: TEFMacroExpansionEngine; static;
   private
     function GetFormatSettings: TFormatSettings;
+    class procedure SetOnGetInstance(const Value: TEFGetMacroExpansionEngine); static;
   strict protected
     class destructor Destroy;
   public
@@ -100,7 +101,7 @@ type
   public
     class property Instance: TEFMacroExpansionEngine read GetInstance;
 
-    class property OnGetInstance: TEFGetMacroExpansionEngine read FOnGetInstance write FOnGetInstance;
+    class property OnGetInstance: TEFGetMacroExpansionEngine read FOnGetInstance write SetOnGetInstance;
 
     /// <summary>
     ///   Expands all recognized macros in AString and returns the resulting
@@ -153,16 +154,18 @@ type
     property OnGetFormatSettings: TFunc<TFormatSettings> read FOnGetFormatSettings write FOnGetFormatSettings;
 
     /// <summary>
-    ///  Disables macro expansion (meaning that strings are returned untouched).
-    ///  Calls can be nested. Each call to Disable must be matched by a call to Enable.
+    ///  Disables macro expansion (meaning that strings are returned untouched)
+    ///  for the current thread. Calls can be nested. Each call to Disable must
+    ///  be matched by a call to Enable in the same thread.
     /// </summary>
-    procedure Disable;
+    class procedure DisableForCurrentThread;
 
     /// <summary>
-    ///  Re-enables macro expansion after a call to Disable.
-    ///  Calls can be nested. Each call to Disable must be matched by a call to Enable.
+    ///  Re-enables macro expansion for the current thread after a call to Disable.
+    ///  Calls can be nested. Each call to Disable must be matched by a call to Enable
+    ///  in the same thread.
     /// </summary>
-    procedure Enable;
+    class procedure EnableForCurrentThread;
   end;
 
   /// <summary>
@@ -629,7 +632,7 @@ begin
   inherited;
 end;
 
-procedure TEFMacroExpansionEngine.Disable;
+class procedure TEFMacroExpansionEngine.DisableForCurrentThread;
 begin
   Inc(FDisableCount);
 end;
@@ -669,12 +672,18 @@ begin
       FExpanders.Delete(I);
 end;
 
+class procedure TEFMacroExpansionEngine.SetOnGetInstance(const Value: TEFGetMacroExpansionEngine);
+begin
+  FreeAndNil(FInstance);
+  FOnGetInstance := Value;
+end;
+
 procedure TEFMacroExpansionEngine.ClearExpanders;
 begin
   FExpanders.Clear;
 end;
 
-procedure TEFMacroExpansionEngine.Enable;
+class procedure TEFMacroExpansionEngine.EnableForCurrentThread;
 begin
   Dec(FDisableCount);
 end;

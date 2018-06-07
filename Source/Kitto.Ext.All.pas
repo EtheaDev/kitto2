@@ -26,6 +26,7 @@ uses
   , Kitto.Ext.CalendarPanel
   , Kitto.Ext.ChangePassword
   , Kitto.Ext.ChartPanel
+  , Kitto.Ext.Files
   , Kitto.Ext.Filters
   , Kitto.Ext.Form
   , Kitto.Ext.GridPanel
@@ -43,8 +44,6 @@ uses
   , Kitto.Ext.Tools
   , Kitto.Ext.TilePanel
   , Kitto.Ext.TreePanel
-  , Kitto.Ext.Viewport
-  , Kitto.Ext.Window
   ;
 
 implementation
