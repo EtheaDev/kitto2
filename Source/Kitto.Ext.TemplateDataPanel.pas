@@ -61,7 +61,7 @@ uses
   , Kitto.Metadata.Views
   , Kitto.Web.Application
   , Kitto.Ext.Utils
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtTemplateDataPanel }
@@ -157,9 +157,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('TemplateDataPanel', TKExtTemplateDataPanel);
+  TJSControllerRegistry.Instance.RegisterClass('TemplateDataPanel', TKExtTemplateDataPanel);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('TemplateDataPanel');
+  TJSControllerRegistry.Instance.UnregisterClass('TemplateDataPanel');
 
 end.

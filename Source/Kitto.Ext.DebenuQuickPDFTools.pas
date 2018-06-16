@@ -25,7 +25,7 @@ uses
   , UITypes
   , DebenuPDFLibraryLite1112_TypeLibrary
   , EF.Tree
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.DataTool
   , Kitto.Ext.Base
   , Kitto.Ext.Tools
@@ -517,9 +517,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('MergePDFTool', TMergePDFToolController);
+  TJSControllerRegistry.Instance.RegisterClass('MergePDFTool', TMergePDFToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('MergePDFTool');
+  TJSControllerRegistry.Instance.UnregisterClass('MergePDFTool');
 
 end.

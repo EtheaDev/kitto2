@@ -40,7 +40,7 @@ uses
   , Kitto.Metadata.Views
   , Kitto.Metadata.DataView
   , Kitto.Ext.Base
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.LookupField
   ;
 

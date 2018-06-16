@@ -21,7 +21,7 @@ unit Kitto.Ext.HtmlPanel;
 interface
 
 uses
-  Kitto.Ext.Base, Kitto.Ext.Controller;
+  Kitto.Ext.Base, Kitto.JS.Controller;
 
 type
   TKExtHtmlPanelController = class(TKExtPanelControllerBase)
@@ -78,10 +78,10 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('HtmlPanel', TKExtHtmlPanelController);
+  TJSControllerRegistry.Instance.RegisterClass('HtmlPanel', TKExtHtmlPanelController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('HtmlPanel');
+  TJSControllerRegistry.Instance.UnregisterClass('HtmlPanel');
 
 end.
 

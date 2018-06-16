@@ -34,7 +34,7 @@ uses
   , Kitto.Metadata.Views
   , Kitto.Metadata.DataView
   , Kitto.Store
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.Base
   , Kitto.Ext.DataPanel
   , Kitto.Ext.Editors
@@ -351,7 +351,7 @@ begin
     // The node may exist and be '', which does not return the default value.
     if LControllerType = '' then
       LControllerType := 'GridPanel';
-    LController := TKExtControllerFactory.Instance.CreateController(AContainer.AsJSObject,
+    LController := TJSControllerFactory.Instance.CreateController(AContainer.AsJSObject,
       View, AContainer, ViewTable.FindNode('Controller'), Self, LControllerType);
     LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[ADetailIndex]);
     LController.Config.SetObject('Sys/ServerStore', StoreRecord.DetailStores[ADetailIndex]);
@@ -1044,7 +1044,7 @@ procedure TKExtFormPanelController.TabChange(ATabPanel: TExtTabPanel; ANewTab: T
 var
   LViewTable: TKViewTable;
   LDetailIndex: Integer;
-  LActivableIntf: IKExtActivable;
+  LActivableIntf: IJSActivable;
   LLayoutProcessor: TKExtLayoutProcessor;
   LItemCount: Integer;
 begin
@@ -1057,7 +1057,7 @@ begin
       LDetailIndex := ViewTable.GetDetailTableIndex(LViewTable);
       Assert(LDetailIndex >= 0);
       EnsureDetailController(TKExtDetailPanel(ANewTab), LDetailIndex);
-      if Supports(FDetailControllers[LDetailIndex], IKExtActivable, LActivableIntf) then
+      if Supports(FDetailControllers[LDetailIndex], IJSActivable, LActivableIntf) then
         LActivableIntf.Activate;
     end
     else if (ANewTab is TKExtEditPage) and not TKExtEditPage(ANewTab).Rendered then
@@ -1077,7 +1077,7 @@ begin
       SetConfirmButtonHandlers;
     end;
 
-    if Supports(ANewTab, IKExtActivable, LActivableIntf) then
+    if Supports(ANewTab, IJSActivable, LActivableIntf) then
       LActivableIntf.Activate;
 
     // Enable/disable navigation buttons.
@@ -1263,7 +1263,7 @@ var
 begin
   Assert(Assigned(FViewTable));
 
-  LController := TKExtControllerFactory.Instance.CreateController(
+  LController := TJSControllerFactory.Instance.CreateController(
     Self, FViewTable.View, nil);
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
@@ -1295,10 +1295,10 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('Form', TKExtFormPanelController);
+  TJSControllerRegistry.Instance.RegisterClass('Form', TKExtFormPanelController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('Form');
+  TJSControllerRegistry.Instance.UnregisterClass('Form');
 
 end.
 

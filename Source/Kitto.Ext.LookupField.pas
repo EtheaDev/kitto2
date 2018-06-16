@@ -30,7 +30,7 @@ uses
   , Kitto.Metadata.Views
   , Kitto.Metadata.DataView
   , Kitto.JS
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 type

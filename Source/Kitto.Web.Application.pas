@@ -39,7 +39,7 @@ uses
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Base
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 type
@@ -517,7 +517,7 @@ begin
     LContainer := TKWebSession.Current.ControllerContainer;
   Assert(LIsModal or Assigned(LContainer));
 
-  Result := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace,
+  Result := TJSControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace,
     AView, LContainer, nil, AObserver);
 
   if Assigned(AAfterCreate) then
@@ -899,7 +899,7 @@ begin
     LType := 'Login'
   else
     LType := '';
-  TKWebSession.Current.LoginController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, LLoginView, nil, nil, Self, LType);
+  TKWebSession.Current.LoginController := TJSControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, LLoginView, nil, nil, Self, LType);
   TKWebSession.Current.LoginController.Display;
 
 //  { TODO : remove dependency }

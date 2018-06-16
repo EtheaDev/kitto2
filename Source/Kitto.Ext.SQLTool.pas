@@ -58,7 +58,7 @@ uses
   , Kitto.DatabaseRouter
   , Kitto.Config
   , Kitto.Web.Application
-  , Kitto.Ext.Controller;
+  , Kitto.JS.Controller;
 
 { TKExtDataExecSQLCmdToolController }
 
@@ -215,9 +215,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ExecuteSQLCommand', TKExtDataExecSQLCmdToolController);
+  TJSControllerRegistry.Instance.RegisterClass('ExecuteSQLCommand', TKExtDataExecSQLCmdToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ExecuteSQLCommand');
+  TJSControllerRegistry.Instance.UnregisterClass('ExecuteSQLCommand');
 
 end.

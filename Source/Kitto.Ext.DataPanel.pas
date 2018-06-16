@@ -36,7 +36,7 @@ uses
   , Kitto.Store
   , Kitto.Types
   , Kitto.Ext.Base
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.BorderPanel
   , Kitto.Ext.Editors
   ;
@@ -219,7 +219,7 @@ begin
     TKWebApplication.Current.DisplayView(View, ActionObserver)
   else
   begin
-    LController := TKExtControllerFactory.Instance.CreateController(
+    LController := TJSControllerFactory.Instance.CreateController(
       TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
     if LController.Config.GetBoolean('RequireSelection', True) then
       FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
@@ -433,7 +433,7 @@ begin
     LEditControllerType := LEditControllerNode.AsString;
   if LEditControllerType = '' then
     LEditControllerType := GetDefaultEditControllerType;
-  Result := TKExtControllerFactory.Instance.CreateController(Self,
+  Result := TJSControllerFactory.Instance.CreateController(Self,
     ViewTable.View, AContainer, LEditControllerNode, Self, LEditControllerType);
   Result.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then

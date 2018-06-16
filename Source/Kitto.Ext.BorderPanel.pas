@@ -24,7 +24,7 @@ uses
   SysUtils,
   Ext.Base,
   EF.Tree,
-  Kitto.Ext.Base, Kitto.Ext.Controller;
+  Kitto.Ext.Base, Kitto.JS.Controller;
 
 type
   TKExtBorderPanelController = class;
@@ -133,7 +133,7 @@ begin
       LSubView := TKWebApplication.Current.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
     if LSubView <> nil then
     begin
-      FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig).AsObject;
+      FControllers[ARegion] := TJSControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig).AsObject;
       Assert(FControllers[ARegion] is TExtBoxComponent);
       TExtBoxComponent(FControllers[ARegion]).Region := ARegion;
       if Supports(FControllers[ARegion], IJSController, LIntf) then
@@ -157,10 +157,10 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('BorderPanel', TKExtBorderPanelController);
+  TJSControllerRegistry.Instance.RegisterClass('BorderPanel', TKExtBorderPanelController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('BorderPanel');
+  TJSControllerRegistry.Instance.UnregisterClass('BorderPanel');
 
 end.
 

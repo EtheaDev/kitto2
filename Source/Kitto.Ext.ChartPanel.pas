@@ -62,7 +62,7 @@ uses
   , Kitto.JS.Formatting
   , Kitto.Web.Application
   , Kitto.Ext.Utils
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtChartPanel }
@@ -411,9 +411,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ChartPanel', TKExtChartPanel);
+  TJSControllerRegistry.Instance.RegisterClass('ChartPanel', TKExtChartPanel);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ChartPanel');
+  TJSControllerRegistry.Instance.UnregisterClass('ChartPanel');
 
 end.

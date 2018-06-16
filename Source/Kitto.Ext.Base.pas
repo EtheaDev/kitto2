@@ -34,7 +34,7 @@ uses
   , Kitto.JS.Base
   , Kitto.JS
   , Kitto.JS.Types
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Metadata.Views
   ;
 
@@ -70,9 +70,9 @@ type
   end;
 
   /// <summary>
-  ///  Base Ext panel with subject and observer capabilities.
+  ///  Base Ext panel with IJSActivable support.
   /// </summary>
-  TKExtPanelBase = class(TExtPanel, IKExtActivable)
+  TKExtPanelBase = class(TExtPanel, IJSActivable)
   strict private
     FConfig: TEFNode;
   strict protected
@@ -416,11 +416,11 @@ var
   LClassType: TClass;
 begin
   LClassType := ClassType;
-  TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(LClassType));
+  TKWebSession.Current.EnsureSupportFiles(TJSControllerRegistry.Instance.FindClassId(LClassType));
   while LClassType.ClassParent <> nil do
   begin
     LClassType := LClassType.ClassParent;
-    TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(LClassType));
+    TKWebSession.Current.EnsureSupportFiles(TJSControllerRegistry.Instance.FindClassId(LClassType));
   end;
   TKWebSession.Current.EnsureViewSupportFiles(View);
 end;
@@ -740,7 +740,7 @@ end;
 
 procedure TKExtControllerBase.DoDisplay;
 begin
-  TKWebSession.Current.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
+  TKWebSession.Current.EnsureSupportFiles(TJSControllerRegistry.Instance.FindClassId(Self.ClassType));
   TKWebSession.Current.EnsureViewSupportFiles(View);
 end;
 
@@ -849,7 +849,7 @@ begin
     TKWebApplication.Current.DisplayView(View, FActionObserver)
   else
   begin
-    LController := TKExtControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, FView, nil, nil, FActionObserver);
+    LController := TJSControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, FView, nil, nil, FActionObserver);
     InitController(LController);
     LController.Display;
   end;

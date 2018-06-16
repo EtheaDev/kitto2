@@ -57,7 +57,7 @@ uses
   EF.Tree
   , Kitto.Web.Application
   , Kitto.Web.Session
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtStatusBarController }
@@ -127,9 +127,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('StatusBar', TKExtStatusBarController);
+  TJSControllerRegistry.Instance.RegisterClass('StatusBar', TKExtStatusBarController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('StatusBar');
+  TJSControllerRegistry.Instance.UnregisterClass('StatusBar');
 
 end.

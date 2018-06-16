@@ -23,7 +23,7 @@ uses
   , SysUtils
   , Classes
   , EF.Tree
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.DataTool
   , Kitto.Ext.Base
   , Kitto.Ext.Tools
@@ -172,9 +172,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('FOPTool', TFOPToolController);
+  TJSControllerRegistry.Instance.RegisterClass('FOPTool', TFOPToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('FOPTool');
+  TJSControllerRegistry.Instance.UnregisterClass('FOPTool');
 
 end.

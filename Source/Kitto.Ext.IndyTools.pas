@@ -41,7 +41,7 @@ uses
   , IdText
   , EF.Localization
   , Kitto.Web.Application
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TSendEmailToolController }
@@ -385,9 +385,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('SendEmail', TSendEmailToolController);
+  TJSControllerRegistry.Instance.RegisterClass('SendEmail', TSendEmailToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('SendEmail');
+  TJSControllerRegistry.Instance.UnregisterClass('SendEmail');
 
 end.

@@ -95,7 +95,7 @@ uses
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Web.Session
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtLoginPanel }
@@ -396,11 +396,11 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('Login', TKExtLoginPanel);
-  TKExtControllerRegistry.Instance.RegisterClass('Logout', TKExtLogoutController);
+  TJSControllerRegistry.Instance.RegisterClass('Login', TKExtLoginPanel);
+  TJSControllerRegistry.Instance.RegisterClass('Logout', TKExtLogoutController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('Login');
-  TKExtControllerRegistry.Instance.UnregisterClass('Logout');
+  TJSControllerRegistry.Instance.UnregisterClass('Login');
+  TJSControllerRegistry.Instance.UnregisterClass('Logout');
 
 end.

@@ -14,7 +14,7 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.Controller;
+unit Kitto.JS.Controller;
 
 {$I Kitto.Defines.inc}
 
@@ -28,7 +28,6 @@ uses
   , EF.Tree
   , EF.Types
   , Kitto.JS.Base
-  , Ext.Base
   , Kitto.Types
   , Kitto.Metadata.Views
   , Kitto.JS
@@ -36,52 +35,43 @@ uses
 
 type
   /// <summary>
-  ///  Interface implemented by objects that can be activated in some way,
-  ///  for example put into tab pages.
-  /// </summary>
-  IKExtActivable = interface(IEFInterface)
-    ['{D6B1AA36-C8D7-4D20-856A-7DCC7DB50423}']
-    procedure Activate;
-  end;
-
-  /// <summary>
   ///  Holds a list of registered controller classes.
   /// </summary>
   /// <remarks>
   ///  Classes passed to RegisterClass and UnregisterClass must implement
-  ///  IKController, otherwise an exception is raised.
+  ///  IJSController, otherwise an exception is raised.
   /// </remarks>
  { TODO :
 allow to overwrite registrations in order to override predefined controllers;
 keep track of all classes registered under the same name to handle
 de-registration gracefully. }
-  TKExtControllerRegistry = class(TEFRegistry)
+  TJSControllerRegistry = class(TEFRegistry)
   private
-    class var FInstance: TKExtControllerRegistry;
-    class function GetInstance: TKExtControllerRegistry; static;
+    class var FInstance: TJSControllerRegistry;
+    class function GetInstance: TJSControllerRegistry; static;
   protected
-    procedure BeforeRegisterClass(const AId: string; const AClass: TClass);
-      override;
+    procedure BeforeRegisterClass(const AId: string; const AClass: TClass); override;
   public
     class destructor Destroy;
   public
-    class property Instance: TKExtControllerRegistry read GetInstance;
-    procedure RegisterClass(const AId: string; const AClass: TExtObjectClass);
+    class property Instance: TJSControllerRegistry read GetInstance;
+    procedure RegisterClass(const AId: string; const AClass: TJSObjectClass);
+    function GetClass(const AId: string): TJSObjectClass;
   end;
 
   /// <summary>
   ///  Queries the registry to create controllers by class Id. It is
-  ///  friend to TKControllerRegistry.
+  ///  friend to TJSControllerRegistry.
   /// </summary>
-  TKExtControllerFactory = class
+  TJSControllerFactory = class
   private
-    class var FInstance: TKExtControllerFactory;
-    class function GetInstance: TKExtControllerFactory; static;
+    class var FInstance: TJSControllerFactory;
+    class function GetInstance: TJSControllerFactory; static;
     function InvokeBooleanStaticMethod(const AClass: TClass; const AMethodName: string;
       const ADefaultResult: Boolean): Boolean;
   public
     class destructor Destroy;
-    class property Instance: TKExtControllerFactory read GetInstance;
+    class property Instance: TJSControllerFactory read GetInstance;
 
     /// <summary>
     ///  Creates a controller for the specified view.
@@ -119,49 +109,52 @@ uses
   , EF.Localization
   ;
 
-{ TKExtControllerRegistry }
+{ TJSControllerRegistry }
 
-procedure TKExtControllerRegistry.BeforeRegisterClass(const AId: string;
-  const AClass: TClass);
+procedure TJSControllerRegistry.BeforeRegisterClass(const AId: string; const AClass: TClass);
 begin
-  if not AClass.InheritsFrom(TExtObject) or not Supports(AClass, IJSController) then
-    raise EKError.CreateFmt('Cannot register class %s (Id %s). Class is not a TExtObject descendant or does not support IKController.', [AClass.ClassName, AId]);
+  if not Supports(AClass, IJSController) then
+    raise EKError.CreateFmt('Cannot register class %s (Id %s). Class does not support IJSController.', [AClass.ClassName, AId]);
   inherited;
 end;
 
-class destructor TKExtControllerRegistry.Destroy;
+class destructor TJSControllerRegistry.Destroy;
 begin
   FreeAndNil(FInstance);
 end;
 
-class function TKExtControllerRegistry.GetInstance: TKExtControllerRegistry;
+function TJSControllerRegistry.GetClass(const AId: string): TJSObjectClass;
+begin
+  Result := TJSObjectClass(inherited GetClass(AId));
+end;
+
+class function TJSControllerRegistry.GetInstance: TJSControllerRegistry;
 begin
   if FInstance = nil then
-    FInstance := TKExtControllerRegistry.Create;
+    FInstance := TJSControllerRegistry.Create;
   Result := FInstance;
 end;
 
-procedure TKExtControllerRegistry.RegisterClass(const AId: string;
-  const AClass: TExtObjectClass);
+procedure TJSControllerRegistry.RegisterClass(const AId: string; const AClass: TJSObjectClass);
 begin
   inherited RegisterClass(AId, AClass);
 end;
 
-{ TKExtControllerFactory }
+{ TJSControllerFactory }
 
-class destructor TKExtControllerFactory.Destroy;
+class destructor TJSControllerFactory.Destroy;
 begin
   FreeAndNil(FInstance);
 end;
 
-class function TKExtControllerFactory.GetInstance: TKExtControllerFactory;
+class function TJSControllerFactory.GetInstance: TJSControllerFactory;
 begin
   if FInstance = nil then
-    FInstance := TKExtControllerFactory.Create;
+    FInstance := TJSControllerFactory.Create;
   Result := FInstance;
 end;
 
-function TKExtControllerFactory.InvokeBooleanStaticMethod(const AClass: TClass;
+function TJSControllerFactory.InvokeBooleanStaticMethod(const AClass: TClass;
   const AMethodName: string; const ADefaultResult: Boolean): Boolean;
 var
   LContext: TRttiContext;
@@ -176,13 +169,13 @@ begin
     Result := ADefaultResult;
 end;
 
-function TKExtControllerFactory.CreateController(const AOwner: TJSBase;
+function TJSControllerFactory.CreateController(const AOwner: TJSBase;
   const AView: TKView; const AContainer: IJSControllerContainer; const AConfig: TEFNode;
   const AObserver: IEFObserver; const ACustomType: string): IJSController;
 var
-  LClass: TExtObjectClass;
+  LClass: TJSObjectClass;
   LSubject: IEFSubject;
-  LObject: TExtObject;
+  LObject: TJSObject;
   LType: string;
   LSupportsContainer: Boolean;
 begin
@@ -199,7 +192,7 @@ begin
   if LType = '' then
     raise EKError.CreateFmt(_('Cannot create controller for view %s. Unspecified type.'), [AView.PersistentName]);
 
-  LClass := TExtObjectClass(TKExtControllerRegistry.Instance.GetClass(LType));
+  LClass := TJSControllerRegistry.Instance.GetClass(LType);
   LSupportsContainer := InvokeBooleanStaticMethod(LClass, 'SupportsContainer', True);
 
   if Assigned(AContainer) and LSupportsContainer then

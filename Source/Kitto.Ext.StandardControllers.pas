@@ -113,7 +113,7 @@ uses
   , Ext.Form
   , Kitto.Metadata.DataView
   , Kitto.JS
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Web.Request
   , Kitto.Web.Application
   ;
@@ -184,13 +184,13 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('DisplayView', TKExtDisplayViewController);
-  TKExtControllerRegistry.Instance.RegisterClass('URL', TKExtURLController);
-  TKExtControllerRegistry.Instance.RegisterClass('FilteredURL', TKExtFilteredURLController);
+  TJSControllerRegistry.Instance.RegisterClass('DisplayView', TKExtDisplayViewController);
+  TJSControllerRegistry.Instance.RegisterClass('URL', TKExtURLController);
+  TJSControllerRegistry.Instance.RegisterClass('FilteredURL', TKExtFilteredURLController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('DisplayView');
-  TKExtControllerRegistry.Instance.UnregisterClass('URL');
-  TKExtControllerRegistry.Instance.UnregisterClass('FilteredURL');
+  TJSControllerRegistry.Instance.UnregisterClass('DisplayView');
+  TJSControllerRegistry.Instance.UnregisterClass('URL');
+  TJSControllerRegistry.Instance.UnregisterClass('FilteredURL');
 
 end.

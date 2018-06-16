@@ -20,7 +20,7 @@ interface
 uses
   SysUtils, Classes,
   Kitto.ReportBuilder,
-  Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
+  Kitto.JS.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
   Kitto.Store, Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
 
 type
@@ -115,9 +115,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ReportBuilderTool', TReportBuilderToolController);
+  TJSControllerRegistry.Instance.RegisterClass('ReportBuilderTool', TReportBuilderToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ReportBuilderTool');
+  TJSControllerRegistry.Instance.UnregisterClass('ReportBuilderTool');
 
 end.

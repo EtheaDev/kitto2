@@ -26,7 +26,7 @@ uses
   , Classes
   , DB
   , EF.Tree
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.DataTool
   , Kitto.Ext.Base
   , Kitto.Ext.Tools
@@ -189,9 +189,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('XSLTool', TXSLToolController);
+  TJSControllerRegistry.Instance.RegisterClass('XSLTool', TXSLToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('XSLTool');
+  TJSControllerRegistry.Instance.UnregisterClass('XSLTool');
 
 end.

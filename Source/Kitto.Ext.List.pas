@@ -24,7 +24,7 @@ uses
   Classes,
   Ext.Base,
   EF.Tree, EF.ObserverIntf,
-  Kitto.Ext.Controller, Kitto.Metadata.DataView, Kitto.Ext.Base,
+  Kitto.JS.Controller, Kitto.Metadata.DataView, Kitto.Ext.Base,
   Kitto.Ext.DataPanelComposite;
 
 type
@@ -330,9 +330,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('List', TKExtListPanelController);
+  TJSControllerRegistry.Instance.RegisterClass('List', TKExtListPanelController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('List');
+  TJSControllerRegistry.Instance.UnregisterClass('List');
 
 end.

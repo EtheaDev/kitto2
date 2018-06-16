@@ -44,7 +44,7 @@ uses
   SysUtils
   , EF.Tree
   , Kitto.Web.Application
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtToolBarController }
@@ -83,9 +83,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ToolBar', TKExtToolBarController);
+  TJSControllerRegistry.Instance.RegisterClass('ToolBar', TKExtToolBarController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ToolBar');
+  TJSControllerRegistry.Instance.UnregisterClass('ToolBar');
 
 end.

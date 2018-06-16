@@ -21,7 +21,7 @@ interface
 uses
   SysUtils,
   Kitto.Metadata.DataView,
-  Kitto.Ext.Base, Kitto.Ext.Controller;
+  Kitto.Ext.Base, Kitto.JS.Controller;
 
 { TODO : refactor these two classes to keep duplicated code to a minimum }
 type
@@ -323,9 +323,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ExecuteCmdTool', TKExtDataCmdToolController);
+  TJSControllerRegistry.Instance.RegisterClass('ExecuteCmdTool', TKExtDataCmdToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ExecuteCmdTool');
+  TJSControllerRegistry.Instance.UnregisterClass('ExecuteCmdTool');
 
 end.

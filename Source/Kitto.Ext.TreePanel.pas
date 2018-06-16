@@ -23,7 +23,7 @@ interface
 uses
   Ext.Tree,
   EF.Tree,
-  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Utils;
+  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.JS.Controller, Kitto.Ext.Utils;
 
 type
   TKExtTreeTreeNode = class(TExtTreeTreeNode)
@@ -218,10 +218,10 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('TreePanel', TKExtTreePanelController);
+  TJSControllerRegistry.Instance.RegisterClass('TreePanel', TKExtTreePanelController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('TreePanel');
+  TJSControllerRegistry.Instance.UnregisterClass('TreePanel');
 
 end.
 

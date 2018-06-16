@@ -229,10 +229,24 @@ type
     procedure SetActiveSubController(const ASubController: IJSController);
   end;
 
+  /// <summary>
+  ///  Interface implemented by objects that can display status messages; there
+  ///  usually is only one of them in the application.
+  ///  for example put into tab pages.
+  /// </summary>
   IJSStatusHost = interface(IEFInterface)
     ['{90737203-A4D9-4C31-AFD7-FDBCF5A7B7D2}']
     function ShowBusy: TJSExpression;
     function ClearStatus: TJSExpression;
+  end;
+
+  /// <summary>
+  ///  Interface implemented by objects that can be activated in some way,
+  ///  for example put into tab pages.
+  /// </summary>
+  IJSActivable = interface(IEFInterface)
+    ['{D6B1AA36-C8D7-4D20-856A-7DCC7DB50423}']
+    procedure Activate;
   end;
 
   TJSObjectArray = class(TJSObject)
@@ -276,7 +290,7 @@ uses
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Web.Session
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 var

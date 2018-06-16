@@ -25,7 +25,7 @@ uses
   , EF.Tree
   , Kitto.Metadata.Views
   , Kitto.Ext.Base
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.TabPanel
   ;
 
@@ -441,9 +441,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('TilePanel', TKExtTilePanelController);
+  TJSControllerRegistry.Instance.RegisterClass('TilePanel', TKExtTilePanelController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('TilePanel');
+  TJSControllerRegistry.Instance.UnregisterClass('TilePanel');
 
 end.

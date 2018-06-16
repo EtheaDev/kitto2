@@ -26,7 +26,7 @@ uses
   , Kitto.Metadata.Views
   , Kitto.JS
   , Kitto.Ext.Base
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 type
@@ -217,14 +217,14 @@ begin
         LView := TKWebApplication.Current.Config.Views.ViewByNode(LViews.Children[I]);
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
-          LController := TKExtControllerFactory.Instance.CreateController(Self, LView, Self);
+          LController := TJSControllerFactory.Instance.CreateController(Self, LView, Self);
           FOwner.InitSubController(LController);
           LController.Display;
         end;
       end
       else if SameText(LViews.Children[I].Name, 'Controller') then
       begin
-        LController := TKExtControllerFactory.Instance.CreateController(Self, FView, Self, LViews.Children[I]);
+        LController := TJSControllerFactory.Instance.CreateController(Self, FView, Self, LViews.Children[I]);
         FOwner.InitSubController(LController);
         LController.Display;
       end
@@ -253,9 +253,9 @@ end;
 
 procedure TKExtTabPanel.TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);
 var
-  LIntf: IKExtActivable;
+  LIntf: IJSActivable;
 begin
-  if Assigned(ANewTab) and Supports(ANewTab, IKExtActivable, LIntf) then
+  if Assigned(ANewTab) and Supports(ANewTab, IJSActivable, LIntf) then
     LIntf.Activate;
 end;
 
@@ -265,9 +265,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('TabPanel', TKExtTabPanelController);
+  TJSControllerRegistry.Instance.RegisterClass('TabPanel', TKExtTabPanelController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('TabPanel');
+  TJSControllerRegistry.Instance.UnregisterClass('TabPanel');
 
 end.

@@ -72,7 +72,7 @@ uses
   , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtChangePassword }
@@ -211,10 +211,10 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ChangePassword', TKExtChangePassword);
+  TJSControllerRegistry.Instance.RegisterClass('ChangePassword', TKExtChangePassword);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ChangePassword');
+  TJSControllerRegistry.Instance.UnregisterClass('ChangePassword');
 
 end.
 

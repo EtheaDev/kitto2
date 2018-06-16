@@ -78,7 +78,7 @@ uses
   , Kitto.Web.Application
   , Kitto.Web.Response
   , Kitto.Ext.Utils
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtCalendarPanel }
@@ -331,9 +331,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('CalendarPanel', TKExtCalendarPanel);
+  TJSControllerRegistry.Instance.RegisterClass('CalendarPanel', TKExtCalendarPanel);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('CalendarPanel');
+  TJSControllerRegistry.Instance.UnregisterClass('CalendarPanel');
 
 end.

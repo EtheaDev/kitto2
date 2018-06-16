@@ -31,7 +31,7 @@ uses
   FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLMeta, //FireDac support for MS-SQL
   FireDAC.Phys.IBBase, FireDAC.Phys.FB, //FireDac support for Firebird
 {$ENDIF}
-  Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
+  Kitto.JS.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
   Kitto.Store, Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
 
 type

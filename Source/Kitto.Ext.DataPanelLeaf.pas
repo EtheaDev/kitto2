@@ -26,7 +26,7 @@ uses
   , EF.ObserverIntf
   , Kitto.JS
   , Kitto.Ext.Base
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.DataPanel
   ;
 

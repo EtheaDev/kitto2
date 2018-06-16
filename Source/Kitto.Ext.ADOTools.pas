@@ -28,7 +28,7 @@ uses
   , EF.Tree
   , Kitto.Excel
   , Kitto.Metadata.DataView
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.DataTool
   , Kitto.Ext.Base
   , Kitto.Ext.Tools
@@ -247,14 +247,14 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ExportExcelTool', TExportExcelToolController);
-  TKExtControllerRegistry.Instance.RegisterClass('UploadExcelTool', TUploadExcelToolController);
+  TJSControllerRegistry.Instance.RegisterClass('ExportExcelTool', TExportExcelToolController);
+  TJSControllerRegistry.Instance.RegisterClass('UploadExcelTool', TUploadExcelToolController);
   // Backward compatibility- we don't know how many users of this there are
-  TKExtControllerRegistry.Instance.RegisterClass('ImportExcelTool', TUploadExcelToolController);
+  TJSControllerRegistry.Instance.RegisterClass('ImportExcelTool', TUploadExcelToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ExportExcelTool');
-  TKExtControllerRegistry.Instance.UnregisterClass('ImportExcelTool');
-  TKExtControllerRegistry.Instance.UnregisterClass('UploadExcelTool');
+  TJSControllerRegistry.Instance.UnregisterClass('ExportExcelTool');
+  TJSControllerRegistry.Instance.UnregisterClass('ImportExcelTool');
+  TJSControllerRegistry.Instance.UnregisterClass('UploadExcelTool');
 
 end.

@@ -36,7 +36,7 @@ uses
   , Kitto.Store
   , Kitto.Types
   , Kitto.Ext.Base
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Ext.DataPanelLeaf
   , Kitto.Ext.Editors
   ;
@@ -1127,9 +1127,9 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('GridPanel', TKExtGridPanel);
+  TJSControllerRegistry.Instance.RegisterClass('GridPanel', TKExtGridPanel);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('GridPanel');
+  TJSControllerRegistry.Instance.UnregisterClass('GridPanel');
 
 end.

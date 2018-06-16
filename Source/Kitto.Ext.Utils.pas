@@ -29,7 +29,7 @@ uses
   , EF.Tree
   , Kitto.JS.Types
   , Kitto.Ext.Base
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   , Kitto.Metadata.Views
   ;
 
@@ -148,7 +148,7 @@ begin
   LType := AView.ControllerType;
   if LType <> '' then
   begin
-    LControllerClass := TKExtControllerRegistry.Instance.FindClass(LType);
+    LControllerClass := TJSControllerRegistry.Instance.FindClass(LType);
     if Assigned(LControllerClass) then
     begin
       LMethod := LContext.GetType(LControllerClass).GetMethod(AMethodName);

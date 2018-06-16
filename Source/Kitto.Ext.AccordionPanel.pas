@@ -45,7 +45,7 @@ uses
   , Kitto.AccessControl
   , Kitto.JS
   , Kitto.Web.Application
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtAccordionPanelController }
@@ -79,13 +79,13 @@ begin
         LView := TKWebApplication.Current.Config.Views.ViewByNode(LViews.Children[I]);
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
-          LController := TKExtControllerFactory.Instance.CreateController(Self, LView, Self);
+          LController := TJSControllerFactory.Instance.CreateController(Self, LView, Self);
           LController.Display;
         end;
       end
       else if SameText(LViews.Children[I].Name, 'Controller') then
       begin
-        LController := TKExtControllerFactory.Instance.CreateController(
+        LController := TJSControllerFactory.Instance.CreateController(
           Self, View, Self, LViews.Children[I]);
         InitSubController(LController);
         LController.Display;
@@ -99,10 +99,10 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('AccordionPanel', TKExtAccordionPanelController);
+  TJSControllerRegistry.Instance.RegisterClass('AccordionPanel', TKExtAccordionPanelController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('AccordionPanel');
+  TJSControllerRegistry.Instance.UnregisterClass('AccordionPanel');
 
 end.
 

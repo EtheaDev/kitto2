@@ -20,7 +20,7 @@ interface
 
 uses
   SysUtils, Classes,
-  Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base,
+  Kitto.JS.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base,
   Kitto.Metadata.DataView, Kitto.Ext.Files;
 
 type
@@ -293,13 +293,13 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ExportCSVTool', TExportCSVToolController);
-  TKExtControllerRegistry.Instance.RegisterClass('ExportTextTool', TExportTextToolController);
-  TKExtControllerRegistry.Instance.RegisterClass('ExportXMLTool', TExportXMLToolController);
+  TJSControllerRegistry.Instance.RegisterClass('ExportCSVTool', TExportCSVToolController);
+  TJSControllerRegistry.Instance.RegisterClass('ExportTextTool', TExportTextToolController);
+  TJSControllerRegistry.Instance.RegisterClass('ExportXMLTool', TExportXMLToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ExportCSVTool');
-  TKExtControllerRegistry.Instance.UnregisterClass('ExportTextTool');
-  TKExtControllerRegistry.Instance.UnregisterClass('ExportXMLTool');
+  TJSControllerRegistry.Instance.UnregisterClass('ExportCSVTool');
+  TJSControllerRegistry.Instance.UnregisterClass('ExportTextTool');
+  TJSControllerRegistry.Instance.UnregisterClass('ExportXMLTool');
 
 end.

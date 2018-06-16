@@ -206,7 +206,7 @@ uses
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.UploadFileDialog
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 { TKExtDownloadFileController }
@@ -530,11 +530,11 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('DownloadFile', TKExtDownloadFileController);
-  TKExtControllerRegistry.Instance.RegisterClass('UploadFile', TKExtUploadFileController);
+  TJSControllerRegistry.Instance.RegisterClass('DownloadFile', TKExtDownloadFileController);
+  TJSControllerRegistry.Instance.RegisterClass('UploadFile', TKExtUploadFileController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('DownloadFile');
-  TKExtControllerRegistry.Instance.UnregisterClass('UploadFile');
+  TJSControllerRegistry.Instance.UnregisterClass('DownloadFile');
+  TJSControllerRegistry.Instance.UnregisterClass('UploadFile');
 
 end.

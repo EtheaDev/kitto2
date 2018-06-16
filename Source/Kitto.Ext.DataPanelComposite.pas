@@ -23,7 +23,7 @@ interface
 uses
   Kitto.JS
   , Kitto.Ext.DataPanel
-  , Kitto.Ext.Controller
+  , Kitto.JS.Controller
   ;
 
 type
