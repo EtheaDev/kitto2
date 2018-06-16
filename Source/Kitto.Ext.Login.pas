@@ -34,7 +34,7 @@ type
   ///  A form that asks for user name and password and tries to authenticate
   ///  the user.
   /// </summary>
-  TKExtLoginPanel = class(TKExtPanelControllerBase)
+  TKExtLoginPanel = class(TKExtBorderPanelController)
   private
     FUserName: TExtFormTextField;
     FPassword: TExtFormTextField;
@@ -118,8 +118,6 @@ var
   LEditWidth: Integer;
 begin
   inherited;
-  Layout := lyFit;
-
   LTitle := Config.FindNode('Title');
   if Assigned(LTitle) then
     Title := _(LTitle.AsExpandedString)
@@ -130,6 +128,7 @@ begin
   Draggable := View.GetBoolean('Controller/Movable', False);
 
   LFormPanel := TExtFormFormPanel.CreateAndAddToArray(Items);
+  LFormPanel.Region := rgCenter;
   LFormPanel.LabelWidth := Config.GetInteger('FormPanel/LabelWidth', 150);
   LFormPanelBodyStyle := Config.GetString('FormPanel/BodyStyle');
   if LFormPanelBodyStyle <> '' then
@@ -151,7 +150,7 @@ begin
   FLoginButton.SetIconAndScale('login', 'medium');
   FLoginButton.Text := _('Login');
 
-  LFormPanel.Padding := '20px 0 0 0';
+  LFormPanel.BodyPadding := '20px 0 0 0';
   LEditWidth := Config.GetInteger('FormPanel/EditWidth', 150);
 
   FUserName := TExtFormTextField.CreateAndAddToArray(LFormPanel.Items);
@@ -161,7 +160,7 @@ begin
   FUserName.AllowBlank := False;
   FUserName.EnableKeyEvents := True;
   FUserName.SelectOnFocus := True;
-  FUserName.Width := LEditWidth + LabelWidth;
+  FUserName.Width := LEditWidth + LFormPanel.LabelWidth;
   Inc(LHeight, CONTROL_HEIGHT);
 
   FPassword := TExtFormTextField.CreateAndAddToArray(LFormPanel.Items);
@@ -172,7 +171,7 @@ begin
   FPassword.AllowBlank := False;
   FPassword.EnableKeyEvents := True;
   FPassword.SelectOnFocus := True;
-  FPassword.Width := LEditWidth + LabelWidth;
+  FPassword.Width := LEditWidth + LFormPanel.LabelWidth;
   Inc(LHeight, CONTROL_HEIGHT);
 
   FUserName.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
@@ -192,7 +191,7 @@ begin
     FResetPasswordLink.Html := Format(
       '<div style="text-align:right;"><a href="#" onclick="%s">%s</a></div>',
       [HTMLEncode(LResetPasswordClickCode), HTMLEncode(_('Password forgotten?'))]);
-    FResetPasswordLink.Width := LEditWidth + LabelWidth;
+    FResetPasswordLink.Width := LEditWidth + LFormPanel.LabelWidth;
     Inc(LHeight, CONTROL_HEIGHT);
   end
   else
@@ -213,7 +212,7 @@ begin
     //FLanguage.SelectOnFocus := True;
     FLanguage.ForceSelection := True;
     FLanguage.TriggerAction := 'all'; // Disable filtering list items based on current value.
-    FLanguage.Width := LEditWidth + LabelWidth;
+    FLanguage.Width := LEditWidth + LFormPanel.LabelWidth;
     Inc(LHeight, CONTROL_HEIGHT);
   end
   else
@@ -274,9 +273,8 @@ begin
 
   &On('render', GenerateAnonymousFunction(GetLocalStorageRetrieveJSCode(FLocalStorageMode, LLocalStorageAutoLogin)));
 
-  Height := LHeight;
-  Width := Config.GetInteger('Width', STANDARD_WIDTH);
-  inherited;
+  Height := LHeight + Config.GetInteger('ExtraHeight');
+  Width := Config.GetInteger('Width', STANDARD_WIDTH) + Config.GetInteger('ExtraWidth');
 end;
 
 function TKExtLoginPanel.GetEnableButtonJS: string;

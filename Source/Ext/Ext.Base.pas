@@ -166,6 +166,7 @@ type
     FModal: Boolean;
     FDraggable: Boolean;
     FPluginsString: string;
+    FBodyPadding: string;
     procedure _SetDisabled(const AValue: Boolean);
     procedure SetFieldLabel(const AValue: string);
     procedure SetHidden(const AValue: Boolean);
@@ -195,6 +196,7 @@ type
     procedure SetDraggable(const AValue: Boolean);
     procedure SetRenderToExpression(const AValue: TExtExpression);
     procedure SetPluginsString(const AValue: string);
+    procedure SetBodyPadding(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
@@ -214,6 +216,7 @@ type
     function ShowFloating(const AIsModal: Boolean): TExtExpression;
     // Kitto specific.
     function UpdateHostWindowTitle(const ATitle: string): TExtExpression;
+    property BodyPadding: string read FBodyPadding write SetBodyPadding;
     property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property Disabled: Boolean read FDisabled write _SetDisabled;
     property Draggable: Boolean read FDraggable write SetDraggable;
@@ -1148,6 +1151,11 @@ begin
       .FunctionArgs('sender')
       .AsFunction);
   FAfterRender := AValue;
+end;
+
+procedure TExtComponent.SetBodyPadding(const AValue: string);
+begin
+  FPadding := SetConfigItem('bodyPadding', AValue);
 end;
 
 function TExtComponent.Disable: TExtExpression;

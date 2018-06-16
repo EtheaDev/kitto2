@@ -1,4 +1,4 @@
-﻿DisplayLabel: %Config:AppTitle%
+﻿#DisplayLabel: %Config:AppTitle%
 Controller: BorderPanel
   DisplayMode: FullScreen
   WestView:

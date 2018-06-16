@@ -400,7 +400,10 @@ begin
   if (Container = nil) and (RenderTo = '') and (RenderToExpression = nil) then
   begin
     if DisplayMode = 'FullScreen'  then
-      PluginsString := 'viewport'
+    begin
+      Draggable := False;
+      PluginsString := 'viewport';
+    end
     else
       ShowFloating(DisplayMode = 'Modal');
   end
@@ -466,7 +469,7 @@ begin
   else
     Header := (Title <> '') and not Assigned(Container);
 
-  Draggable := Config.GetBoolean('Movable', Header);
+  Draggable := Config.GetBoolean('Movable', False);
 
   LWidthStr := Config.GetString('Width');
   if TryStrToInt(LWidthStr, LWidth) then

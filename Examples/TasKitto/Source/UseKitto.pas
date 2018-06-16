@@ -22,7 +22,7 @@ uses
   Kitto.Ext.XSLTools, //For XSL Transformation
   {$ENDIF}
   Kitto.Ext.FOPTools, //For FOP Engine
-  Kitto.Localization.dxgettext,
+  // Kitto.Localization.dxgettext, //Commented to enable per-session localization
   Kitto.Metadata.ModelImplementation,
   Kitto.Metadata.ViewBuilders,
   Kitto.Ext.CalendarPanel,
