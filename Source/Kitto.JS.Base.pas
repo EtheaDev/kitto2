@@ -41,6 +41,7 @@ type
     procedure AddChild(const AChild: TJSBase);
     procedure RemoveChild(const AChild: TJSBase); virtual;
     procedure InitDefaults; virtual;
+    function DoLoadConfig: TEFComponentConfig; override;
   public
     destructor Destroy; override;
     procedure BeforeDestruction; override;
@@ -190,6 +191,13 @@ begin
     FDestroyingChildren := False;
   end;
   inherited;
+end;
+
+function TJSBase.DoLoadConfig: TEFComponentConfig;
+begin
+  //inherited;
+  // No need for peristent config.
+  Result := TEFComponentConfig.Create;
 end;
 
 function TJSBase.FindChildByJSName(const AJSName: string): TJSBase;

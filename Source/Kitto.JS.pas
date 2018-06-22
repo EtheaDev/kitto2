@@ -30,15 +30,13 @@ uses
   SysUtils
   , Classes
   , Generics.Collections
-
+  , EF.Classes
   , EF.Tree
   , EF.Intf
   , EF.ObserverIntf
   , EF.Localization
   , EF.Macros
-
   , gnugettext
-
   , Kitto.Config
   , Kitto.Metadata.Views
   , Kitto.JS.Base
@@ -183,8 +181,8 @@ type
     /// </summary>
     procedure Display;
 
-    function GetConfig: TEFNode;
-    property Config: TEFNode read GetConfig;
+    function GetConfig: TEFComponentConfig;
+    property Config: TEFComponentConfig read GetConfig;
 
     function GetView: TKView;
     procedure SetView(const AValue: TKView);

@@ -38,7 +38,6 @@ type
   TKExtTilePanel = class(TKExtPanelBase)
   strict private
     FView: TKView;
-    FConfig: TEFTree;
     FTileBoxHtml: string;
     FColors: TStringDynArray;
     FColorIndex: Integer;
@@ -55,7 +54,6 @@ type
     function GetColors(const AColorSetName: string): TStringDynArray;
   public
     const DEFAULT_COLOR_SET = 'Metro';
-    property Config: TEFTree read FConfig write FConfig;
     property View: TKView read FView write FView;
     procedure DoDisplay;
   //published
@@ -139,7 +137,7 @@ begin
   inherited;
   FTilePanel := TKExtTilePanel.CreateAndAddToArray(Items);
   FTilePanel.View := View;
-  FTilePanel.Config := Config;
+  FTilePanel.Config.Assign(Config);
   FTilePanel.DoDisplay;
 end;
 

@@ -52,7 +52,7 @@ type
     function IsClientStoreAutoLoadEnabled: Boolean; override;
     function GetRecordPageFilter: string; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
-    procedure SetNewRecordDefaultValues(const ANode: TEFNode); override;
+    procedure SetNewRecordDefaultValues(const AValues: TEFTree); override;
   //published
     procedure GetCalendarRecords;
     procedure CalendarDayClick(This: TExtCalendarPanel; Dt: TDateTime; Allday: Boolean; El: TExtElement);
@@ -193,7 +193,7 @@ begin
   Result := ViewTable.FieldByAliasedName('EndDate').DBNameOrExpression;
 end;
 
-procedure TKExtCalendarPanel.SetNewRecordDefaultValues(const ANode: TEFNode);
+procedure TKExtCalendarPanel.SetNewRecordDefaultValues(const AValues: TEFTree);
 var
   LDay: Integer;
   LMonth: Integer;
@@ -203,7 +203,7 @@ begin
   LMonth := ParamAsInteger('m');
   LYear := ParamAsInteger('y');
 
-  ANode.GetNode('Sys/DefaultValues/' + GetDateFieldNameForNewRecords, True).AsDateTime :=  EncodeDate(LYear, LMonth, LDay);
+  AValues.GetNode('Sys/DefaultValues/' + GetDateFieldNameForNewRecords, True).AsDateTime :=  EncodeDate(LYear, LMonth, LDay);
 end;
 
 procedure TKExtCalendarPanel.GetCalendarRecords;

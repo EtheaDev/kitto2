@@ -255,7 +255,6 @@ var
   LEditable: boolean;
   LIsReadOnlyNode: TEFNode;
   LEditor: TExtFormField;
-  LSubject: IEFSubject;
 begin
   Assert(Assigned(AEditorManager));
 
@@ -276,8 +275,7 @@ begin
   if LEditable then
   begin
     LEditor := AEditorManager.CreateGridCellEditor(FGridPanel, AViewField);
-    if Supports(LEditor, IEFSubject, LSubject) then
-      LSubject.AttachObserver(Self);
+    LEditor.AttachObserver(Self);
     EditItems.Add(LEditor);
     AColumn.Editor := LEditor;
   end;

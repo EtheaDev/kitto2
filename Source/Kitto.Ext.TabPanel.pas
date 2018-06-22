@@ -39,11 +39,9 @@ type
   /// </summary>
   TKExtTabPanel = class(TExtTabPanel)
   private
-    FConfig: TEFTree;
     FView: TKView;
   strict protected
     procedure ItemAdded(const AItems: TJSObjectArray; const AItem: TJSObject); override;
-    property Config: TEFTree read FConfig;
     property View: TKView read FView;
     procedure InitDefaults; override;
     function TabsVisible: Boolean; virtual;
@@ -90,7 +88,7 @@ uses
 procedure TKExtTabPanelController.DoDisplay;
 begin
   inherited;
-  FTabPanel.FConfig := Config;
+  FTabPanel.Config.Assign(Config);
   FTabPanel.FView := View;
   FTabPanel.SetAsControllerContainer;
   FTabPanel.DisplaySubViewsAndControllers;

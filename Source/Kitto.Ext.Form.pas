@@ -394,12 +394,9 @@ begin
     Result.TabPanel := FTabPanel;
     Result.OnNewEditItem :=
       procedure (AEditItem: IKExtEditItem)
-      var
-        LSubject: IEFSubject;
       begin
         EditItems.Add(AEditItem.AsObject);
-        if Supports(AEditItem.AsObject, IEFSubject, LSubject) then
-          LSubject.AttachObserver(Self);
+        AEditItem.AsExtObject.AttachObserver(Self);
       end;
     Result.ForceReadOnly := FIsReadOnly;
     if MatchStr(FOperation, ['Add', 'Dup']) then

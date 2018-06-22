@@ -549,13 +549,11 @@ begin
 end;
 
 procedure TKExtPanelToolController.InitSubController(const AController: IJSController);
-var
-  LSubject: IEFSubject;
 begin
   inherited;
   FSubController := AController;
-  if Supports(FSubController.AsObject, IEFSubject, LSubject) then
-    LSubject.AttachObserver(Self);
+  if Assigned(FSubcontroller) then
+    FSubController.AsJSObject.AttachObserver(Self);
 end;
 
 procedure TKExtPanelToolController.SetWindowSize;

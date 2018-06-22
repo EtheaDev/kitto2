@@ -69,22 +69,15 @@ type
   end;
 
   /// <summary>
-  ///  Base Ext panel with Config and IJSActivable support.
+  ///  Base Ext panel with IJSActivable support.
   /// </summary>
   TKExtPanelBase = class(TExtPanel, IJSActivable)
-  strict private
-    FConfig: TEFNode;
   strict protected
-    function GetConfig: TEFNode;
     procedure InitDefaults; override;
     procedure LoadHtml(const AFileName: string; const APostProcessor: TFunc<string, string> = nil);
   public
-    destructor Destroy; override;
-
     // IJSActivable
     procedure Activate; virtual;
-
-    property Config: TEFNode read GetConfig;
   end;
 
   TKExtButton = class(TExtButton)
@@ -130,7 +123,6 @@ type
   private
     FView: TKView;
     FContainer: IJSContainer;
-    FConfig: TEFNode;
     function GetDisplayMode: string;
     procedure SetDisplayMode(const Value: string);
   protected
@@ -142,7 +134,6 @@ type
     function GetContainer: IJSContainer;
     procedure SetContainer(const AValue: IJSContainer);
     property Container: IJSContainer read GetContainer write SetContainer;
-    function GetConfig: TEFNode;
   public
     destructor Destroy; override;
     function IsSynchronous: Boolean; virtual;
@@ -150,7 +141,6 @@ type
     procedure Display;
     property DisplayMode: string read GetDisplayMode write SetDisplayMode;
     procedure SetModal;
-    property Config: TEFNode read GetConfig;
     procedure Apply(const AProc: TProc<IJSController>); virtual;
   end;
 
@@ -230,19 +220,6 @@ procedure TKExtPanelBase.Activate;
 begin
 end;
 
-destructor TKExtPanelBase.Destroy;
-begin
-  FreeAndNil(FConfig);
-  inherited;
-end;
-
-function TKExtPanelBase.GetConfig: TEFNode;
-begin
-  if not Assigned(FConfig) then
-    FConfig := TEFNode.Create;
-  Result := FConfig;
-end;
-
 procedure TKExtPanelBase.InitDefaults;
 begin
   inherited;
@@ -287,7 +264,6 @@ end;
 
 destructor TKExtControllerBase.Destroy;
 begin
-  FreeAndNil(FConfig);
   if TKWebSession.Current <> nil then
     TKWebSession.Current.RemoveController(Self);
   inherited;
@@ -312,13 +288,6 @@ procedure TKExtControllerBase.DoDisplay;
 begin
   TKWebSession.Current.EnsureSupportFiles(TJSControllerRegistry.Instance.FindClassId(Self.ClassType));
   TKWebSession.Current.EnsureViewSupportFiles(View);
-end;
-
-function TKExtControllerBase.GetConfig: TEFNode;
-begin
-  if not Assigned(FConfig) then
-    FConfig := TEFNode.Create;
-  Result := FConfig;
 end;
 
 function TKExtControllerBase.GetContainer: IJSContainer;

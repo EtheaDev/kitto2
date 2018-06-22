@@ -834,8 +834,9 @@ type
 
   TEFTreeClass = class of TEFTree;
 
-  /// <summary>A tree that stores a file name (or other logical
-  /// identifier).</summary>
+  /// <summary>
+  ///  A tree that stores a file name (or other logical identifier).
+  /// </summary>
   TEFPersistentTree = class(TEFTree)
   strict private
     FPersistentName: string;
@@ -852,7 +853,9 @@ type
 
     property IsPersistent: Boolean read GetIsPersistent;
 
-    /// <summary>Returns the full path name of the persistent file.</summary>
+    /// <summary>
+    ///  Returns the full path name of the persistent file.
+    /// </summary>
     property PersistentFileName: string read GetPersistentFileName;
   end;
 

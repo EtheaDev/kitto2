@@ -156,7 +156,6 @@ function TJSControllerFactory.CreateController(const AOwner: TJSBase; const AVie
   const AContainer: IJSContainer; const AConfig: TEFNode = nil;
   const AObserver: IEFObserver = nil; const ACustomType: string = ''): IJSController;
 var
-  LSubject: IEFSubject;
   LObject: TJSObject;
   LOwner: TJSBase;
 
@@ -192,8 +191,8 @@ begin
     if not Supports(LObject, IJSController, Result) then
       raise EKError.Create(_('Object does not support IJSController.'));
 
-    if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LSubject) then
-      LSubject.AttachObserver(AObserver);
+    if Assigned(AObserver) then
+      Result.AsJSObject.AttachObserver(AObserver);
 
     { TODO : examine callers - see if we can merge here or possibly remove the AConfig argument. }
     if AConfig <> nil then

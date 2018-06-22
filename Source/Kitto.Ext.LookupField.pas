@@ -36,7 +36,6 @@ uses
 type
   TKExtLookupField = class(TExtFormTextField,  IInterface, IEFInterface)
   private
-    FSubjObserverImpl: TEFSubjectAndObserver;
     FLookupController: IJSController;
     FViewField: TKViewField;
     procedure UpdateTriggers;
@@ -49,15 +48,8 @@ type
     function GetViewField: TKViewField;
     property ViewField: TKViewField read FViewField;
   public
-    destructor Destroy; override;
-    function AsObject: TObject; inline;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    procedure AttachObserver(const AObserver: IEFObserver); virtual;
-    procedure DetachObserver(const AObserver: IEFObserver); virtual;
-    procedure NotifyObservers(const AContext: string = ''); virtual;
-    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string); override;
     function AsExtObject: TExtObject;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string); override;
     class function SupportsViewField(const AViewField: TKViewField): Boolean; static;
     procedure SetReadOnly(const AValue: Boolean);
   //published
@@ -79,32 +71,6 @@ uses
 
 { TKExtLookupField }
 
-function TKExtLookupField.AsExtObject: TExtObject;
-begin
-  Result := Self;
-end;
-
-function TKExtLookupField.AsObject: TObject;
-begin
-  Result := Self;
-end;
-
-procedure TKExtLookupField.AttachObserver(const AObserver: IEFObserver);
-begin
-  FSubjObserverImpl.AttachObserver(AObserver);
-end;
-
-destructor TKExtLookupField.Destroy;
-begin
-  FreeAndNil(FSubjObserverImpl);
-  inherited;
-end;
-
-procedure TKExtLookupField.DetachObserver(const AObserver: IEFObserver);
-begin
-  FSubjObserverImpl.DetachObserver(AObserver);
-end;
-
 class function TKExtLookupField.FindLookupView(const AViewField: TKViewField): TKView;
 begin
   Result := AViewField.Table.View.Catalog.FindObjectByPredicate(
@@ -123,13 +89,7 @@ end;
 procedure TKExtLookupField.InitDefaults;
 begin
   inherited;
-  FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Editable := False;
-end;
-
-procedure TKExtLookupField.NotifyObservers(const AContext: string);
-begin
-  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
 end;
 
 procedure TKExtLookupField.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
@@ -151,14 +111,9 @@ begin
   end;
 end;
 
-function TKExtLookupField._AddRef: Integer;
+function TKExtLookupField.AsExtObject: TExtObject;
 begin
-  Result := -1;
-end;
-
-function TKExtLookupField._Release: Integer;
-begin
-  Result := -1;
+  Result := Self;
 end;
 
 procedure TKExtLookupField.DoSelect;

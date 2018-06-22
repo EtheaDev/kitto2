@@ -143,7 +143,7 @@ type
     procedure DoGetRecordPage(const AStart, ALimit: Integer; const AFillResponse: Boolean);
     function GetIsPaged: Boolean; virtual;
     function GetRecordPageFilter: string; virtual;
-    procedure SetNewRecordDefaultValues(const ANode: TEFNode); virtual;
+    procedure SetNewRecordDefaultValues(const AValues: TEFTree); virtual;
     function IsViewFieldIncludedInClientStore(const AViewField: TKViewField): Boolean; virtual;
     procedure AddUsedViewFields; virtual;
     procedure AddUsedViewField(const AViewField: TKViewField);
@@ -738,7 +738,7 @@ begin
     Result := 1000;
 end;
 
-procedure TKExtDataPanelController.SetNewRecordDefaultValues(const ANode: TEFNode);
+procedure TKExtDataPanelController.SetNewRecordDefaultValues(const AValues: TEFTree);
 begin
 end;
 

@@ -160,7 +160,6 @@ type
   /// </summary>
   TKListFilterBase = class(TKExtFormComboBox)
   strict protected
-    FConfig: TEFNode;
     FViewTable: TKViewTable;
     FServerStore: TKStore;
   public
@@ -257,7 +256,6 @@ type
   TKFreeSearchFilter = class(TKExtFormTextField, IKExtFilter)
   strict private
     FCurrentValue: string;
-    FConfig: TEFNode;
     FViewTable: TKViewTable;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
@@ -278,7 +276,6 @@ type
   TKDateSearchFilter = class(TKExtFormDateField, IKExtFilter)
   strict private
     FCurrentValue: TDateTime;
-    FConfig: TEFNode;
     FViewTable: TKViewTable;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
@@ -300,7 +297,6 @@ type
   TKBooleanSearchFilter = class(TKExtFormCheckBoxField, IKExtFilter)
   strict private
     FIsCurrentValue: Boolean;
-    FConfig: TEFNode;
     FViewTable: TKViewTable;
     procedure FieldChecked(This: TExtFormCheckBox; Checked: boolean);
   public
@@ -317,7 +313,6 @@ type
   strict private
     FSelected: TArray<Boolean>;
   strict protected
-    FConfig: TEFNode;
     FItems: TEFNode;
     FViewTable: TKViewTable;
     function GetACName: string;
@@ -441,7 +436,6 @@ type
   private
     FCurrentValues: TKViewTableStore;
     FViewTable: TKViewTable;
-    FConfig: TEFNode;
   strict protected
     procedure LookupConfirmed(const ARecord: TKViewTableRecord); override;
   public
@@ -497,7 +491,7 @@ begin
   end;
 end;
 
-function GetDatabaseName(const AConfig: TEFNode; const ACallerContext: TObject;
+function GetDatabaseName(const AConfig: TEFTree; const ACallerContext: TObject;
   const ADefaultDatabaseName: string): string;
 var
   LDatabaseRouterNode: TEFNode;
@@ -609,9 +603,7 @@ end;
 
 function TKListFilterBase.GetId: string;
 begin
-  Assert(Assigned(FConfig));
-
-  Result := FConfig.GetExpandedString('Id');
+  Result := Config.GetExpandedString('Id');
 end;
 
 procedure TKListFilterBase.Invalidate;
@@ -633,8 +625,8 @@ var
 begin
   Assert(Assigned(AConfig));
 
-  FConfig := AConfig;
-  FieldLabel := _(FConfig.AsString);
+  FieldLabel := _(AConfig.AsString);
+  Config.Assign(AConfig);
   TriggerAction := 'all';
   Editable := True;
   LazyRender := True;
@@ -662,14 +654,14 @@ begin
   ValueField := 'Id';
   DisplayField := 'Description';
 
-  LWidth := FConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH);
+  LWidth := Config.GetInteger('Width', DEFAULT_FILTER_WIDTH);
   WidthExpression := CharsToPixels(LWidth);
-  LListWidth := FConfig.GetInteger('ListWidth', -1);
+  LListWidth := Config.GetInteger('ListWidth', -1);
   if LListWidth = -1 then
     LListWidth := LWidth;
   ListWidthFunc := CharsToPixels(LListWidth);
   TypeAhead := True;
-  MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
+  MinChars := Config.GetInteger('AutoCompleteMinChars', 4);
 end;
 
 procedure TKListFilterBase.SetViewTable(const AViewTable: TKViewTable);
@@ -686,7 +678,7 @@ var
   LRecord: TKRecord;
 begin
   inherited;
-  FItems := FConfig.GetNode('Items');
+  FItems := Config.GetNode('Items');
   Assert(Assigned(FItems));
 
   Assert(Assigned(FServerStore));
@@ -709,7 +701,7 @@ begin
   end
   else
     FActiveIndex := -1;
-  if FConfig.GetBoolean('Sys/IsReadOnly') then
+  if Config.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
   begin
@@ -774,7 +766,7 @@ begin
   begin
     FCurrentValue := LNewValue;
     NotifyObservers('FilterChanged');
-    for LInvalidate in FConfig.GetStringArray('Invalidates') do
+    for LInvalidate in Config.GetStringArray('Invalidates') do
       NotifyObservers('FilterInvalidated ' + LInvalidate);
   end;
 end;
@@ -787,7 +779,7 @@ end;
 function TKDynaListFilter.GetExpression: string;
 begin
   if FCurrentValue <> '' then
-    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', FCurrentValue)
+    Result := ReplaceText(Config.GetExpandedString('ExpressionTemplate'), '{value}', FCurrentValue)
   else
     Result := '';
 end;
@@ -807,14 +799,14 @@ begin
 
   Assert(Assigned(FServerStore));
 
-  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(FConfig, Self, FViewTable.DatabaseName));
+  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(Config, Self, FViewTable.DatabaseName));
   try
     LDBQuery := LDBConnection.CreateDBQuery;
     try
-      LCommandText := ExpandFilterValues(Owner as TJSObjectArray, FConfig.GetExpandedString('CommandText'));
+      LCommandText := ExpandFilterValues(Owner as TJSObjectArray, Config.GetExpandedString('CommandText'));
       LQuery := ParamAsString('query');
       if LQuery <> '' then
-        LQueryExpression := ReplaceStr(FConfig.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
+        LQueryExpression := ReplaceStr(Config.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
       else
         LQueryExpression := '';
       LDBQuery.CommandText := ReplaceStr(LCommandText, '{query}', LQueryExpression);
@@ -846,7 +838,7 @@ begin
   //PageSize := 10;
   //Resizable := True;
   //MinHeight := LinesToPixels(5);
-  if FConfig.GetBoolean('Sys/IsReadOnly') then
+  if Config.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
   begin
@@ -875,7 +867,9 @@ var
   LAutoSearchAfterChars: Integer;
 begin
   Assert(Assigned(AConfig));
-  FConfig := AConfig;
+
+  FieldLabel := _(AConfig.AsString);
+  Config.Assign(AConfig);
 
   LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 0);
   if LAutoSearchAfterChars <> 0 then
@@ -884,12 +878,11 @@ begin
     EnableKeyEvents := True;
     On('keyup', GenerateAnonymousFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
   end;
-  FieldLabel := _(AConfig.AsString);
   WidthExpression := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   FCurrentValue := AConfig.GetExpandedString('DefaultValue');
   if FCurrentValue <> '' then
     SetValue(FCurrentValue);
-  if FConfig.GetBoolean('Sys/IsReadOnly') then
+  if Config.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
     OnChange := FieldChange;
@@ -917,16 +910,14 @@ end;
 function TKFreeSearchFilter.GetExpression: string;
 begin
   if FCurrentValue <> '' then
-    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', ReplaceStr(FCurrentValue, '''', ''''''))
+    Result := ReplaceText(Config.GetExpandedString('ExpressionTemplate'), '{value}', ReplaceStr(FCurrentValue, '''', ''''''))
   else
     Result := '';
 end;
 
 function TKFreeSearchFilter.GetId: string;
 begin
-  Assert(Assigned(FConfig));
-
-  Result := FConfig.GetExpandedString('Id');
+  Result := Config.GetExpandedString('Id');
 end;
 
 procedure TKFreeSearchFilter.Invalidate;
@@ -946,8 +937,10 @@ var
   LDefaultValue, LFormat: string;
 begin
   Assert(Assigned(AConfig));
-  FConfig := AConfig;
+
   FieldLabel := _(AConfig.AsString);
+  Config.Assign(AConfig);
+
   WidthExpression := CharsToPixels(AConfig.GetInteger('Width', 12));
   LDefaultValue := AConfig.GetExpandedString('DefaultValue');
   if LDefaultValue <> '' then
@@ -964,7 +957,7 @@ begin
   if TKWebRequest.Current.IsMobileBrowser then
     Editable := False;
 
-  if FConfig.GetBoolean('Sys/IsReadOnly') then
+  if Config.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
     OnChange := FieldChange;
@@ -1003,13 +996,13 @@ begin
   //A zero date is considered blank
   if FCurrentValue <> 0 then
   begin
-    LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(FConfig, Self, FViewTable.DatabaseName));
+    LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(Config, Self, FViewTable.DatabaseName));
     try
       LDateTimeValue := LDBConnection.DBEngineType.FormatDateTime(FCurrentValue);
     finally
       FreeAndNil(LDBConnection);
     end;
-    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', LDateTimeValue);
+    Result := ReplaceText(Config.GetExpandedString('ExpressionTemplate'), '{value}', LDateTimeValue);
   end
   else
     Result := '';
@@ -1017,9 +1010,7 @@ end;
 
 function TKDateSearchFilter.GetId: string;
 begin
-  Assert(Assigned(FConfig));
-
-  Result := FConfig.GetExpandedString('Id');
+  Result := Config.GetExpandedString('Id');
 end;
 
 procedure TKDateSearchFilter.Invalidate;
@@ -1037,11 +1028,13 @@ end;
 procedure TKBooleanSearchFilter.SetConfig(const AConfig: TEFNode);
 begin
   Assert(Assigned(AConfig));
-  FConfig := AConfig;
+
   FieldLabel := _(AConfig.AsString);
+  Config.Assign(AConfig);
+
   FIsCurrentValue := False;
 
-  if FConfig.GetBoolean('Sys/IsReadOnly') then
+  if Config.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
     OnCheck := FieldChecked;
@@ -1069,16 +1062,14 @@ end;
 function TKBooleanSearchFilter.GetExpression: string;
 begin
   if FIsCurrentValue then
-    Result := FConfig.GetExpandedString('ExpressionTemplate')
+    Result := Config.GetExpandedString('ExpressionTemplate')
   else
     Result := '';
 end;
 
 function TKBooleanSearchFilter.GetId: string;
 begin
-  Assert(Assigned(FConfig));
-
-  Result := FConfig.GetExpandedString('Id');
+  Result := Config.GetExpandedString('Id');
 end;
 
 procedure TKBooleanSearchFilter.Invalidate;
@@ -1098,7 +1089,7 @@ var
   LACURI: string;
 begin
   Result := True;
-  if Assigned(FViewTable) and Assigned(FConfig) then
+  if Assigned(FViewTable) then
   begin
     LACURI := FViewTable.View.GetACURI + '/Filters/' +  GetACName + '/' + AACName;
     Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, LACURI, ACM_VIEW);
@@ -1107,7 +1098,7 @@ end;
 
 function TKButtonListFilterBase.IsSingleSelect: Boolean;
 begin
-  Result := FConfig.GetBoolean('IsSingleSelect');
+  Result := Config.GetBoolean('IsSingleSelect');
 end;
 
 procedure TKButtonListFilterBase.SetConfig(const AConfig: TEFNode);
@@ -1126,8 +1117,8 @@ var
 begin
   Assert(Assigned(AConfig));
 
-  FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
+  Config.Assign(AConfig);
 
   FItems := RetrieveItems;
 
@@ -1157,10 +1148,9 @@ begin
           LIsDefaultSet := True;
         end;
       end;
-      if FConfig.GetBoolean('Sys/IsReadOnly') then
+      if Config.GetBoolean('Sys/IsReadOnly') then
         LButtons[I].Disabled := True
       else
-        //LButtons[I].On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButtons[I].Pressed_]));
         LButtons[I].On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ButtonClick)
           .AddParam('Index', I)
           .AddParam('Pressed', LButtons[I].Pressed_).AsFunction);
@@ -1229,9 +1219,9 @@ end;
 
 function TKButtonListFilterBase.GetACName: string;
 begin
-  Result := FConfig.GetExpandedString('ACName');
+  Result := Config.GetExpandedString('ACName');
   if Result = '' then
-    Result := FConfig.GetExpandedString('ResourceName');
+    Result := Config.GetExpandedString('ResourceName');
 end;
 
 function TKButtonListFilterBase.GetExpression: string;
@@ -1245,7 +1235,7 @@ begin
   Result := '';
   for I := 0 to High(FSelected) do
   begin
-    LConnector := FConfig.GetString('Connector', 'or');
+    LConnector := Config.GetString('Connector', 'or');
     if FSelected[I] then
     begin
       LExpression := GetItemExpression(I);
@@ -1266,9 +1256,7 @@ end;
 
 function TKButtonListFilterBase.GetId: string;
 begin
-  Assert(Assigned(FConfig));
-
-  Result := FConfig.GetExpandedString('Id');
+  Result := Config.GetExpandedString('Id');
 end;
 
 { TKButtonListFilter }
@@ -1280,7 +1268,7 @@ end;
 
 function TKButtonListFilter.RetrieveItems: TEFNode;
 begin
-  Result := FConfig.GetNode('Items');
+  Result := Config.GetNode('Items');
 end;
 
 { TKDynaButtonListFilter }
@@ -1294,7 +1282,7 @@ end;
 function TKDynaButtonListFilter.GetItemExpression(const AItemIndex: Integer): string;
 begin
   if FItems[AItemIndex].GetString('Value') <> '' then
-    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', FItems[AItemIndex].GetExpandedString('Value'))
+    Result := ReplaceText(Config.GetExpandedString('ExpressionTemplate'), '{value}', FItems[AItemIndex].GetExpandedString('Value'))
   else
     Result := '';
 end;
@@ -1307,11 +1295,11 @@ var
 begin
   Result := TEFNode.Create('Items');
   try
-    LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(FConfig, Self, FViewTable.DatabaseName));
+    LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(Config, Self, FViewTable.DatabaseName));
     try
       LDBQuery := LDBConnection.CreateDBQuery;
       try
-        LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
+        LDBQuery.CommandText := Config.GetExpandedString('CommandText');
         LDBQuery.Open;
         try
           Assert(LDBQuery.DataSet.FieldCount = 2);
@@ -1464,7 +1452,7 @@ function TKLookupFilter.GetExpression: string;
 begin
   if Assigned(FCurrentValues) and (FCurrentValues.RecordCount > 0) then
   begin
-    Result := FConfig.GetExpandedString('ExpressionTemplate');
+    Result := Config.GetExpandedString('ExpressionTemplate');
     FCurrentValues.Records[0].ExpandExpression(Result);
   end
   else
@@ -1473,9 +1461,7 @@ end;
 
 function TKLookupFilter.GetId: string;
 begin
-  Assert(Assigned(FConfig));
-
-  Result := FConfig.GetExpandedString('Id');
+  Result := Config.GetExpandedString('Id');
 end;
 
 procedure TKLookupFilter.Invalidate;
@@ -1499,12 +1485,13 @@ begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(AConfig));
 
-  FConfig := AConfig;
-  FieldLabel := _(FConfig.AsString);
+  FieldLabel := _(AConfig.AsString);
+  Config.Assign(AConfig);
+
   WidthExpression := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
-  if FConfig.GetBoolean('Sys/IsReadOnly') then
+  if Config.GetBoolean('Sys/IsReadOnly') then
     ReadOnly := True;
-  SetViewField(FViewTable.FieldByAliasedName(FConfig.GetString('ReferenceFieldName')));
+  SetViewField(FViewTable.FieldByAliasedName(Config.GetString('ReferenceFieldName')));
 end;
 
 procedure TKLookupFilter.SetViewTable(const AViewTable: TKViewTable);

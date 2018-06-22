@@ -46,7 +46,6 @@ type
   private
     FView: TKView;
     FTreeViewRenderer: TKExtTreeViewRenderer;
-    FConfig: TEFNode;
     FTreeView: TKTreeView;
     procedure SetView(const AValue: TKView);
     procedure AddNode(const ANode: TKTreeViewNode; const ADisplayLabel: string;
@@ -103,7 +102,7 @@ procedure TKExtTreePanelController.DoDisplay;
 begin
   inherited;
   Title := _(View.DisplayLabel);
-  FTreePanel.FConfig := Config;
+  FTreePanel.Config.Assign(Config);
   FTreePanel.View := View;
 end;
 
@@ -141,7 +140,7 @@ begin
   FView := AValue;
   if not Assigned(FTreeViewRenderer) then
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-  LViewNode := FConfig.GetNode('TreeView');
+  LViewNode := Config.GetNode('TreeView');
   FTreeView := TKWebApplication.Current.Config.Views.ViewByNode(LViewNode) as TKTreeView;
   Assert(Assigned(FTreeView));
   FTreeViewRenderer.Render(FTreeView,

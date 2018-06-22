@@ -15,7 +15,7 @@
 -------------------------------------------------------------------------------}
 
 ///	<summary>
-///	  Defines a useful base TEFComponent base class and related classes.
+///	 Defines a useful base TEFComponent base class and related classes.
 ///	</summary>
 unit EF.Classes;
 
@@ -31,54 +31,53 @@ type
   TEFComponentConfig = class(TEFPersistentTree);
 
   ///	<summary>
-  ///	  <para>
-  ///	    Abstract class for configurable objects with logging and observer
-  ///	    capability. A TEFComponent:<br />- has class-level and object-level 
-  ///	    identification methods;<br />- has a Config that it can load from a
-  ///	    file;<br />- can be a subject and observer;<br />- has logging
-  ///	    capability.
-  ///	  </para>
-  ///	  <para>
-  ///	    Used as a base class for various kinds of objects in EF.
-  ///	  </para>
+  ///	 <para>
+  ///	  Abstract class for configurable objects with logging and observer
+  ///	  capability. A TEFComponent:<br />- has class-level and object-level 
+  ///	  identification methods;<br />- has a Config that it can load from a
+  ///	  file;<br />- can be a subject and observer;<br />- has logging
+  ///	  capability.
+  ///	 </para>
+  ///	 <para>
+  ///	  Used as a base class for various kinds of objects in EF.
+  ///	 </para>
   ///	</summary>
   TEFComponent = class(TEFSubjectAndObserver)
   private
     FOnLog: TEFLogEvent;
     FLogLevel: Integer;
     FConfig: TEFComponentConfig;
-    function GetConfig: TEFComponentConfig;
   strict protected
     function DoLoadConfig: TEFComponentConfig; virtual;
   public
     const DEFAULT_LOG_LEVEL = 1;
   protected
     ///	<summary>
-    ///	  Override this method to enable Config auto-load upon first request.
-    ///	  The default implementation returns '', which disables auto-load.
+    ///	 Override this method to enable Config auto-load upon first request.
+    ///	 The default implementation returns '', which disables auto-load.
     ///	</summary>
     function GetConfigFileName: string; virtual;
 
     ///	<summary>
-    ///	  Implements GetClassId. Override this method to give the class a
-    ///	  custom string Id.
+    ///	 Implements GetClassId. Override this method to give the class a
+    ///	 custom string Id.
     ///	</summary>
     ///	<remarks>
-    ///	  Identifying classes by string-based Ids is useful in registration
-    ///	  frameworks, in which class Ids are read from a file and corresponding
-    ///	  class references must be retrieved from a registry object.
+    ///	 Identifying classes by string-based Ids is useful in registration
+    ///	 frameworks, in which class Ids are read from a file and corresponding
+    ///	 class references must be retrieved from a registry object.
     ///	</remarks>
     class function InternalGetClassId: string; virtual;
 
     ///	<summary>
-    ///	  Implements GetId. Override this method to give the class a custom
-    ///	  object-level string Id.
+    ///	 Implements GetId. Override this method to give the class a custom
+    ///	 object-level string Id.
     ///	</summary>
     ///	<remarks>
-    ///	  Identifying objects by string-based Ids is useful in registration
-    ///	  frameworks, in which object Ids are read from a file and
-    ///	  corresponding objects must be retrieved from a registry or factory
-    ///	  object.
+    ///	 Identifying objects by string-based Ids is useful in registration
+    ///	 frameworks, in which object Ids are read from a file and
+    ///	 corresponding objects must be retrieved from a registry or factory
+    ///	 object.
     ///	</remarks>
     function InternalGetId: string; virtual;
 
@@ -88,12 +87,12 @@ type
     procedure DoLog(const AString: string; const ALogLevel: Integer = DEFAULT_LOG_LEVEL); overload;
 
     ///	<summary>
-    ///	  Calls DoLog for each line in AStrings, pre-pending ALinePrefix to
-    ///	  each line.
+    ///	 Calls DoLog for each line in AStrings, pre-pending ALinePrefix to
+    ///	 each line.
     ///	</summary>
     ///	<remarks>
-    ///	  By using this method, OnLog is called once for each string in
-    ///	  AStrings.
+    ///	 By using this method, OnLog is called once for each string in
+    ///	 AStrings.
     ///	</remarks>
     procedure DoLog(const AStrings: TStrings; const ALinePrefix: string = '';
       const ALogLevel: Integer = DEFAULT_LOG_LEVEL); overload;
@@ -104,51 +103,54 @@ type
   public
 
     ///	<summary>
-    ///	  <para>
-    ///	    Returns an identification string based on the class name.
-    ///	  </para>
-    ///	  <para>
-    ///	    By default, returns the class name without any 'T' or 'TEF' prefix.
-    ///	  </para>
+    ///	 <para>
+    ///	  Returns an identification string based on the class name.
+    ///	 </para>
+    ///	 <para>
+    ///	  By default, returns the class name without any 'T' or 'TEF' prefix.
+    ///	 </para>
     ///	</summary>
     ///	<remarks>
-    ///	  Identifying classes by string-based Ids is useful in registration
-    ///	  frameworks, in which class Ids are read from a file and corresponding
-    ///	  class references must be retrieved from a registry object.
+    ///	 Identifying classes by string-based Ids is useful in registration
+    ///	 frameworks, in which class Ids are read from a file and corresponding
+    ///	 class references must be retrieved from a registry object.
     ///	</remarks>
     class function GetClassId: string;
 
     ///	<summary>
-    ///	  Returns an identification string for the object. By default returns
-    ///	  the same value as GetClassId.
+    ///	 Returns an identification string for the object. By default returns
+    ///	 the same value as GetClassId.
     ///	</summary>
     ///	<remarks>
-    ///	  Identifying objects by string-based Ids is useful in registration
-    ///	  frameworks, in which object Ids are read from a file and
-    ///	  corresponding objects must be retrieved from a registry or factory
-    ///	  object.
+    ///	 Identifying objects by string-based Ids is useful in registration
+    ///	 frameworks, in which object Ids are read from a file and
+    ///	 corresponding objects must be retrieved from a registry or factory
+    ///	 object.
     ///	</remarks>
     function GetId: string;
 
     ///	<summary>
-    ///	  Fired each time the object needs to log information about its work.
+    ///	 Fired each time the object needs to log information about its work.
     ///	</summary>
     property OnLog: TEFLogEvent read FOnLog write FOnLog;
 
     ///	<summary>
-    ///	  Gets or sets the logging level for this component. Only messages that
-    ///	  have a level lower than or equal to this setting will be logged.
+    ///	 Gets or sets the logging level for this component. Only messages that
+    ///	 have a level lower than or equal to this setting will be logged.
     ///	</summary>
     property LogLevel: Integer read FLogLevel write FLogLevel default DEFAULT_LOG_LEVEL;
 
     ///	<summary>
-    ///	  An internal tree-like config object used to set values that affect
-    ///	  the object's operations.
+    ///	 An internal tree-like config object used to set values that affect
+    ///	 the object's operations.
     ///	</summary>
+    function GetConfig: TEFComponentConfig;
     property Config: TEFComponentConfig read GetConfig;
 
-    ///	<summary>Invalidates the internal config object so that it is
-    ///	re-created at next access.</summary>
+    ///	<summary>
+    ///  Invalidates the internal config object so that it is
+    ///	 re-created at next access.
+    /// </summary>
     procedure InvalidateConfig;
   end;
   TEFComponentClass = class of TEFComponent;
