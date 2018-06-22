@@ -21,9 +21,13 @@ unit Kitto.Ext.TreePanel;
 interface
 
 uses
-  Ext.Tree,
-  EF.Tree,
-  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.JS.Controller, Kitto.Ext.Utils;
+  EF.Tree
+  , Kitto.Metadata.Views
+  , Kitto.JS.Controller
+  , Ext.Tree
+  , Kitto.Ext.Panel
+  , Kitto.Ext.Utils
+  ;
 
 type
   TKExtTreeTreeNode = class(TExtTreeTreeNode)

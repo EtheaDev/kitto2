@@ -67,8 +67,6 @@ de-registration gracefully. }
   private
     class var FInstance: TJSControllerFactory;
     class function GetInstance: TJSControllerFactory; static;
-    function InvokeBooleanStaticMethod(const AClass: TClass; const AMethodName: string;
-      const ADefaultResult: Boolean): Boolean;
   public
     class destructor Destroy;
     class property Instance: TJSControllerFactory read GetInstance;
@@ -98,15 +96,14 @@ de-registration gracefully. }
     ///  Custom controller type, used to override the one specified in the view.
     /// </param>
     function CreateController(const AOwner: TJSBase; const AView: TKView;
-      const AContainer: IJSControllerContainer; const AConfig: TEFNode = nil;
+      const AContainer: IJSContainer; const AConfig: TEFNode = nil;
       const AObserver: IEFObserver = nil; const ACustomType: string = ''): IJSController;
   end;
 
 implementation
 
 uses
-  System.Rtti
-  , EF.Localization
+  EF.Localization
   ;
 
 { TJSControllerRegistry }
@@ -137,6 +134,7 @@ end;
 
 procedure TJSControllerRegistry.RegisterClass(const AId: string; const AClass: TJSObjectClass);
 begin
+
   inherited RegisterClass(AId, AClass);
 end;
 
@@ -154,71 +152,69 @@ begin
   Result := FInstance;
 end;
 
-function TJSControllerFactory.InvokeBooleanStaticMethod(const AClass: TClass;
-  const AMethodName: string; const ADefaultResult: Boolean): Boolean;
+function TJSControllerFactory.CreateController(const AOwner: TJSBase; const AView: TKView;
+  const AContainer: IJSContainer; const AConfig: TEFNode = nil;
+  const AObserver: IEFObserver = nil; const ACustomType: string = ''): IJSController;
 var
-  LContext: TRttiContext;
-  LType: TRttiType;
-  LMethod: TRttiMethod;
-begin
-  LType := LContext.GetType(AClass);
-  LMethod := LType.GetMethod(AMethodName);
-  if Assigned(LMethod) then
-    Result := LMethod.Invoke(AClass, []).AsBoolean
-  else
-    Result := ADefaultResult;
-end;
-
-function TJSControllerFactory.CreateController(const AOwner: TJSBase;
-  const AView: TKView; const AContainer: IJSControllerContainer; const AConfig: TEFNode;
-  const AObserver: IEFObserver; const ACustomType: string): IJSController;
-var
-  LClass: TJSObjectClass;
   LSubject: IEFSubject;
   LObject: TJSObject;
-  LType: string;
-  LSupportsContainer: Boolean;
+  LOwner: TJSBase;
+
+  function GetClassByType: TJSObjectClass;
+  var
+    LType: string;
+  begin
+    LType := ACustomType;
+    if LType = '' then
+      if Assigned(AConfig) then
+        LType := AConfig.AsExpandedString;
+    if LType = '' then
+      LType := AView.ControllerType;
+
+    if LType = '' then
+      raise EKError.CreateFmt(_('Cannot create controller for view %s. Unspecified type.'), [AView.PersistentName]);
+    Result := TJSControllerRegistry.Instance.GetClass(LType);
+  end;
+
+
 begin
+  Assert(AOwner <> nil);
   Assert(AView <> nil);
-  Assert((AContainer <> nil) or (AOwner <> nil));
 
-  LType := ACustomType;
-  if LType = '' then
-    if Assigned(AConfig) then
-      LType := AConfig.AsExpandedString;
-  if LType = '' then
-    LType := AView.ControllerType;
-
-  if LType = '' then
-    raise EKError.CreateFmt(_('Cannot create controller for view %s. Unspecified type.'), [AView.PersistentName]);
-
-  LClass := TJSControllerRegistry.Instance.GetClass(LType);
-  LSupportsContainer := InvokeBooleanStaticMethod(LClass, 'SupportsContainer', True);
-
-  if Assigned(AContainer) and LSupportsContainer then
-    LObject := LClass.Create(AContainer.AsJSObject)
-  else
-    LObject := LClass.Create(AOwner);
-
-  if not Supports(LObject, IJSController, Result) then
-    raise EKError.Create('Object does not support IJSController.');
-
-  if Assigned(AContainer) and LSupportsContainer then
-    AContainer.AddItem(LObject);
-
-  if AConfig <> nil then
-    Result.Config.Assign(AConfig)
-  else
-    Result.Config.Assign(AView.FindNode('Controller'));
-  // Keep track of the SupportsContainer info fetched from the class for later use.
-  Result.Config.SetBoolean('Sys/SupportsContainer', LSupportsContainer);
-  Result.View := AView;
   if Assigned(AContainer) then
-    AContainer.InitSubController(Result);
-  if Assigned(AContainer) and LSupportsContainer then
-    Result.Container := AContainer;
-  if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LSubject) then
-    LSubject.AttachObserver(AObserver);
+    LOwner := AContainer.AsJSObject
+  else
+    LOwner := AOwner;
+
+  LObject := GetClassByType.Create(LOwner);
+  try
+    // This extract the interface reference into Result.
+    if not Supports(LObject, IJSController, Result) then
+      raise EKError.Create(_('Object does not support IJSController.'));
+
+    if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LSubject) then
+      LSubject.AttachObserver(AObserver);
+
+    { TODO : examine callers - see if we can merge here or possibly remove the AConfig argument. }
+    if AConfig <> nil then
+      Result.Config.Assign(AConfig)
+    else
+      Result.Config.Assign(AView.FindNode('Controller'));
+
+    Result.View := AView;
+
+    // Calls InitSubController. Do this only after everything else is set up.
+    if Assigned(AContainer) then
+    begin
+      // For some reason assigning Container in AddItem causes it to be missing
+      // when Display is called on a subcontroller. Refactoring needed here.
+      Result.Container := AContainer;
+      AContainer.AddItem(LObject);
+    end;
+  except
+    FreeAndNil(LObject);
+    raise;
+  end;
 end;
 
 end.

@@ -38,7 +38,6 @@ uses
   , Kitto.Web.URL
   , Kitto.Web.Request
   , Kitto.Web.Response
-  , Kitto.Ext.Base
   , Kitto.JS.Controller
   ;
 
@@ -256,7 +255,6 @@ uses
   , EF.StrUtils
   , EF.Localization
   , EF.Types
-  , Ext.Base
   , Kitto.Types
   , Kitto.JS.Formatting
   , Kitto.Web.Types
@@ -505,7 +503,7 @@ function TKWebApplication.DisplayNewController(
   const AAfterCreate: TProc<IJSController> = nil): IJSController;
 var
   LIsModal: Boolean;
-  LContainer: IJSControllerContainer;
+  LContainer: IJSContainer;
   LIsSynchronous: Boolean;
 begin
   // If there's no view host, all views must be floating. For now, all floating views
@@ -517,8 +515,7 @@ begin
     LContainer := TKWebSession.Current.ControllerContainer;
   Assert(LIsModal or Assigned(LContainer));
 
-  Result := TJSControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace,
-    AView, LContainer, nil, AObserver);
+  Result := TJSControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, AView, LContainer, nil, AObserver);
 
   if Assigned(AAfterCreate) then
     AAfterCreate(Result);
@@ -579,8 +576,6 @@ begin
         if not Assigned(LController) then
           LController := DisplayNewController(AView, AObserver);
       end;
-      if Assigned(LController) and Assigned(TKWebSession.Current.ControllerContainer) and LController.Config.GetBoolean('Sys/SupportsContainer') then
-        TKWebSession.Current.ControllerContainer.SetActiveSubController(LController);
     finally
       ClearStatus;
     end;
@@ -901,10 +896,6 @@ begin
     LType := '';
   TKWebSession.Current.LoginController := TJSControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, LLoginView, nil, nil, Self, LType);
   TKWebSession.Current.LoginController.Display;
-
-//  { TODO : remove dependency }
-//  if TKWebSession.Current.LoginController is TExtContainer then
-//    TExtContainer(TKWebSession.Current.LoginController).UpdateLayout;
 end;
 
 procedure TKWebApplication.Home;
@@ -933,10 +924,6 @@ begin
   TKWebResponse.Current.Items.ExecuteJSCode(TKWebSession.Current.ObjectSpace,
     Format('Ext.util.Format.thousandSeparator = "%s";', [Config.UserFormatSettings.ThousandSeparator]));
   SetAjaxTimeout;
-  if TooltipsEnabled then
-    ExtQuickTips.Init(True)
-  else
-    ExtQuickTips.Disable;
 
   if not TKWebSession.Current.RefreshingLanguage then
     TKWebSession.Current.SetLanguageFromQueriesOrConfig(Config);

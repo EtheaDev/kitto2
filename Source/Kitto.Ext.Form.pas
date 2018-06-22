@@ -39,6 +39,7 @@ uses
   , Kitto.Ext.DataPanel
   , Kitto.Ext.Editors
   , Kitto.Ext.GridPanel
+  , Kitto.Ext.Panel
   ;
 
 const
@@ -121,8 +122,8 @@ type
     function FindLayout: TKLayout;
     function IsViewMode: Boolean;
     procedure SetStoreRecord(const AValue: TKViewTableRecord);
-    procedure EnsureDetailController(const AContainer: IJSControllerContainer;
-      const ADetailIndex: Integer);
+    procedure EnsureDetailController(const AContainer: IJSContainer;
+  const ADetailIndex: Integer);
     function CreateLayoutProcessor: TKExtLayoutProcessor;
     procedure SetConfirmButtonHandlers;
     procedure EnableConfirmButtons;
@@ -337,7 +338,7 @@ begin
   EnableButton(FConfirmButton);
 end;
 
-procedure TKExtFormPanelController.EnsureDetailController(const AContainer: IJSControllerContainer;
+procedure TKExtFormPanelController.EnsureDetailController(const AContainer: IJSContainer;
   const ADetailIndex: Integer);
 var
   LController: IJSController;
@@ -351,8 +352,7 @@ begin
     // The node may exist and be '', which does not return the default value.
     if LControllerType = '' then
       LControllerType := 'GridPanel';
-    LController := TJSControllerFactory.Instance.CreateController(AContainer.AsJSObject,
-      View, AContainer, ViewTable.FindNode('Controller'), Self, LControllerType);
+    LController := TJSControllerFactory.Instance.CreateController(AContainer.AsJSObject, View, AContainer, ViewTable.FindNode('Controller'), Self, LControllerType);
     LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[ADetailIndex]);
     LController.Config.SetObject('Sys/ServerStore', StoreRecord.DetailStores[ADetailIndex]);
     LController.Config.SetBoolean('AllowClose', False);
@@ -1044,7 +1044,7 @@ procedure TKExtFormPanelController.TabChange(ATabPanel: TExtTabPanel; ANewTab: T
 var
   LViewTable: TKViewTable;
   LDetailIndex: Integer;
-  LActivableIntf: IJSActivable;
+  LActivable: IJSActivable;
   LLayoutProcessor: TKExtLayoutProcessor;
   LItemCount: Integer;
 begin
@@ -1057,8 +1057,8 @@ begin
       LDetailIndex := ViewTable.GetDetailTableIndex(LViewTable);
       Assert(LDetailIndex >= 0);
       EnsureDetailController(TKExtDetailPanel(ANewTab), LDetailIndex);
-      if Supports(FDetailControllers[LDetailIndex], IJSActivable, LActivableIntf) then
-        LActivableIntf.Activate;
+      if Supports(FDetailControllers[LDetailIndex], IJSActivable, LActivable) then
+        LActivable.Activate;
     end
     else if (ANewTab is TKExtEditPage) and not TKExtEditPage(ANewTab).Rendered then
     begin
@@ -1077,8 +1077,8 @@ begin
       SetConfirmButtonHandlers;
     end;
 
-    if Supports(ANewTab, IJSActivable, LActivableIntf) then
-      LActivableIntf.Activate;
+    if Supports(ANewTab, IJSActivable, LActivable) then
+      LActivable.Activate;
 
     // Enable/disable navigation buttons.
     if Assigned(FPreviousButton) then
@@ -1263,8 +1263,7 @@ var
 begin
   Assert(Assigned(FViewTable));
 
-  LController := TJSControllerFactory.Instance.CreateController(
-    Self, FViewTable.View, nil);
+  LController := TJSControllerFactory.Instance.CreateController(Self, FViewTable.View, nil);
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.DisplayMode := 'Modal';

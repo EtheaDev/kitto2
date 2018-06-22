@@ -21,8 +21,9 @@ unit Kitto.Ext.AccordionPanel;
 interface
 
 uses
-  Ext.Base,
-  Kitto.Ext.Base, Kitto.Metadata.Views;
+  Kitto.Metadata.Views
+  , Kitto.Ext.Panel
+  ;
 
 type
   ///	<summary>Displays subviews/controllers in an accordion.</summary>
@@ -44,8 +45,9 @@ uses
   , Kitto.Types
   , Kitto.AccessControl
   , Kitto.JS
-  , Kitto.Web.Application
   , Kitto.JS.Controller
+  , Ext.Base
+  , Kitto.Web.Application
   ;
 
 { TKExtAccordionPanelController }
@@ -85,8 +87,7 @@ begin
       end
       else if SameText(LViews.Children[I].Name, 'Controller') then
       begin
-        LController := TJSControllerFactory.Instance.CreateController(
-          Self, View, Self, LViews.Children[I]);
+        LController := TJSControllerFactory.Instance.CreateController(Self, View, Self, LViews.Children[I]);
         InitSubController(LController);
         LController.Display;
       end

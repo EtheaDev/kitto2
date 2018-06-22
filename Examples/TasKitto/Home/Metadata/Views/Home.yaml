@@ -1,4 +1,4 @@
-﻿DisplayLabel: %Config:AppTitle%
+﻿#DisplayLabel: %Config:AppTitle%
 Controller: BorderPanel
   DisplayMode: FullScreen
   WestView:
@@ -10,28 +10,26 @@ Controller: BorderPanel
       Border: True
       Header: True
 
-  CenterView:
-    Controller: TabPanel
-      Border: True
-      # List of views to be auto-opened in tabs.
-      SubViews:
-        View: ActivityInput
-        View: ActivityReport
-        View: Projects
-        #View: ActivityBarChart
-        #View: ActivityPieChart
+  CenterController: TabPanel
+    Border: True
+    # List of views to be auto-opened in tabs.
+    SubViews:
+      #View: ActivityInput
+      #View: ActivityReport
+      #View: Projects
+      #View: ActivityBarChart
+      #View: ActivityPieChart
 
-  NorthView:
-    Controller: HtmlPanel
-      Split: False
-      Html: |
-        <center>
-          <img src="%IMAGE(taskitto_logo_150)%"></img>
-          <h3>An example activity tracking application.</h3>
-        </center>
-      Height: 100
+  NorthController: HtmlPanel
+    Split: False
+    Html: |
+      <center>
+        <img src="%IMAGE(taskitto_logo_150)%"></img>
+        <h3>An example activity tracking application.</h3>
+      </center>
+    Height: 100
 
   SouthView:
+    ImageName: user
     Controller: StatusBar
       Text: Connected user: %Auth:USER_NAME% - %Auth:FIRST_NAME% %Auth:LAST_NAME%
-    ImageName: user

@@ -68,6 +68,7 @@ type
     function CreateConfigObject(const AClass: TJSObjectClass; const AAttributeName: string): TJSObject; overload;
     function CreateConfigObjectArray(const AAttributeName: string): TJSObjectArray;
     procedure DoHandleEvent(const AEventName: string); virtual;
+    procedure ItemAdded(const AItems: TJSObjectArray; const AItem: TJSObject); virtual;
   protected
     procedure DependsUpon(const AObject: TJSObject);
   public
@@ -206,27 +207,6 @@ type
     function IsSynchronous: Boolean;
 
     function AsJSObject: TJSObject;
-  end;
-
-  /// <summary>
-  ///  A container for one or more controllers.
-  /// </summary>
-  IJSControllerContainer = interface(IJSContainer)
-    ['{37EA31CA-544F-4DBD-8C04-D08E30517C99}']
-
-    /// <summary>
-    ///  Called after creating a subcontroller to give this container a chance to
-    ///  initialize some of its configs or settings.
-    /// </summary>
-    procedure InitSubController(const ASubController: IJSController);
-
-    /// <summary>
-    ///  If the container supports the concept of active controller, this
-    ///  method sets the specified controller as the visually active one
-    ///  (such as the active page of a tab panel). Otherwise this method does
-    ///  nothing.
-    /// </summary>
-    procedure SetActiveSubController(const ASubController: IJSController);
   end;
 
   /// <summary>
@@ -405,6 +385,7 @@ begin
     AItems.Add(AItem);
     if FJSConfig.IsReadOnly then
       TKWebResponse.Current.Items.CallMethod(Self, 'add').AddParam(AItem);
+    ItemAdded(AItems, AItem);
   end;
 end;
 
@@ -560,6 +541,10 @@ end;
 function TJSObject.IsInternal: Boolean;
 begin
   Result := JSName.Contains('.');
+end;
+
+procedure TJSObject.ItemAdded(const AItems: TJSObjectArray; const AItem: TJSObject);
+begin
 end;
 
 function TJSObject.SetConfigItem(const AName, AValue: string): string;

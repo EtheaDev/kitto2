@@ -94,7 +94,6 @@ begin
     TEFMacroExpansionEngine.Instance.Expand(LTemplate);
     FView.Tpl := ProcessTemplate(LTemplate);
   end;
-  FView.Store := ClientStore;
 end;
 
 function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;

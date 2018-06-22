@@ -24,6 +24,7 @@ uses
   SysUtils
   , Ext.Form
   , Kitto.Ext.Base
+  , Kitto.Ext.Panel
   ;
 
 type

@@ -22,21 +22,22 @@ interface
 
 uses
   Generics.Collections
-  , Ext.Base
-  , Ext.Data
-  , Ext.Form
-  , Ext.Grid
   , EF.ObserverIntf
   , EF.Types
   , EF.Tree
-  , Kitto.JS
-  , Kitto.JS.Types
   , Kitto.Metadata.Views
   , Kitto.Metadata.DataView
   , Kitto.Store
   , Kitto.Types
-  , Kitto.Ext.Base
+  , Kitto.JS
+  , Kitto.JS.Types
   , Kitto.JS.Controller
+  , Ext.Base
+  , Ext.Data
+  , Ext.Form
+  , Ext.Grid
+  , Kitto.Ext.Base
+  , Kitto.Ext.Panel
   , Kitto.Ext.DataPanelLeaf
   , Kitto.Ext.Editors
   ;
@@ -92,7 +93,6 @@ type
     function GetObjectNamePrefix: string; override;
   public
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-    procedure Activate; override;
   //published
     procedure LoadData; override;
     procedure SelectionChanged;
@@ -182,23 +182,14 @@ var
 begin
   inherited;
   LAnyButtonsRequiringSelection := FButtonsRequiringSelection.Count > 0;
+  if LAnyButtonsRequiringSelection then
+    FSelectionModel.On('selectionchange', GenerateAnonymousFunction('s', GetRowButtonsDisableJS));
+
   // Server-side selectionchange notifcation is expensive - enable only if
   // strictly necessary.
   LServerSideSelectionChangeNeeded := GetAutoFormPlacement <> '';
-
-  // Note: the selectionchange handler must be called in afterrender as well
-  // to account for the first row, which is selected by default.
-  if LAnyButtonsRequiringSelection then
-  begin
-    FSelectionModel.On('selectionchange', GenerateAnonymousFunction('s', GetRowButtonsDisableJS));
-    On('afterrender', GenerateAnonymousFunction(Format('var s = %s;', [FSelectionModel.JSName]) + GetRowButtonsDisableJS));
-  end;
-
   if LServerSideSelectionChangeNeeded then
-  begin
     FSelectionModel.On('selectionchange', GetSelectCall(SelectionChanged));
-    On('afterrender', GetSelectCall(SelectionChanged));
-  end;
 end;
 
 procedure TKExtGridPanel.BeforeEdit;
@@ -233,6 +224,10 @@ begin
   FGridPanel.EnableHdMenu := False;
   // We mask globally, see kitto-init.js
   FGridPanel.ViewConfig.SetConfigItem('loadMask', False);
+
+  TKWebResponse.Current.Items.ExecuteJSCode(FGridPanel, Format(
+    '%s.getView().on("refresh", function() { %s.select(0); });',
+    [FGridPanel.JSName, FSelectionModel.JSName]));
 end;
 
 function TKExtGridPanel.IsActionSupported(const AActionName: string): Boolean;
@@ -1072,13 +1067,6 @@ begin
   FPagingToolbar.Cls := 'k-bbar';
   Result := FPagingToolbar;
   //FPagingToolbar.Store := nil; // Avoid double destruction of the store.
-end;
-
-procedure TKExtGridPanel.Activate;
-begin
-  inherited;
-  if Assigned(FSelectionModel) then
-    FSelectionModel.Select(0);
 end;
 
 function TKExtGridPanel.AddActionButton(const AUniqueId: string;

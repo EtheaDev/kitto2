@@ -21,10 +21,11 @@ unit Kitto.Ext.BorderPanel;
 interface
 
 uses
-  SysUtils,
-  Ext.Base,
-  EF.Tree,
-  Kitto.Ext.Base, Kitto.JS.Controller;
+  EF.Tree
+  , Kitto.JS
+  , Ext.Base
+  , Kitto.Ext.Panel
+  ;
 
 type
   TKExtBorderPanelController = class;
@@ -45,16 +46,16 @@ type
     function GetRegionName(const ARegion: TExtBoxComponentRegion): string; virtual;
     function GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string;
     function GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string;
-  public
   end;
 
 implementation
 
 uses
-  TypInfo
+  SysUtils
+  , TypInfo
   , EF.Intf
   , EF.StrUtils
-  , Kitto.JS
+  , Kitto.JS.Controller
   , Kitto.Web.Application
   , Kitto.Metadata.Views
   ;
@@ -116,8 +117,8 @@ procedure TKExtBorderPanelController.CreateController(const ARegion: TExtBoxComp
 var
   LSubView: TKView;
   LControllerConfig: TEFNode;
-  LIntf: IJSController;
   LFreeIt: Boolean;
+  LController: IJSController;
 begin
   Assert(Assigned(View));
 
@@ -133,12 +134,11 @@ begin
       LSubView := TKWebApplication.Current.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
     if LSubView <> nil then
     begin
-      FControllers[ARegion] := TJSControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig).AsObject;
+      LController := TJSControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig);
+      FControllers[ARegion] := LController.AsObject;
       Assert(FControllers[ARegion] is TExtBoxComponent);
       TExtBoxComponent(FControllers[ARegion]).Region := ARegion;
-      if Supports(FControllers[ARegion], IJSController, LIntf) then
-        InitSubController(LIntf);
-      LIntf.Display;
+      LController.Display;
     end;
   finally
     if LFreeIt then

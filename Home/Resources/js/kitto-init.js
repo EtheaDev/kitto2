@@ -40,6 +40,8 @@ function kittoInit()
       // In case it has custom close buttons...
       this.on('close', function() { this.hostWindow.close(); });
       this.hostWindow.show(getAnimationOrigin());
+      if (!this.isVisible())
+        this.show(getAnimationOrigin());
     },
 
     updateHostWindowTitle: function(title) {
@@ -151,7 +153,7 @@ function kittoInit()
       return String.format('<div class="x-grid3-check-col{0}"></div>', val ? "-on" : '');
     }
   });
-  
+
   TextMetrics = new Ext.util.TextMetrics("body");
   Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
 
@@ -160,4 +162,10 @@ function kittoInit()
   Ext.Ajax.on("requestexception", function() { showKittoLoadMask(0); });
 
   Ext.ariaWarn = Ext.emptyFn;
+
+  if (!isMobileBrowser())
+    Ext.tip.QuickTipManager.init();
+  else
+    Ext.tip.QuickTipManager.disable();
+
 }

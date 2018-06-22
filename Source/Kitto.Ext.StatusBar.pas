@@ -25,6 +25,7 @@ uses
   , Kitto.JS.Base
   , Kitto.JS
   , Kitto.Ext.Base
+  , Kitto.Ext.Panel
   , Kitto.Metadata.Views
   ;
 

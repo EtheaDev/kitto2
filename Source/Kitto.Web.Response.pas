@@ -1338,6 +1338,7 @@ begin
   if not IsExpressionExtracted then
   begin
     Assert(CallName <> '');
+    Assert(Assigned(Sender));
 
     AFormatter.SkipLine.Indent;
     AFormatter.AddIndented('Ext.Ajax.request(').SkipLine.Indent.AddIndent.OpenObject;

@@ -151,7 +151,7 @@ type
     // Inherited classes should call UpdateRecord when changes are confirmed/applied
     // and this method when changes are canceled. This class manages housekeeping.
     procedure ChangesCanceled(const ARecord: TKViewTableRecord);
-    function InitEditController(const AContainer: IJSControllerContainer;
+    function InitEditController(const AContainer: IJSContainer;
   const ARecord: TKViewTableRecord; const AOperation: string): IJSController;
     function GetDefaultEditControllerType: string; virtual;
     property EditItems: TKEditItemList read GetEditItems;
@@ -219,8 +219,7 @@ begin
     TKWebApplication.Current.DisplayView(View, ActionObserver)
   else
   begin
-    LController := TJSControllerFactory.Instance.CreateController(
-      TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
+    LController := TJSControllerFactory.Instance.CreateController(TKWebSession.Current.ObjectSpace, View, nil, nil, ActionObserver);
     if LController.Config.GetBoolean('RequireSelection', True) then
       FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
     else
@@ -367,24 +366,23 @@ begin
   if LViewTable = nil then
     LViewTable := View.MainTable;
   Assert(Assigned(LViewTable));
+  ViewTable := LViewTable;
 
   if Config.GetBoolean('Sys/ShowIcon', True) then
-    IconCls := TKWebApplication.Current.SetViewIconStyle(View, LViewTable.Model.ImageName);
+    IconCls := TKWebApplication.Current.SetViewIconStyle(View, ViewTable.Model.ImageName);
 
   FServerStore := Config.GetObject('Sys/ServerStore') as TKViewTableStore;
   if FServerStore = nil then
   begin
-    FServerStore := LViewTable.CreateStore;
+    FServerStore := ViewTable.CreateStore;
     FOwnsServerStore := True;
   end
   else
     FOwnsServerStore := False;
   Assert(Assigned(FServerStore));
 
-  ViewTable := LViewTable;
-
   // We do this after setting ViewTable in order to give descendants a chance
-  // to define which view fields are used.
+  // to define which view table fields are used.
   CreateClientReaderFields;
 
   inherited; // Creates subcontrollers.
@@ -422,7 +420,7 @@ begin
   LEditController.Display;
 end;
 
-function TKExtDataPanelController.InitEditController(const AContainer: IJSControllerContainer;
+function TKExtDataPanelController.InitEditController(const AContainer: IJSContainer;
   const ARecord: TKViewTableRecord; const AOperation: string): IJSController;
 var
   LEditControllerType: string;
@@ -433,8 +431,7 @@ begin
     LEditControllerType := LEditControllerNode.AsString;
   if LEditControllerType = '' then
     LEditControllerType := GetDefaultEditControllerType;
-  Result := TJSControllerFactory.Instance.CreateController(Self,
-    ViewTable.View, AContainer, LEditControllerNode, Self, LEditControllerType);
+  Result := TJSControllerFactory.Instance.CreateController(Self, ViewTable.View, AContainer, LEditControllerNode, Self, LEditControllerType);
   Result.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
     Result.Config.SetObject('Sys/Record', ARecord)
@@ -579,9 +576,10 @@ procedure TKExtDataPanelController.CreateClientReaderFields;
 var
   I: Integer;
 begin
+  Assert(Assigned(FClientStore));
   for I := 0 to ViewTable.FieldCount - 1 do
     if IsViewFieldIncludedInClientStore(ViewTable.Fields[I]) then
-      AddClientReaderField(FClientStore{.Proxy.Reader}, ViewTable.Fields[I]);
+      AddClientReaderField(FClientStore, ViewTable.Fields[I]);
 end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
@@ -589,6 +587,7 @@ var
   LProxy: TExtDataAjaxProxy;
   LReader: TExtDataJsonReader;
 begin
+  Assert(ViewTable <> nil);
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := ViewTable.GetBoolean('Controller/RemoteSort', GetDefaultRemoteSort);
   LProxy := TExtDataAjaxProxy.CreateInline(Result);
@@ -874,8 +873,7 @@ begin
   inherited;
 end;
 
-procedure TKExtDataPanelController.InitSubController(
-  const AController: IJSController);
+procedure TKExtDataPanelController.InitSubController(const AController: IJSController);
 begin
   inherited;
   Assert(Assigned(AController));

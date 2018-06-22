@@ -21,7 +21,9 @@ unit Kitto.Ext.HtmlPanel;
 interface
 
 uses
-  Kitto.Ext.Base, Kitto.JS.Controller;
+  Kitto.JS.Controller
+  , Kitto.Ext.Panel
+  ;
 
 type
   TKExtHtmlPanelController = class(TKExtPanelControllerBase)

@@ -6,6 +6,7 @@ uses
   Classes
   , SysUtils
   , StrUtils
+  , Generics.Collections
   , Kitto.JS.Base
   , Kitto.JS
   , Kitto.JS.Types
@@ -44,7 +45,6 @@ type
 
   TExtEventObjectSingleton = class;
   TExtTemplate = class;
-  TExtQuickTipsSingleton = class;
   TExtElement = class;
   TExtAction = class;
   TExtSplitBar = class;
@@ -94,14 +94,6 @@ type
     class function JSClassName: string; override;
   end;
 
-  TExtQuickTipsSingleton = class(TExtObject)
-  public
-    class function JSClassName: string; override;
-    function Disable: TExtExpression;
-    function Enable: TExtExpression;
-    function Init(const AAutoRender: Boolean): TExtExpression;
-  end;
-
   TExtElement = class(TExtObject)
   public
     class function JSClassName: string; override;
@@ -133,7 +125,7 @@ type
   end;
 
   // Procedural types for events TExtComponent
-  TExtComponentAfterRender = procedure(AThis: TExtComponent) of object;
+  TExtComponentAfterRender = reference to procedure(const AThis: TExtComponent);
 
   TExtComponent = class(TExtWidget)
   private
@@ -153,7 +145,7 @@ type
     FMinWidth: Integer;
     FSplit: Boolean;
     FFieldLabel: string;
-    FAfterRender: TExtComponentAfterRender;
+    FAfterRenderHandlers: TList<TExtComponentAfterRender>;
     FMaxSize: Integer;
     FItemCls: string;
     FDisabled: Boolean;
@@ -197,10 +189,11 @@ type
     procedure SetRenderToExpression(const AValue: TExtExpression);
     procedure SetPluginsString(const AValue: string);
     procedure SetBodyPadding(const AValue: string);
+    function GetAfterRender: TExtComponentAfterRender;
   protected
     procedure InitDefaults; override;
   public
-    procedure DoHandleEvent(const AEvtName: string); override;
+    procedure DoHandleEvent(const AEventName: string); override;
     class function JSClassName: string; override;
     function AddCls(const AClsName: string): TExtExpression;
     function Disable: TExtExpression;
@@ -216,6 +209,7 @@ type
     function ShowFloating(const AIsModal: Boolean): TExtExpression;
     // Kitto specific.
     function UpdateHostWindowTitle(const ATitle: string): TExtExpression;
+    destructor Destroy; override;
     property BodyPadding: string read FBodyPadding write SetBodyPadding;
     property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property Disabled: Boolean read FDisabled write _SetDisabled;
@@ -245,7 +239,8 @@ type
     property Style: string read FStyle write SetStyle;
     property Split: Boolean read FSplit write SetSplit;
     property Tpl: string read FTpl write SetTpl;
-    property AfterRender: TExtComponentAfterRender read FAfterRender write SetAfterRender;
+    property AfterRender: TExtComponentAfterRender read GetAfterRender write SetAfterRender;
+    procedure AddAfterRenderHandler(const AHandler: TExtComponentAfterRender);
   end;
 
   TExtLayer = class(TExtElement)
@@ -415,7 +410,7 @@ type
     property ColumnWidth: Double read FColumnWidth write SetColumnWidth;
     // IJSContainer
     function AsJSObject: TJSObject;
-    procedure AddItem(const AItem: TJSObject); overload;
+    procedure AddItem(const AItem: TJSObject); overload; virtual;
     // Calls the specified proc once for each of the Items.
     procedure Apply(const AProc: TProc<TExtObject>);
   end;
@@ -798,7 +793,6 @@ type
       const AFn: TExtExpression = nil; const AScope: TExtObject = nil): TExtExpression;
   end;
 
-function ExtQuickTips: TExtQuickTipsSingleton;
 function ExtMessageBox: TExtMessageBoxSingleton;
 function LabelAlignAsOption(const AValue: TExtContainerLabelAlign): string;
 
@@ -810,14 +804,6 @@ uses
   , Kitto.Web.Application
   , Kitto.Web.Session
   ;
-
-function ExtQuickTips: TExtQuickTipsSingleton;
-begin
-  if TKWebSession.Current <> nil then
-    Result := TKWebSession.Current.ObjectSpace.GetSingleton<TExtQuickTipsSingleton>(TExtQuickTipsSingleton.JSClassName)
-  else
-    Result := nil;
-end;
 
 function ExtMessageBox: TExtMessageBoxSingleton;
 begin
@@ -844,26 +830,6 @@ end;
 class function TExtTemplate.JSClassName: string;
 begin
   Result := 'Ext.Template';
-end;
-
-class function TExtQuickTipsSingleton.JSClassName: string;
-begin
-  Result := 'Ext.QuickTips';
-end;
-
-function TExtQuickTipsSingleton.Disable: TExtExpression;
-begin
-  Result := TKWebResponse.Current.Items.CallMethod(Self, 'disable').AsExpression;
-end;
-
-function TExtQuickTipsSingleton.Enable: TExtExpression;
-begin
-  Result := TKWebResponse.Current.Items.CallMethod(Self, 'enable').AsExpression;
-end;
-
-function TExtQuickTipsSingleton.Init(const AAutoRender: Boolean): TExtExpression;
-begin
-  Result := TKWebResponse.Current.Items.CallMethod(Self, 'init').AddParam(AAutoRender).AsExpression;
 end;
 
 class function TExtElement.JSClassName: string;
@@ -1054,6 +1020,20 @@ procedure TExtComponent.InitDefaults;
 begin
   inherited;
   FLabelSeparator := ':';
+  FAfterRenderHandlers := TList<TExtComponentAfterRender>.Create;
+end;
+
+procedure TExtComponent.AddAfterRenderHandler(const AHandler: TExtComponentAfterRender);
+begin
+  if Assigned(AHandler) then
+  begin
+    &On('afterrender', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'afterrender')
+      .Event
+      .AddRawParam('This', 'sender.nm')
+      .FunctionArgs('sender')
+      .AsFunction);
+    FAfterRenderHandlers.Add(AHandler);
+  end;
 end;
 
 function TExtComponent.AddCls(const AClsName: string): TExtExpression;
@@ -1075,6 +1055,14 @@ begin
     .AddParam(ASelectText)
     .AddParam(ADelay)
     .AsExpression;
+end;
+
+function TExtComponent.GetAfterRender: TExtComponentAfterRender;
+begin
+  if FAfterRenderHandlers.Count > 0 then
+    Result := FAfterRenderHandlers[0]
+  else
+    Result := nil;
 end;
 
 function TExtComponent.GetLoader: TExtObject;
@@ -1144,13 +1132,8 @@ end;
 procedure TExtComponent.SetAfterRender(const AValue: TExtComponentAfterRender);
 begin
   RemoveAllListeners('afterrender');
-  if Assigned(AValue) then
-    &On('afterrender', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'afterrender')
-      .Event
-      .AddRawParam('This', 'sender.nm')
-      .FunctionArgs('sender')
-      .AsFunction);
-  FAfterRender := AValue;
+  FAfterRenderHandlers.Clear;
+  AddAfterRenderHandler(AValue);
 end;
 
 procedure TExtComponent.SetBodyPadding(const AValue: string);
@@ -1158,16 +1141,25 @@ begin
   FPadding := SetConfigItem('bodyPadding', AValue);
 end;
 
+destructor TExtComponent.Destroy;
+begin
+  FreeAndNil(FAfterRenderHandlers);
+  inherited;
+end;
+
 function TExtComponent.Disable: TExtExpression;
 begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'disable').AsExpression;
 end;
 
-procedure TExtComponent.DoHandleEvent(const AEvtName: string);
+procedure TExtComponent.DoHandleEvent(const AEventName: string);
+var
+  LHandler: TExtComponentAfterRender;
 begin
   inherited;
-  if (AEvtName = 'afterrender') and Assigned(FAfterRender) then
-    FAfterRender(TExtComponent(ParamAsObject('This')));
+  if (AEventName = 'afterrender') and (FAfterRenderHandlers.Count > 0) then
+    for LHandler in FAfterRenderHandlers do
+      LHandler(TExtComponent(ParamAsObject('This')));
 end;
 
 function TExtComponent.Enable: TExtExpression;

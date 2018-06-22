@@ -69,29 +69,8 @@ var
 begin
   inherited;
   LActionCommand := ParamAsString('action');
-(* TODO multiple actions separated by comma: actually don't work
-  while LActionCommand <> '' do
-  begin
-    p := pos(',', LActionCommand);
-    if p > 0 then
-    begin
-      LSingleAction := Copy(LActionCommand,1,p-1);
-      LActionCommand := Copy(LActionCommand,p+1,MaxInt);
-    end
-    else
-    begin
-      LSingleAction := LActionCommand;
-      LActionCommand := '';
-    end;
-    ExecuteNamedAction(LSingleAction);
-  end;
-*)
   if LActionCommand <> '' then
-  begin
-{ TODO : cannot change query fields - put mutable data elsewhere }
-//    Session.Query['action'] := '';
     ExecuteNamedAction(LActionCommand);
-  end;
 end;
 
 procedure TKExtDataPanelLeafController.ExecuteNamedAction(const AActionName: string);

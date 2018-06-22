@@ -67,7 +67,7 @@ type
     const EMPTY_DESCRIPTION = 'Empty';
     function GetContentDescription: string;
     procedure UpdateGUI(const AUpdatePicture: Boolean);
-    procedure PictureViewAfterRender(This: TExtComponent);
+    procedure LoadPicture;
   private // friends
     FAdditionalWidth: Integer;
   strict protected
@@ -400,15 +400,15 @@ begin
   Result := FRecordField.ViewField.IsPicture;
 end;
 
-procedure TKExtFormFileEditor.RefreshValue;
-begin
-end;
-
-procedure TKExtFormFileEditor.PictureViewAfterRender(This: TExtComponent);
+procedure TKExtFormFileEditor.LoadPicture;
 begin
   Assert(Assigned(FPictureView));
 
   TKWebResponse.Current.Items.ExecuteJSCode(FPictureView.JSName + '.getLoader().load()');
+end;
+
+procedure TKExtFormFileEditor.RefreshValue;
+begin
 end;
 
 procedure TKExtFormFileEditor.CreateGUI(const AViewField: TKViewField);
@@ -432,8 +432,11 @@ begin
     FPictureView.Frame := True;
     FPictureView.Border := False;
     FPictureView.Loader.SetConfigItem('url', GetMethodURL(GetImageMarkup));
-    FPictureView.AfterRender := PictureViewAfterRender;
-
+    FPictureView.AddAfterRenderHandler(
+      procedure (const AThis: TExtComponent)
+      begin
+        LoadPicture;
+      end);
     LToolbar := TKExtToolbar.CreateAndAddToArray(LPanel.Items);
     // Version below puts the toolbar at the bottom (in which case we should adjust the height as well)
     //LToolbar := TKExtToolbar.Create;
@@ -541,7 +544,7 @@ begin
     if Assigned(FDescriptionField) then
       FDescriptionField.Value := GetContentDescription;
     if AUpdatePicture and Assigned(FPictureView) then
-      PictureViewAfterRender(FPictureView);
+      LoadPicture;
     FDownloadButton.SetDisabled(LIsEmpty);
     FClearButton.SetDisabled(LIsEmpty or FIsReadOnly);
     FUploadButton.SetDisabled(FIsReadOnly);

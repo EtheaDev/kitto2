@@ -58,7 +58,7 @@ type
     FOpenControllers: TList<IJSController>;
     FHomeController: IJSController;
     FLoginController: IJSController;
-    FControllerContainer: IJSControllerContainer;
+    FControllerContainer: IJSContainer;
     FStatusHost: IJSStatusHost;
     FHomeViewNodeName: string;
     FViewportContent: string;
@@ -127,7 +127,7 @@ type
     /// <summary>
     ///  A reference to the main container of controllers.
     /// </summary>
-    property ControllerContainer: IJSControllerContainer read FControllerContainer write FControllerContainer;
+    property ControllerContainer: IJSContainer read FControllerContainer write FControllerContainer;
     /// <summary>
     ///  A reference to the status bar to be used for wait messages.
     ///  It is of type TKExtStatusBar.

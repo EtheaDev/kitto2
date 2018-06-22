@@ -24,6 +24,7 @@ uses
   Ext.Base
   , Ext.Form
   , Kitto.Ext.Base
+  , Kitto.Ext.Panel
   ;
 
 type

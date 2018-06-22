@@ -21,8 +21,13 @@ unit Kitto.Ext.ToolBar;
 interface
 
 uses
-  Ext.Base, Ext.Ux,
-  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Utils;
+  Kitto.Metadata.Views
+  , Ext.Base
+  , Ext.Ux
+  , Kitto.Ext.Base
+  , Kitto.Ext.Panel
+  , Kitto.Ext.Utils
+  ;
 
 type
   TKExtToolBarController = class(TKExtPanelControllerBase)

@@ -19,9 +19,12 @@ unit Kitto.Ext.DataTool;
 interface
 
 uses
-  SysUtils,
-  Kitto.Metadata.DataView,
-  Kitto.Ext.Base, Kitto.JS.Controller;
+  SysUtils
+  , Kitto.Metadata.DataView
+  , Kitto.JS.Controller
+  , Kitto.Ext.Base
+  , Kitto.Ext.Panel
+  ;
 
 { TODO : refactor these two classes to keep duplicated code to a minimum }
 type
