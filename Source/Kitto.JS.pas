@@ -265,6 +265,7 @@ uses
   , EF.StrUtils
   , EF.Sys
   , EF.Logger
+  , Kitto.Rtti
   , Kitto.AccessControl
   , Kitto.Web.Application
   , Kitto.Web.Request

@@ -337,6 +337,7 @@ implementation
 
 uses
   DateUtils
+  , Kitto.Rtti
   , Kitto.JS
   , Kitto.Web.Application
   ;

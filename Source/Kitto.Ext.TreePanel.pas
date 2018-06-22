@@ -72,10 +72,10 @@ implementation
 
 uses
   SysUtils
+  , NetEncoding
   , Ext.Base
   , EF.Localization
   , Kitto.Config
-  , Kitto.Utils
   , Kitto.Auth
   , Kitto.AccessControl
   , Kitto.Web.Application
@@ -197,7 +197,7 @@ begin
       LExtNode.IconCls := TKWebApplication.Current.SetViewIconStyle(LExtNode.View, GetTreeViewNodeImageName(LOriginalNode, LExtNode.View));
       LExtNode.Disabled := not LIsEnabled;
     end;
-    LExtNode.Text := HTMLEncode(ADisplayLabel);
+    LExtNode.Text := TNetEncoding.HTML.Encode(ADisplayLabel);
     if TKWebApplication.Current.TooltipsEnabled then
       LExtNode.Qtip := LExtNode.Text;
     if LOriginalNode.TreeViewNodeCount > 0 then

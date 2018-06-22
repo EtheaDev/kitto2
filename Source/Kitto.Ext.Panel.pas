@@ -16,7 +16,7 @@ type
   /// <summary>
   ///  Base panel controller. Used for both floating and embedded panels.
   /// </summary>
-  TKExtPanelControllerBase = class(TKExtPanelBase, IJSController)
+  TKExtPanelControllerBase = class abstract(TKExtPanelBase, IJSController)
   strict private
     FView: TKView;
     FContainer: IJSContainer;

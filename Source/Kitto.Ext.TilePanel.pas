@@ -87,13 +87,13 @@ implementation
 uses
   SysUtils
   , StrUtils
+  , NetEncoding
   , Ext.Base
   , EF.StrUtils
   , EF.Macros
   , EF.Localization
   , Kitto.JS
   , Kitto.Config
-  , Kitto.Utils
   , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -319,7 +319,7 @@ begin
   FTileBoxHtml := FTileBoxHtml + Format(
     '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
     '<div class="k-tile-inner k-tile-back-inner">%s</div></div></a>',
-    [HTMLEncode(LClickCode), GetNextTileColor, GetTileWidth, GetTileHeight, _('Back')]);
+    [TNetEncoding.HTML.Encode(LClickCode), GetNextTileColor, GetTileWidth, GetTileHeight, _('Back')]);
 end;
 
 procedure TKExtTilePanel.AddBreak;
@@ -332,7 +332,7 @@ begin
   if ADisplayLabel <> '' then
     FTileBoxHtml := FTileBoxHtml + Format(
       '<div class="k-tile-title-row">%s</div>',
-      [HTMLEncode(ADisplayLabel)]);
+      [TNetEncoding.HTML.Encode(ADisplayLabel)]);
 end;
 
 procedure TKExtTilePanel.AddTile(const ANode: TKTreeViewNode; const ADisplayLabel: string);
@@ -349,7 +349,7 @@ var
     if ANode.GetBoolean('HideLabel', False) then
       Result := ''
     else
-      Result := HTMLEncode(ADisplayLabel);
+      Result := TNetEncoding.HTML.Encode(ADisplayLabel);
   end;
 
   function GetColor: string;
@@ -387,14 +387,14 @@ begin
     FTileBoxHtml := FTileBoxHtml + Format(
       '<a href="#" onclick="%s"><div class="k-tile" style="%s">' +
       '<div class="k-tile-inner">%s</div></div></a>',
-      [HTMLEncode(LClickCode), GetCSS, GetDisplayLabel]);
+      [TNetEncoding.HTML.Encode(LClickCode), GetCSS, GetDisplayLabel]);
   end
   else
   begin
     FTileBoxHtml := FTileBoxHtml + Format(
       '<a href="#" onclick="%s"><div class="k-tile" style="background-color:%s;width:%dpx;height:%dpx">' +
       '<div class="k-tile-inner">%s</div></div></a>',
-      [HTMLEncode(LClickCode), GetColor, GetTileWidth, GetTileHeight, GetDisplayLabel]);
+      [TNetEncoding.HTML.Encode(LClickCode), GetColor, GetTileWidth, GetTileHeight, GetDisplayLabel]);
   end;
 end;
 

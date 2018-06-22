@@ -136,7 +136,6 @@ uses
   , EF.Sys
   , Kitto.Metadata.Models
   , Kitto.Config
-  , Kitto.Utils
   ;
 
 const

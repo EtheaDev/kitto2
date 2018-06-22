@@ -85,12 +85,12 @@ implementation
 
 uses
   Math
+  , NetEncoding
   , EF.Classes
   , EF.Localization
   , EF.Macros
   , Kitto.JS
   , Kitto.Types
-  , Kitto.Utils
   , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -190,7 +190,7 @@ begin
       end);
     FResetPasswordLink.Html := Format(
       '<div style="text-align:right;"><a href="#" onclick="%s">%s</a></div>',
-      [HTMLEncode(LResetPasswordClickCode), HTMLEncode(_('Password forgotten?'))]);
+      [TNetEncoding.HTML.Encode(LResetPasswordClickCode), TNetEncoding.HTML.Encode(_('Password forgotten?'))]);
     FResetPasswordLink.Width := LEditWidth + LFormPanel.LabelWidth;
     Inc(LHeight, CONTROL_HEIGHT);
   end

@@ -69,7 +69,7 @@ type
   end;
 
   /// <summary>
-  ///  Base Ext panel with IJSActivable support.
+  ///  Base Ext panel with Config and IJSActivable support.
   /// </summary>
   TKExtPanelBase = class(TExtPanel, IJSActivable)
   strict private

@@ -14,49 +14,49 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Utils;
+unit Kitto.Rtti;
 
 {$I Kitto.Defines.inc}
 
 interface
 
-function HTMLEncode(const AString: string): string;
-function URLDecode(const AEncoded: string): string;
-function URLEncode(const ADecoded: string): string;
+uses
+  SysUtils
+  , Kitto.JS.Types
+  ;
+
+function GetMethodName(const AMethod: TJSProcedure): string;
 
 implementation
 
 uses
-  {$IFDEF D21+}System.NetEncoding{$ELSE}Web.HTTPApp{$ENDIF}
-  , SysUtils
-  , StrUtils
+  Rtti
   ;
 
-function HTMLEncode(const AString: string): string;
+function GetMethodName(const AMethod: TJSProcedure): string;
+var
+  LInfo: TRttiType;
+  LMethod: TMethod;
+  LRttiMethod: TRttiMethod;
+  LObject: TObject;
 begin
-  {$IFDEF D21+}
-  Result := TNetEncoding.HTML.Encode(AString);
-  {$ELSE}
-  Result := Web.HTTPApp.HTMLEncode(AString);
-  {$ENDIF}
-end;
+  Result := '';
 
-function URLDecode(const AEncoded: string): string;
-begin
-  {$IFDEF D21+}
-  Result := TNetEncoding.URL.Decode(AEncoded);
-  {$ELSE}
-  Result := Web.HTTPApp.HTTPDecode(AEncoded);
-  {$ENDIF}
-end;
+  LMethod := TMethod(AMethod);
+  LObject := LMethod.Data;
 
-function URLEncode(const ADecoded: string): string;
-begin
-  {$IFDEF D21+}
-  Result := TNetEncoding.URL.Encode(ADecoded);
-  {$ELSE}
-  Result := Web.HTTPApp.HTTPEncode(ADecoded);
-  {$ENDIF}
+  LInfo := TRttiContext.Create.GetType(LObject.ClassType);
+  for LRttiMethod in LInfo.GetMethods do
+  begin
+    if LRttiMethod.CodeAddress = LMethod.Code then
+    begin
+      Result := LRttiMethod.Name;
+      Break;
+    end;
+  end;
+
+  if Result = '' then
+    raise Exception.Create('Method not found')
 end;
 
 end.
