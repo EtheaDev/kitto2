@@ -3,7 +3,7 @@ unit Controllers;
 interface
 
 uses
-  Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base;
+  Kitto.JS.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base;
 
 type
   TURLToolController = class(TKExtDataToolController)
@@ -72,11 +72,11 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('TestTool', TTestToolController);
-  TKExtControllerRegistry.Instance.RegisterClass('URLTool', TURLToolController);
+  TJSControllerRegistry.Instance.RegisterClass('TestTool', TTestToolController);
+  TJSControllerRegistry.Instance.RegisterClass('URLTool', TURLToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('TestTool');
-  TKExtControllerRegistry.Instance.UnregisterClass('URLTool');
+  TJSControllerRegistry.Instance.UnregisterClass('TestTool');
+  TJSControllerRegistry.Instance.UnregisterClass('URLTool');
 
 end.

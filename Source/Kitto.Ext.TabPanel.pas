@@ -112,7 +112,7 @@ end;
 procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
-  Layout := lyFit;
+  Layout := 'fit';
   FTabPanel := GetTabPanelClass.CreateAndAddToArray(Items);
 end;
 

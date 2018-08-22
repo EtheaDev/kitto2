@@ -2253,7 +2253,7 @@ begin
   Result := True;
 
   if SameText(ANode.Name, 'Layout') then
-    LayoutString := ANode.AsString
+    Layout := ANode.AsString
   else if SameText(ANode.Name, 'ColumnWidth') then
     ColumnWidth := ANode.AsFloat
   else if SameText(ANode.Name, 'CharWidth') then
@@ -2301,7 +2301,7 @@ end;
 procedure TKExtFormRow.InitDefaults;
 begin
   inherited;
-  Layout := lyColumn;
+  Layout := 'column';
 end;
 
 { TKExtFormRowField }
@@ -2316,7 +2316,7 @@ end;
 procedure TKExtFormRowField.InitDefaults;
 begin
   inherited;
-  Layout := lyFit;
+  Layout := 'fit';
   Padding := '0 10px 0 0';
 end;
 

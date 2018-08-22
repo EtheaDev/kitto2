@@ -210,7 +210,7 @@ begin
   FFormPanel.Align := alClient;
   //FFormPanel.Border := False;
   //FFormPanel.Header := False;
-  //FFormPanel.Layout := lyFit; // Vital to avoid detail grids with zero height!
+  //FFormPanel.Layout := 'fit'; // Vital to avoid detail grids with zero height!
   FFormPanel.AutoScroll := False;
   FFormPanel.LabelWidth := 120;
   //FFormPanel.MonitorValid := True;

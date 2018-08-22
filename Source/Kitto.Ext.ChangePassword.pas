@@ -145,7 +145,7 @@ procedure TKExtChangePassword.DoDisplay;
 
 begin
   inherited;
-  Layout := lyForm;
+  Layout := 'form';
 
   FOldPasswordHash := TKAuthenticator.Current.Password;
 

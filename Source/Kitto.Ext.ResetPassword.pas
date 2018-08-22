@@ -61,7 +61,7 @@ uses
 procedure TKExtResetPassword.DoDisplay;
 begin
   inherited;
-  Layout := lyForm;
+  Layout := 'form';
 
   FEmailAddress := TExtFormTextField.CreateAndAddToArray(Items);
   FEmailAddress.Name := 'EmailAddress';

@@ -129,7 +129,7 @@ begin
   inherited;
   FView := TExtViewView.CreateAndAddToArray(Items);
   FView.EmptyText := _('No data to display.');
-  FView.Region := rgCenter;
+  FView.Region := 'center';
   FView.AutoScroll := True;
 end;
 

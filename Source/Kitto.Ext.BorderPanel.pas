@@ -21,31 +21,30 @@ unit Kitto.Ext.BorderPanel;
 interface
 
 uses
-  EF.Tree
+  Generics.Collections
+  , EF.Tree
   , Kitto.JS
   , Ext.Base
   , Kitto.Ext.Panel
   ;
 
 type
-  TKExtBorderPanelController = class;
-
-  TKExtBorderPanelControllerClass = class of TKExtBorderPanelController;
-
   TKExtBorderPanelController = class(TKExtPanelControllerBase)
   strict private
-    FControllers: array[TExtBoxComponentRegion] of TObject;
-    procedure CreateController(const ARegion: TExtBoxComponentRegion);
+    FControllers: TDictionary<string, TObject>;
+    procedure CreateController(const ARegion: string);
   strict protected
-    function FindRegionControllerConfig(
-      const ARegion: TExtBoxComponentRegion; out AFreeIt: Boolean): TEFNode; virtual;
+    function FindRegionControllerConfig(const ARegion: string; out AFreeIt: Boolean): TEFNode;
     function GetObjectNamePrefix: string; override;
   protected
     procedure DoDisplay; override;
-    function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; virtual;
-    function GetRegionName(const ARegion: TExtBoxComponentRegion): string; virtual;
-    function GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string;
-    function GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string;
+    function GetRegionDefaultControllerClass(const ARegion: string): string; virtual;
+    function GetRegionName(const ARegion: string): string; virtual;
+    function GetRegionViewNodeName(const ARegion: string): string;
+    function GetRegionControllerNodeName(const ARegion: string): string;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
   end;
 
 implementation
@@ -62,12 +61,12 @@ uses
 
 { TKExtBorderPanelController }
 
-function TKExtBorderPanelController.GetRegionName(const ARegion: TExtBoxComponentRegion): string;
+function TKExtBorderPanelController.GetRegionName(const ARegion: string): string;
 begin
-  Result := StripPrefix(GetEnumName(TypeInfo(TExtBoxComponentRegion), Ord(ARegion)), 'rg');
+  Result := Config.GetString('Sys/RegionPrefix') + ARegion;
 end;
 
-function TKExtBorderPanelController.GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string;
+function TKExtBorderPanelController.GetRegionViewNodeName(const ARegion: string): string;
 begin
   Result := GetRegionName(ARegion) + 'View';
 end;
@@ -77,18 +76,18 @@ begin
   Result := 'border';
 end;
 
-function TKExtBorderPanelController.GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string;
+function TKExtBorderPanelController.GetRegionControllerNodeName(const ARegion: string): string;
 begin
   Result := GetRegionName(ARegion) + 'Controller';
 end;
 
-function TKExtBorderPanelController.GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string;
+function TKExtBorderPanelController.GetRegionDefaultControllerClass(const ARegion: string): string;
 begin
   Result := '';
 end;
 
 function TKExtBorderPanelController.FindRegionControllerConfig(
-  const ARegion: TExtBoxComponentRegion; out AFreeIt: Boolean): TEFNode;
+  const ARegion: string; out AFreeIt: Boolean): TEFNode;
 var
   LRegionControllerNodeName: string;
   LRegionDefaultControllerClass: string;
@@ -113,7 +112,13 @@ begin
   end;
 end;
 
-procedure TKExtBorderPanelController.CreateController(const ARegion: TExtBoxComponentRegion);
+procedure TKExtBorderPanelController.AfterConstruction;
+begin
+  inherited;
+  FControllers := TDictionary<string, TObject>.Create;
+end;
+
+procedure TKExtBorderPanelController.CreateController(const ARegion: string);
 var
   LSubView: TKView;
   LControllerConfig: TEFNode;
@@ -121,6 +126,7 @@ var
   LController: IJSController;
 begin
   Assert(Assigned(View));
+  Assert(not FControllers.ContainsKey(ARegion));
 
   // If subcontrollers are specified, they inherit this controller's view.
   // If no subcontroller is configured for a given region, look for a subview.
@@ -135,9 +141,8 @@ begin
     if LSubView <> nil then
     begin
       LController := TJSControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig);
-      FControllers[ARegion] := LController.AsObject;
-      Assert(FControllers[ARegion] is TExtBoxComponent);
-      TExtBoxComponent(FControllers[ARegion]).Region := ARegion;
+      FControllers.Add(ARegion, LController.AsObject);
+      TExtBoxComponent(FControllers[ARegion]).Region := ARegion.ToLower;
       LController.Display;
     end;
   finally
@@ -146,14 +151,21 @@ begin
   end;
 end;
 
+destructor TKExtBorderPanelController.Destroy;
+begin
+  FreeAndNil(FControllers);
+  inherited;
+end;
+
 procedure TKExtBorderPanelController.DoDisplay;
-var
-  I: TExtBoxComponentRegion;
 begin
   inherited;
-  Layout := lyBorder;
-  for I := Low(FControllers) to High(FControllers) do
-    CreateController(I);
+  Layout := 'border';
+  CreateController('Center');
+  CreateController('North');
+  CreateController('South');
+  CreateController('East');
+  CreateController('West');
 end;
 
 initialization

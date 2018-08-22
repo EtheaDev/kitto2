@@ -13,6 +13,10 @@ Controller: List
   CenterController:
     AutoFormPlacement: Right
       Size: 450
+  Edit:
+    NorthController: StatusBar
+      ImageName: view_record
+      Text: Current record values
 
 MainTable:
   Model: EMPLOYEE

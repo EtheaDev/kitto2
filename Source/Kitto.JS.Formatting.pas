@@ -167,7 +167,7 @@ begin
 end;
 
 class function TJS.GetPadding(const ATop: Integer; const ARight: Integer; const ABottom: Integer; const ALeft: Integer;
-const ACSSUnit: TCSSUnit; const AHeader: Boolean): string;
+  const ACSSUnit: TCSSUnit; const AHeader: Boolean): string;
 begin
   Result := Format('%s%d%3:s %2:d%3:s', [IfThen(AHeader, 'padding: ', ''), ATop, ARight,
     EnumToJSString(TypeInfo(TCSSUnit), Ord(ACSSUnit))]);

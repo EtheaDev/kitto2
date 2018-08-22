@@ -37,12 +37,6 @@ uses
   , Kitto.Metadata.Views
   ;
 
-const
-  DEFAULT_WINDOW_WIDTH = 800;
-  DEFAULT_WINDOW_HEIGHT = 600;
-  DEFAULT_WINDOW_TOOL_WIDTH = 600;
-  DEFAULT_WINDOW_TOOL_HEIGHT = 400;
-
 type
   /// <summary>
   ///   Implemented by controllers that host panels and are able to close them
@@ -140,7 +134,6 @@ type
     property View: TKView read GetView write SetView;
     procedure Display;
     property DisplayMode: string read GetDisplayMode write SetDisplayMode;
-    procedure SetModal;
     procedure Apply(const AProc: TProc<IJSController>); virtual;
   end;
 
@@ -223,7 +216,7 @@ end;
 procedure TKExtPanelBase.InitDefaults;
 begin
   inherited;
-  Region := rgCenter;
+  //Region := 'center';
   Border := False;
 end;
 
@@ -318,11 +311,6 @@ end;
 procedure TKExtControllerBase.SetDisplayMode(const Value: string);
 begin
   // Not supported.
-end;
-
-procedure TKExtControllerBase.SetModal;
-begin
-  // No need.
 end;
 
 procedure TKExtControllerBase.SetView(const AValue: TKView);

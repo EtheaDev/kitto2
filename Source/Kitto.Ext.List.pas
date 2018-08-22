@@ -59,7 +59,7 @@ type
   strict protected
     procedure InitComponents; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
-    function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; override;
+    function GetRegionDefaultControllerClass(const ARegion: string): string; override;
     function GetObjectNamePrefix: string; override;
   public
     function GetFilterExpression: string; override;
@@ -121,7 +121,7 @@ var
     Result := TKExtFilterPanel.CreateAndAddToArray(Items);
     try
       Result.Border := False;
-      Result.Layout := lyForm;
+      Result.Layout := 'form';
       Result.Collapsible := False;
       Result.Frame := False;
       Result.FConnector := FConnector;
@@ -168,7 +168,7 @@ begin
   LItems := AConfig.GetNode('Items');
   if LItems.FindNode('ColumnBreak') <> nil then
   begin
-    Layout := lyHbox;
+    Layout := 'hbox';
     LCurrentPanel := CreateColumnBreak(nil);
   end
   else
@@ -234,7 +234,7 @@ procedure TKExtFilterPanel.InitDefaults;
 begin
   inherited;
   Border := False;
-  Layout := lyForm;
+  Layout := 'form';
   Collapsible := True;
   Collapsed := False;
   Frame := True;
@@ -289,7 +289,7 @@ begin
     if Assigned(LItems) and (LItems.ChildCount > 0) then
     begin
       FFilterPanel := TKExtFilterPanel.CreateAndAddToArray(Items);
-      FFilterPanel.Region := rgNorth;
+      FFilterPanel.Region := 'north';
       FFilterPanel.OnChange := FilterPanelChange;
       FFilterPanel.Configure(ViewTable, LItems.Parent as TEFNode);
       FFilterPanel.On('afterrender', GenerateAnonymousFunction(UpdateLayout));
@@ -315,9 +315,9 @@ begin
   end;
 end;
 
-function TKExtListPanelController.GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string;
+function TKExtListPanelController.GetRegionDefaultControllerClass(const ARegion: string): string;
 begin
-  if ARegion = rgCenter then
+  if ARegion = 'Center' then
     Result := 'GridPanel'
   else
     Result := inherited GetRegionDefaultControllerClass(ARegion);

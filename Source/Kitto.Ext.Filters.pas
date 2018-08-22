@@ -1122,7 +1122,7 @@ begin
 
   FItems := RetrieveItems;
 
-  Layout := lyColumn;
+  Layout := 'column';
 
   SetLength(FSelected, FItems.ChildCount);
   SetLength(LButtons, FItems.ChildCount);

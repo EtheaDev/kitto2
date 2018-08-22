@@ -333,7 +333,7 @@ begin
 
   FChart := TExtChartAbstractChart.CreateByType(FChartType, Items);
   FChart.Store := ClientStore;
-  FChart.Region := rgCenter;
+  FChart.Region := 'center';
 
   LOptionNode := Config.FindNode('Chart/InnerPadding');
   if Assigned(LOptionNode) then

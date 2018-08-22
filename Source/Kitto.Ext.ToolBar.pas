@@ -81,7 +81,7 @@ end;
 procedure TKExtToolBarController.InitDefaults;
 begin
   inherited;
-  Layout := lyFit;
+  Layout := 'fit';
 //  Height := 28;
 
   FToolBar := TExtToolbar.CreateAndAddToArray(Items);

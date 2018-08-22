@@ -12,6 +12,10 @@ uses
   , Kitto.Ext.Base
   ;
 
+const
+  DEFAULT_WINDOW_WIDTH = 800;
+  DEFAULT_WINDOW_HEIGHT = 600;
+
 type
   /// <summary>
   ///  Base panel controller. Used for both floating and embedded panels.
@@ -82,12 +86,26 @@ type
     procedure Closed;
   end;
 
+  /// <summary>
+  ///  Intended as a replacement for the border panel and other panels with special
+  ///  layouts. Should support creating subcontrollers in regions or not depending
+  ///  on which layout is set.
+  ///  It will host a list of views or subcontrollers laid out according to
+  ///  the specified layout and other config options such as Region.
+  ///  This allows to unify the yaml syntax for border panels, tree panels (to
+  ///  some extent), accordion panels, tab panels.
+  /// </summary>
   TKExtPanelController = class(TKExtPanelControllerBase)
+  strict private
+    procedure DisplaySubViews;
+  strict protected
+    procedure DisplayBuiltinSubViews; virtual;
+    procedure DoDisplay; override;
   end;
 
   /// <summary>
-  ///  Base class for tool controllers that display a (modal) window with
-  ///  a set of ok/cancel buttons.
+  ///  Base class for tool controllers that display a (modal) panel with
+  ///  ok/cancel buttons.
   /// </summary>
   TKExtPanelToolController = class(TKExtPanelControllerBase)
   strict private
@@ -96,7 +114,6 @@ type
     FSubController: IJSController;
     procedure CreateButtons;
   strict protected
-    procedure SetWindowSize; virtual;
     procedure InitDefaults; override;
     procedure DoDisplay; override;
     function GetConfirmJSFunction: TJSFunction; virtual;
@@ -119,6 +136,7 @@ uses
   , EF.StrUtils
   , EF.Localization
   , EF.Macros
+  , Kitto.Types
   , Kitto.AccessControl
   , Kitto.JS.Controller
   , Kitto.Web.Application
@@ -211,6 +229,7 @@ var
   LStyle: TEFNode;
   LLabelWidth: TEFNode;
   LRenderTo: string;
+  LExtLayout: TEFNode;
 begin
   EnsureAllSupportFiles;
 
@@ -258,7 +277,7 @@ begin
   end
   else if LWidthStr <> '' then
     WidthString := LWidthStr
-  else if Modal then
+  else if DisplayMode = 'Modal' then
     Width := GetDefaultWidth;
 
   LHeightStr := Config.GetString('Height');
@@ -271,7 +290,7 @@ begin
   end
   else if LHeightStr <> '' then
     HeightString := LHeightStr
-  else if Modal then
+  else if DisplayMode = 'Modal' then
     Height := GetDefaultHeight;
 
   LSplit := Config.FindNode('Split');
@@ -301,6 +320,14 @@ begin
   LStyle := Config.FindNode('Style');
   if Assigned(LStyle) and (LStyle.AsString <> '') then
     Style := LStyle.AsExpandedString;
+
+  if Layout = '' then
+  begin
+    LExtLayout := Config.FindNode('ExtLayout');
+    if Assigned (LExtLayout) and (LExtLayout.AsString <> '') then
+      Layout := LExtLayout.AsString;
+  end;
+
 end;
 
 procedure TKExtPanelControllerBase.ExecuteNamedAction(const AActionName: string);
@@ -522,8 +549,6 @@ end;
 procedure TKExtPanelToolController.DoDisplay;
 begin
   inherited;
-  Title := _(View.DisplayLabel);
-  SetWindowSize;
   if not Config.GetBoolean('HideButtons') then
     CreateButtons;
 end;
@@ -543,9 +568,9 @@ end;
 procedure TKExtPanelToolController.InitDefaults;
 begin
   inherited;
-  Modal := True;
+  DisplayMode := 'Modal';
   Closable := False;
-  Layout := lyFit;
+  Layout := 'fit';
 end;
 
 procedure TKExtPanelToolController.InitSubController(const AController: IJSController);
@@ -554,13 +579,6 @@ begin
   FSubController := AController;
   if Assigned(FSubcontroller) then
     FSubController.AsJSObject.AttachObserver(Self);
-end;
-
-procedure TKExtPanelToolController.SetWindowSize;
-begin
-  Width := Config.GetInteger('Width', DEFAULT_WINDOW_TOOL_WIDTH);
-  Height := Config.GetInteger('Height', DEFAULT_WINDOW_TOOL_HEIGHT);
-  Resizable := False;
 end;
 
 procedure TKExtPanelToolController.UpdateObserver(const ASubject: IEFSubject;
@@ -573,6 +591,54 @@ begin
       Confirm
     else if AContext = 'Canceled' then
       Cancel;
+  end;
+end;
+
+{ TKExtPanelController }
+
+procedure TKExtPanelController.DoDisplay;
+begin
+  inherited;
+  DisplayBuiltinSubViews;
+  DisplaySubViews;
+end;
+
+procedure TKExtPanelController.DisplayBuiltinSubViews;
+begin
+end;
+
+procedure TKExtPanelController.DisplaySubViews;
+var
+  LController: IJSController;
+  LViews: TEFNode;
+  I: Integer;
+  LView: TKView;
+begin
+  LViews := Config.FindNode('SubViews');
+  if Assigned(LViews) then
+  begin
+    for I := 0 to LViews.ChildCount - 1 do
+    begin
+      if SameText(LViews.Children[I].Name, 'View') then
+      begin
+        LView := TKWebApplication.Current.Config.Views.ViewByNode(LViews.Children[I]);
+        if LView.IsAccessGranted(ACM_VIEW) then
+        begin
+          LController := TJSControllerFactory.Instance.CreateController(Self, LView, Self);
+          LController.Display;
+        end;
+      end
+      else if SameText(LViews.Children[I].Name, 'Controller') then
+      begin
+        LController := TJSControllerFactory.Instance.CreateController(Self, View, Self, LViews.Children[I]);
+        InitSubController(LController);
+        LController.Display;
+      end
+      else
+        raise EKError.Create(_('AccordionPanel''s SubViews node may only contain View or Controller subnodes.'));
+    end;
+    if Items.Count > 0 then
+      &On('afterrender', GenerateAnonymousFunction(JSName + '.getLayout().setActiveItem(0);'));
   end;
 end;
 

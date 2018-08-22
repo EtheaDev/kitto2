@@ -155,7 +155,6 @@ type
     FRenderTo: string;
     FRenderToExpression: TExtExpression;
     FFloating: Boolean;
-    FModal: Boolean;
     FDraggable: Boolean;
     FPluginsString: string;
     FBodyPadding: string;
@@ -184,7 +183,6 @@ type
     procedure SetFlex(const AValue: Integer);
     procedure SetRenderTo(const AValue: string);
     procedure SetFloating(const AValue: Boolean);
-    procedure SetModal(const AValue: Boolean);
     procedure SetDraggable(const AValue: Boolean);
     procedure SetRenderToExpression(const AValue: TExtExpression);
     procedure SetPluginsString(const AValue: string);
@@ -229,7 +227,6 @@ type
     property MaxWidth: Integer read FMaxWidth write SetMaxWidth;
     property MinSize: Integer read FMinSize write SetMinSize;
     property MaxSize: Integer read FMaxSize write SetMaxSize;
-    property Modal: Boolean read FModal write SetModal;
     property OverCls: string read FOverCls write SetOverCls;
     property Padding: string read FPadding write SetPadding;
     property Plugins: TJSObjectArray read GetPlugins;
@@ -289,9 +286,6 @@ type
     property MinDate: TDateTime read FMinDate write _SetMinDate;
   end;
 
-  // Enumerated types for properties
-  TExtBoxComponentRegion = (rgCenter, rgNorth, rgEast, rgSouth, rgWest);
-
   TExtBoxComponent = class(TExtComponent)
   private
     FAutoHeight: Boolean;
@@ -303,7 +297,7 @@ type
     FAnchor: string;
     FAutoWidth: Boolean;
     FHeightString: string;
-    FRegion: TExtBoxComponentRegion;
+    FRegion: string;
     FHeight: Integer;
     FWidthExpression: TExtExpression;
     FOwnerCt: TExtContainer;
@@ -314,7 +308,7 @@ type
     procedure SetAutoWidth(const AValue: Boolean);
     procedure SetHeight(const AValue: Integer);
     procedure SetMargins(AValue: string);
-    procedure SetRegion(const AValue: TExtBoxComponentRegion);
+    procedure SetRegion(const AValue: string);
     procedure SetWidth(const AValue: Integer);
     procedure SetHeightString(const AValue: string);
     procedure SetWidthString(const AValue: string);
@@ -333,7 +327,7 @@ type
     property HeightFunc: TExtExpression read FHeightFunc write SetHeightFunc;
     property Margins: string read FMargins write SetMargins;
     property OwnerCt: TExtContainer read FOwnerCt write SetOwnerCt;
-    property Region: TExtBoxComponentRegion read FRegion write SetRegion;
+    property Region: string read FRegion write SetRegion;
     property Resizable: Boolean read FResizable write SetResizable;
     property Width: Integer read FWidth write SetWidth;
     property WidthString: string read FWidthString write SetWidthString;
@@ -357,12 +351,6 @@ type
     class function JSClassName: string; override;
   end;
 
-  // Enumerated types for properties
-  TExtContainerLayout = (lyAuto, lyAbsolute, lyAccordion, lyAnchor, lyBody,
-    lyBorder, lyBoundlist, lyBox, lyCard, lyCenter, lyCheckboxgroup,
-    lyColumn, lyColumncomponent, lyContainer, lyDashboard, lyDock, lyEditor,
-    lyFieldContainer, lyFieldset, lyFit, lyForm, lyGridcolumn, lyHbox,
-    lyResponsivecolumn, lySegmentedbutton, lyTable, lyTableview, lyVbox);
   TExtContainerLabelAlign = (laLeft, laRight, laTop);
 
   TExtContainer = class(TExtBoxComponent, IJSContainer)
@@ -372,20 +360,18 @@ type
     FAutoDestroy: Boolean; // true
     FDefaults: TExtObject;
     FItems: TJSObjectArray;
-    FLayout: TExtContainerLayout;
     FLayoutConfig: TExtObject;
-    FLayoutString: string;
+    FLayout: string;
     FColumnWidth: Double;
     FLabelWidth: Integer;
     FLabelAlign: TExtContainerLabelAlign;
     FHideLabels: Boolean;
     procedure SetActiveItem(const AValue: string);
     procedure SetActiveItemNumber(const AValue: Integer);
-    procedure SetLayout(const AValue: TExtContainerLayout);
     procedure SetColumnWidth(const AValue: Double);
     procedure SetLabelWidth(const AValue: Integer);
     procedure SetLabelAlign(const AValue: TExtContainerLabelAlign);
-    procedure SetLayoutString(const AValue: string);
+    procedure SetLayout(const AValue: string);
     procedure SetHideLabels(const AValue: Boolean);
     function GetDefaults: TExtObject;
     function GetLayoutConfig: TExtObject;
@@ -404,9 +390,8 @@ type
     property Items: TJSObjectArray read FItems;
     property LabelAlign: TExtContainerLabelAlign read FLabelAlign write SetLabelAlign;
     property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
-    property Layout: TExtContainerLayout read FLayout write SetLayout;
     property LayoutConfig: TExtObject read GetLayoutConfig;
-    property LayoutString: string read FLayoutString write SetLayoutString;
+    property Layout: string read FLayout write SetLayout;
     property ColumnWidth: Double read FColumnWidth write SetColumnWidth;
     // IJSContainer
     function AsJSObject: TJSObject;
@@ -683,7 +668,6 @@ type
     FMaximized: Boolean;
     FMinHeight: Integer; // 100
     FMinWidth: Integer; // 200
-    FModal: Boolean;
     FPlain: Boolean;
     FResizeHandles: string; // 'all'
     procedure _SetAnimateTarget(const AValue: string);
@@ -691,7 +675,6 @@ type
     procedure SetConstrain(const AValue: Boolean);
     procedure SetMaximizable(const AValue: Boolean);
     procedure SetMaximized(const AValue: Boolean);
-    procedure SetModal(const AValue: Boolean);
     procedure SetPlain(const AValue: Boolean);
     procedure SetResizeHandles(const AValue: string);
   protected
@@ -710,7 +693,6 @@ type
     property Constrain: Boolean read FConstrain write SetConstrain;
     property Maximizable: Boolean read FMaximizable write SetMaximizable;
     property Maximized: Boolean read FMaximized write SetMaximized;
-    property Modal: Boolean read FModal write SetModal;
     property Plain: Boolean read FPlain write SetPlain;
     property ResizeHandles: string read FResizeHandles write SetResizeHandles;
   end;
@@ -989,11 +971,6 @@ procedure TExtComponent.SetMinWidth(const AValue: Integer);
 begin
   FMinWidth := AValue;
   SetConfigItem('minWidth', AValue);
-end;
-
-procedure TExtComponent.SetModal(const AValue: Boolean);
-begin
-  FModal := SetConfigItem('modal', AValue);
 end;
 
 procedure TExtComponent.SetMaxWidth(const AValue: Integer);
@@ -1297,10 +1274,10 @@ begin
   FOwnerCt := TExtContainer(SetConfigItem('ownerCt', AValue));
 end;
 
-procedure TExtBoxComponent.SetRegion(const AValue: TExtBoxComponentRegion);
+procedure TExtBoxComponent.SetRegion(const AValue: string);
 begin
   FRegion := AValue;
-  SetConfigItem('region', TJS.EnumToJSString(TypeInfo(TExtBoxComponentRegion), Ord(AValue)));
+  SetConfigItem('region', AValue);
 end;
 
 procedure TExtBoxComponent.SetResizable(const AValue: Boolean);
@@ -1370,15 +1347,9 @@ begin
   Defaults.SetConfigItem('labelWidth', AValue);
 end;
 
-procedure TExtContainer.SetLayout(const AValue: TExtContainerLayout);
+procedure TExtContainer.SetLayout(const AValue: string);
 begin
-  FLayout := AValue;
-  SetConfigItem('layout', TJS.EnumToJSString(TypeInfo(TExtContainerLayout), Ord(AValue)));
-end;
-
-procedure TExtContainer.SetLayoutString(const AValue: string);
-begin
-  FLayoutString := SetConfigItem('layout', AValue);
+  FLayout := SetConfigItem('layout', AValue);
 end;
 
 procedure TExtContainer.SetColumnWidth(const AValue: Double);
@@ -2012,11 +1983,6 @@ end;
 procedure TExtWindow.SetMaximized(const AValue: Boolean);
 begin
   FMaximized := SetConfigItem('maximized', AValue);
-end;
-
-procedure TExtWindow.SetModal(const AValue: Boolean);
-begin
-  FModal := SetConfigItem('modal', AValue);
 end;
 
 procedure TExtWindow.SetPlain(const AValue: Boolean);

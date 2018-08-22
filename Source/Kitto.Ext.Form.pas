@@ -142,7 +142,7 @@ type
     procedure LoadData; override;
     destructor Destroy; override;
     function GetFilterExpression: string; override;
-    function GetRegionName(const ARegion: TExtBoxComponentRegion): string; override;
+    function GetRegionName(const ARegion: string): string; override;
     procedure AfterConstruction; override;
     procedure ChangeRecord(const ARecord: TKViewTableRecord);
   //published
@@ -282,7 +282,7 @@ begin
   begin
     FDetailBottomPanel := TExtTabPanel.CreateAndAddToArray(Items);
     FDetailBottomPanel.Split := True;
-    FDetailBottomPanel.Region := rgSouth;
+    FDetailBottomPanel.Region := 'south';
     FDetailBottomPanel.Border := False;
     FDetailBottomPanel.AutoScroll := False;
     FDetailBottomPanel.BodyStyle := 'background:none'; // Respects parent's background color.
@@ -648,7 +648,7 @@ begin
   InitFlags;
   ChangeEditorsState;
   LNewTitle := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
-  if Modal then
+  if DisplayMode = 'Modal' then
     UpdateHostWindowTitle(LNewTitle)
   else
     Title := LNewTitle;
@@ -995,10 +995,10 @@ begin
   Cls := 'x-panel-mc'; // Sets correct theme background color same as panel
 
   FFormPanel := TKExtEditPanel.CreateAndAddToArray(Items);
-  FFormPanel.Region := rgCenter;
+  FFormPanel.Region := 'center';
   FFormPanel.Border := False;
   FFormPanel.Header := False;
-  FFormPanel.Layout := lyFit; // Vital to avoid detail grids with zero height!
+  FFormPanel.Layout := 'fit'; // Vital to avoid detail grids with zero height!
   FFormPanel.AutoScroll := False;
   FFormPanel.LabelWidth := FORM_LABELWIDTH;
   FFormPanel.MonitorValid := True;
@@ -1029,7 +1029,7 @@ begin
   begin
     FTabPanel := nil;
     FMainPage := TKExtEditPage.CreateAndAddToArray(FFormPanel.Items);
-    FMainPage.Region := rgCenter;
+    FMainPage.Region := 'center';
     FMainPage.LabelAlign := LabelAlign;
   end;
   FMainPage.HideLabels := Config.GetBoolean('HideLabels');
@@ -1214,11 +1214,11 @@ begin
     Result := FindViewLayout(Config.GetString('Layout', 'Form'));
 end;
 
-function TKExtFormPanelController.GetRegionName(const ARegion: TExtBoxComponentRegion): string;
+function TKExtFormPanelController.GetRegionName(const ARegion: string): string;
 begin
   Result := inherited GetRegionName(ARegion);
-  if Config.GetObject('Sys/CallingController') <> nil then
-    Result := 'SecondaryController/' + Result;
+//  if Config.GetObject('Sys/CallingController') <> nil then
+//    Result := 'SecondaryController/' + Result;
 end;
 
 function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TJSProcedure): TJSExpression;
@@ -1277,7 +1277,7 @@ end;
 procedure TKExtDetailPanel.InitDefaults;
 begin
   inherited;
-  Layout := lyFit;
+  Layout := 'fit';
 end;
 
 procedure TKExtDetailPanel.SetViewTable(const AValue: TKViewTable);

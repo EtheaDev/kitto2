@@ -67,7 +67,8 @@ procedure TKExtStatusBarController.DoDisplay;
 begin
   inherited;
   FStatusBar.DefaultText := Config.GetExpandedString('Text');
-  FStatusBar.DefaultIconCls := TKWebApplication.Current.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
+  FStatusBar.DefaultIconCls := TKWebApplication.Current.SetViewIconStyle(View, Config.GetString('ImageName'),
+    'sb_', 'padding-left: 25px !important;');
 end;
 
 function TKExtStatusBarController.GetDefaultHeight: Integer;
@@ -93,7 +94,7 @@ end;
 procedure TKExtStatusBarController.InitDefaults;
 begin
   inherited;
-  Layout := lyFit;
+  Layout := 'fit';
   AutoHeight := True;
 
   FStatusBar := TKExtDefaultStatusBar.CreateAndAddToArray(Items);

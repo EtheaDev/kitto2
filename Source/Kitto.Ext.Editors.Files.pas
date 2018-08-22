@@ -426,7 +426,7 @@ begin
 
   if LIsPicture then
   begin
-    LPanel.Layout := lyColumn;
+    LPanel.Layout := 'column';
     //LPanel.Frame := True;
     FPictureView := TExtPanel.CreateAndAddToArray(LPanel.Items);
     FPictureView.Frame := True;
@@ -444,7 +444,7 @@ begin
   end
   else
   begin
-    LPanel.Layout := lyHbox;
+    LPanel.Layout := 'hbox';
     FDescriptionField := TExtFormTextField.CreateAndAddToArray(LPanel.Items);
     FDescriptionField.ReadOnly := True;
     FDescriptionField.Cls := 'x-form-readonly';

@@ -128,7 +128,7 @@ begin
   Draggable := View.GetBoolean('Controller/Movable', False);
 
   LFormPanel := TExtFormFormPanel.CreateAndAddToArray(Items);
-  LFormPanel.Region := rgCenter;
+  LFormPanel.Region := 'center';
   LFormPanel.LabelWidth := Config.GetInteger('FormPanel/LabelWidth', 150);
   LFormPanelBodyStyle := Config.GetString('FormPanel/BodyStyle');
   if LFormPanelBodyStyle <> '' then

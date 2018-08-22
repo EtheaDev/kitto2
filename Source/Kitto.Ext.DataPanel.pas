@@ -440,6 +440,7 @@ begin
   Result.Config.SetObject('Sys/ViewTable', ViewTable);
   Result.Config.SetObject('Sys/CallingController', Self);
   Result.Config.SetString('Sys/Operation', AOperation);
+  Result.Config.SetString('Sys/RegionPrefix', 'Edit/');
 
   if SameText(AOperation, 'View') and not IsActionAllowed('Edit') then
     Result.Config.SetBoolean('PreventEditing', True);

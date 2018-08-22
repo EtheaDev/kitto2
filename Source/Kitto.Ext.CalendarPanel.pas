@@ -93,7 +93,7 @@ begin
   Assert(ClientStore <> nil);
 
   FCalendarPanel := TExtCalendarPanel.CreateAndAddToArray(Items);
-  FCalendarPanel.Region := rgCenter;
+  FCalendarPanel.Region := 'center';
   FCalendarPanel.Border := False;
 
   FCalendarPanel.DayText := _('Day');

@@ -321,7 +321,7 @@ function TKWebApplication.ExtractObjectName(const AURLPath: string): string;
 var
   LPathSegments: TArray<string>;
 begin
-  LPathSegments := StripPrefix(AURLPath, '/').Split(['/']);
+  LPathSegments := StripPrefixAndSuffix(AURLPath, '/', '/').Split(['/']);
   // Path segments are in the form appname/os/objectname, where "app" is the
   // object space itself (as opposed to "res" which is for static content).
   if (Length(LPathSegments) > 2) and (LPathSegments[High(LPathSegments) - 1] = APP_NAMESPACE) then

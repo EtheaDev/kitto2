@@ -55,7 +55,7 @@ uses
 procedure TKExtAccordionPanelController.DoDisplay;
 begin
   inherited;
-  Layout := lyAccordion;
+  Layout := 'accordion';
   { TODO : make these customizable }
   MinSize := 20;
   MaxSize := 400;

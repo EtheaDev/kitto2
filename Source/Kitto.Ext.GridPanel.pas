@@ -57,7 +57,7 @@ type
     FPageRecordCount: Integer;
     FSelectionModel: TExtSelectionRowModel;
     FInplaceEditing: Boolean;
-    FAutoFormContainer: TKExtPanelControllerBase;
+    FAutoFormContainer: TKExtPanelBase;
     FAutoFormController: IJSController;
     function GetGroupingFieldName: string;
     function CreatePagingToolbar: TExtPagingToolbar;
@@ -211,7 +211,7 @@ begin
   FGridPanel := TExtGridGridPanel.CreateAndAddToArray(Items);
   FGridPanel.Border := False;
   FGridPanel.Header := False;
-  FGridPanel.Region := rgCenter;
+  FGridPanel.Region := 'center';
   FSelectionModel := TExtSelectionRowModel.Create(FGridPanel);
 //  FSelectionModel.Grid := FGridPanel;
   FGridPanel.SelModel := FSelectionModel;
@@ -825,19 +825,20 @@ begin
   LAutoFormPlacement := GetAutoFormPlacement;
   if LAutoFormPlacement <> '' then
   begin
-    FAutoFormContainer := TKExtPanelControllerBase.CreateAndAddToArray(Items);
+    FAutoFormContainer := TKExtPanelBase.CreateAndAddToArray(Items);
+    FAutoFormContainer.Layout := 'fit';
     FAutoFormContainer.Border := False;
     FAutoFormContainer.Header := False;
-    FAutoFormContainer.Layout := lyFit;
+    FAutoFormContainer.Layout := 'fit';
     FAutoFormContainer.Split := True;
     if SameText(LAutoFormPlacement, 'Right') then
     begin
-      FAutoFormContainer.Region := rgEast;
+      FAutoFormContainer.Region := 'east';
       FAutoFormContainer.Width := Config.GetInteger('AutoFormPlacement/Size', DEFAULT_AUTOFORM_WIDTH);
     end
     else if SameText(LAutoFormPlacement, 'Bottom') then
     begin
-      FAutoFormContainer.Region := rgSouth;
+      FAutoFormContainer.Region := 'south';
       FAutoFormContainer.Height := Config.GetInteger('AutoFormPlacement/Size', DEFAULT_AUTOFORM_HEIGHT);
     end
     else

@@ -109,7 +109,7 @@ end;
 procedure TKExtTreePanelController.InitDefaults;
 begin
   inherited;
-  Layout := lyFit;
+  Layout := 'fit';
 
   FTreePanel := TKExtTreePanel.CreateAndAddToArray(Items);
 end;
