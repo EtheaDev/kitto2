@@ -34,8 +34,10 @@ const
   DEFAULT_TILE_WIDTH = 100;
 
 type
-  // A tile page to be added to a container.
-  TKExtTilePanel = class(TKExtPanelBase)
+  /// <sumnmary>
+  ///  A tile page to be added to a container.
+  /// </sumnmary>
+  TKExtTilePage = class(TKExtPanelBase)
   strict private
     FView: TKView;
     FTileBoxHtml: string;
@@ -61,19 +63,23 @@ type
     procedure DisplayPage;
   end;
 
-  // Hosted by the tile panel controller; manages the additional tile page.
+  /// <sumnmary>
+  ///  A tab panel hosted by the tile panel controller; manages the additional tile tab.
+  /// </sumnmary>
   TKExtTileTabPanel = class(TKExtTabPanel)
   strict private
-    FTilePanel: TKExtTilePanel;
-    procedure AddTileSubPanel;
+    FTilePage: TKExtTilePage;
+    procedure DisplayTilePage;
   strict protected
     function TabsVisible: Boolean; override;
   public
     procedure SetAsControllerContainer; override;
-    procedure DisplaySubViewsAndControllers; override;
+    procedure DisplaySubViewsAsTabs; override;
   end;
 
-  // A tab panel controller with a tile menu on the first page.
+  /// <sumnmary>
+  ///  A tab panel controller with a tile menu on the first page.
+  /// </sumnmary>
   TKExtTilePanelController = class(TKExtTabPanelController)
   strict protected
     function GetTabPanelClass: TKExtTabPanelClass; override;
@@ -112,12 +118,10 @@ end;
 
 { TKExtTileTabPanel }
 
-procedure TKExtTileTabPanel.DisplaySubViewsAndControllers;
+procedure TKExtTileTabPanel.DisplaySubViewsAsTabs;
 begin
-  AddTileSubPanel;
+  DisplayTilePage;
   inherited;
-  Assert(Items.Count > 0);
-  SetActiveTab(0);
 end;
 
 procedure TKExtTileTabPanel.SetAsControllerContainer;
@@ -132,18 +136,18 @@ begin
   Result := Config.GetBoolean('TabsVisible', not TKWebRequest.Current.IsMobileBrowser);
 end;
 
-procedure TKExtTileTabPanel.AddTileSubPanel;
+procedure TKExtTileTabPanel.DisplayTilePage;
 begin
   inherited;
-  FTilePanel := TKExtTilePanel.CreateAndAddToArray(Items);
-  FTilePanel.View := View;
-  FTilePanel.Config.Assign(Config);
-  FTilePanel.DoDisplay;
+  FTilePage := TKExtTilePage.CreateAndAddToArray(Items);
+  FTilePage.View := View;
+  FTilePage.Config.Assign(Config);
+  FTilePage.DoDisplay;
 end;
 
 { TKExtTilePanel }
 
-procedure TKExtTilePanel.DoDisplay;
+procedure TKExtTilePage.DoDisplay;
 var
   LTitle: string;
 begin
@@ -158,17 +162,17 @@ begin
   BuildTileBoxHtml;
 end;
 
-procedure TKExtTilePanel.DisplayPage;
+procedure TKExtTilePage.DisplayPage;
 begin
   BuildTileBoxHtml(TKTreeViewNode(ParamAsInteger('PageId')));
 end;
 
-procedure TKExtTilePanel.DisplayView;
+procedure TKExtTilePage.DisplayView;
 begin
   TKWebApplication.Current.DisplayView(TKView(ParamAsInteger('View')));
 end;
 
-function TKExtTilePanel.GetColors(const AColorSetName: string): TStringDynArray;
+function TKExtTilePage.GetColors(const AColorSetName: string): TStringDynArray;
 begin
   if SameText(AColorSetName, 'Metro') then
   begin
@@ -227,7 +231,7 @@ begin
   end;
 end;
 
-function TKExtTilePanel.GetNextTileColor: string;
+function TKExtTilePage.GetNextTileColor: string;
 begin
   Result := FColors[FColorIndex];
   Inc(FColorIndex);
@@ -235,17 +239,17 @@ begin
     FColorIndex := Low(FColors);
 end;
 
-function TKExtTilePanel.GetTileHeight: Integer;
+function TKExtTilePage.GetTileHeight: Integer;
 begin
   Result := Config.GetInteger('TileHeight', DEFAULT_TILE_HEIGHT);
 end;
 
-function TKExtTilePanel.GetTileWidth: Integer;
+function TKExtTilePage.GetTileWidth: Integer;
 begin
   Result := Config.GetInteger('TileWidth', DEFAULT_TILE_WIDTH);
 end;
 
-procedure TKExtTilePanel.AddTiles(const ANode: TKTreeViewNode; const ADisplayLabel: string);
+procedure TKExtTilePage.AddTiles(const ANode: TKTreeViewNode; const ADisplayLabel: string);
 var
   LOriginalNode: TKTreeViewNode;
 
@@ -305,7 +309,7 @@ begin
   FTileBoxHtml := FTileBoxHtml + '</div>';
 end;
 
-procedure TKExtTilePanel.AddBackTile;
+procedure TKExtTilePage.AddBackTile;
 var
   LClickCode: string;
 begin
@@ -320,12 +324,12 @@ begin
     [TNetEncoding.HTML.Encode(LClickCode), GetNextTileColor, GetTileWidth, GetTileHeight, _('Back')]);
 end;
 
-procedure TKExtTilePanel.AddBreak;
+procedure TKExtTilePage.AddBreak;
 begin
   FTileBoxHtml := FTileBoxHtml + '<br style="clear:left;" />';
 end;
 
-procedure TKExtTilePanel.AddTitle(const ADisplayLabel: string);
+procedure TKExtTilePage.AddTitle(const ADisplayLabel: string);
 begin
   if ADisplayLabel <> '' then
     FTileBoxHtml := FTileBoxHtml + Format(
@@ -333,7 +337,7 @@ begin
       [TNetEncoding.HTML.Encode(ADisplayLabel)]);
 end;
 
-procedure TKExtTilePanel.AddTile(const ANode: TKTreeViewNode; const ADisplayLabel: string);
+procedure TKExtTilePage.AddTile(const ANode: TKTreeViewNode; const ADisplayLabel: string);
 var
   LClickCode: string;
 
@@ -396,7 +400,7 @@ begin
   end;
 end;
 
-procedure TKExtTilePanel.BuildTileBoxHtml(const ARootNode: TKTreeViewNode);
+procedure TKExtTilePage.BuildTileBoxHtml(const ARootNode: TKTreeViewNode);
 var
   LTreeViewRenderer: TKExtTreeViewRenderer;
   LNode: TEFNode;

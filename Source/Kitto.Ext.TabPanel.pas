@@ -49,7 +49,7 @@ type
   public
     procedure SetAsControllerContainer; virtual;
     function AsExtContainer: TExtContainer;
-    procedure DisplaySubViewsAndControllers; virtual;
+    procedure DisplaySubViewsAsTabs; virtual;
     destructor Destroy; override;
     function AsObject: TObject;
   end;
@@ -90,7 +90,9 @@ begin
   FTabPanel.Config.Assign(Config);
   FTabPanel.FView := View;
   FTabPanel.SetAsControllerContainer;
-  FTabPanel.DisplaySubViewsAndControllers;
+  FTabPanel.DisplaySubViewsAsTabs;
+  if FTabPanel.Items.Count > 0 then
+    FTabPanel.SetActiveTab(0);
 end;
 
 function TKExtTabPanelController.GetDefaultTabIconsVisible: Boolean;
@@ -172,41 +174,9 @@ begin
   inherited;
 end;
 
-procedure TKExtTabPanel.DisplaySubViewsAndControllers;
-var
-  LController: IJSController;
-  LViews: TEFNode;
-  I: Integer;
-  LView: TKView;
+procedure TKExtTabPanel.DisplaySubViewsAsTabs;
 begin
-  Assert(Assigned(Config));
-  Assert(Assigned(View));
-
-  LViews := Config.FindNode('SubViews');
-  if Assigned(LViews) then
-  begin
-    for I := 0 to LViews.ChildCount - 1 do
-    begin
-      if SameText(LViews.Children[I].Name, 'View') then
-      begin
-        LView := TKWebApplication.Current.Config.Views.ViewByNode(LViews.Children[I]);
-        if LView.IsAccessGranted(ACM_VIEW) then
-        begin
-          LController := TJSControllerFactory.Instance.CreateController(Self, LView, Self);
-          LController.Display;
-        end;
-      end
-      else if SameText(LViews.Children[I].Name, 'Controller') then
-      begin
-        LController := TJSControllerFactory.Instance.CreateController(Self, View, Self, LViews.Children[I]);
-        LController.Display;
-      end
-      else
-        raise EKError.Create(_('SubViews node may only contain View or Controller subnodes.'));
-    end;
-    if Items.Count > 0 then
-      SetActiveTab(0);
-  end;
+  TJSControllerUtils.DisplaySubControllers(Config, View, TKWebApplication.Current.Config.Views, Self, Self);
 end;
 
 procedure TKExtTabPanel.TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);

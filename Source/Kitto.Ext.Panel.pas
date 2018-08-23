@@ -31,6 +31,10 @@ type
     function GetDisplayMode: string;
     procedure SetDisplayMode(const AValue: string);
   strict protected
+    // Parses the config's SubViews node and displays any defined subcontrollers.
+    // ATM derived classes need to call this method explicitly. In the future we
+    // may make it implicit.
+    procedure DisplaySubViews;
     procedure InitDefaults; override;
     procedure PerformDelayedClick(const AButton: TExtButton);
     procedure ExecuteNamedAction(const AActionName: string); virtual;
@@ -96,10 +100,7 @@ type
   ///  some extent), accordion panels, tab panels.
   /// </summary>
   TKExtPanelController = class(TKExtPanelControllerBase)
-  strict private
-    procedure DisplaySubViews;
   strict protected
-    procedure DisplayBuiltinSubViews; virtual;
     procedure DoDisplay; override;
   end;
 
@@ -504,6 +505,11 @@ begin
   FView := AValue;
 end;
 
+procedure TKExtPanelControllerBase.DisplaySubViews;
+begin
+  TJSControllerUtils.DisplaySubControllers(Config, View, TKWebApplication.Current.Config.Views, Self, Self);
+end;
+
 { TKExtPanelToolController }
 
 procedure TKExtPanelToolController.AfterExecuteTool;
@@ -599,47 +605,9 @@ end;
 procedure TKExtPanelController.DoDisplay;
 begin
   inherited;
-  DisplayBuiltinSubViews;
   DisplaySubViews;
-end;
-
-procedure TKExtPanelController.DisplayBuiltinSubViews;
-begin
-end;
-
-procedure TKExtPanelController.DisplaySubViews;
-var
-  LController: IJSController;
-  LViews: TEFNode;
-  I: Integer;
-  LView: TKView;
-begin
-  LViews := Config.FindNode('SubViews');
-  if Assigned(LViews) then
-  begin
-    for I := 0 to LViews.ChildCount - 1 do
-    begin
-      if SameText(LViews.Children[I].Name, 'View') then
-      begin
-        LView := TKWebApplication.Current.Config.Views.ViewByNode(LViews.Children[I]);
-        if LView.IsAccessGranted(ACM_VIEW) then
-        begin
-          LController := TJSControllerFactory.Instance.CreateController(Self, LView, Self);
-          LController.Display;
-        end;
-      end
-      else if SameText(LViews.Children[I].Name, 'Controller') then
-      begin
-        LController := TJSControllerFactory.Instance.CreateController(Self, View, Self, LViews.Children[I]);
-        InitSubController(LController);
-        LController.Display;
-      end
-      else
-        raise EKError.Create(_('AccordionPanel''s SubViews node may only contain View or Controller subnodes.'));
-    end;
-    if Items.Count > 0 then
-      &On('afterrender', GenerateAnonymousFunction(JSName + '.getLayout().setActiveItem(0);'));
-  end;
+  if Items.Count > 0 then
+    &On('afterrender', GenerateAnonymousFunction(JSName + '.getLayout().setActiveItem(0);'));
 end;
 
 initialization

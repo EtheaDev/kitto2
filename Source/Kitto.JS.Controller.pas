@@ -23,6 +23,7 @@ interface
 uses
   SysUtils
   , Classes
+  , EF.Classes
   , EF.Intf
   , EF.ObserverIntf
   , EF.Tree
@@ -100,10 +101,25 @@ de-registration gracefully. }
       const AObserver: IEFObserver = nil; const ACustomType: string = ''): IJSController;
   end;
 
+  /// <summary>
+  ///  A class with controller-related static utility functions.
+  /// </summary>
+  TJSControllerUtils = class
+  public
+    /// <summary>
+    ///  Parses AConfig's SubViews node and displays any defined subcontrollers
+    ///  querying the views from the catalog and using the specified references
+    ///  as owner and container of the controllers it creates.
+    /// </summary>
+    class procedure DisplaySubControllers(const AConfig: TEFComponentConfig; const AView: TKView;
+      const AViewCatalog: TKViews; const AOwner: TJSBase; const AContainer: IJSContainer);
+  end;
+
 implementation
 
 uses
   EF.Localization
+  , Kitto.AccessControl
   ;
 
 { TJSControllerRegistry }
@@ -134,7 +150,6 @@ end;
 
 procedure TJSControllerRegistry.RegisterClass(const AId: string; const AClass: TJSObjectClass);
 begin
-
   inherited RegisterClass(AId, AClass);
 end;
 
@@ -213,6 +228,45 @@ begin
   except
     FreeAndNil(LObject);
     raise;
+  end;
+end;
+
+{ TJSControllerUtils }
+
+class procedure TJSControllerUtils.DisplaySubControllers(const AConfig: TEFComponentConfig; const AView: TKView;
+  const AViewCatalog: TKViews; const AOwner: TJSBase; const AContainer: IJSContainer);
+var
+  LController: IJSController;
+  LViews: TEFNode;
+  I: Integer;
+  LView: TKView;
+begin
+  Assert(Assigned(AConfig));
+  Assert(Assigned(AView));
+  Assert(Assigned(AViewCatalog));
+
+  LViews := AConfig.FindNode('SubViews');
+  if Assigned(LViews) then
+  begin
+    for I := 0 to LViews.ChildCount - 1 do
+    begin
+      if SameText(LViews.Children[I].Name, 'View') then
+      begin
+        LView := AViewCatalog.ViewByNode(LViews.Children[I]);
+        if LView.IsAccessGranted(ACM_VIEW) then
+        begin
+          LController := TJSControllerFactory.Instance.CreateController(AOwner, LView, AContainer);
+          LController.Display;
+        end;
+      end
+      else if SameText(LViews.Children[I].Name, 'Controller') then
+      begin
+        LController := TJSControllerFactory.Instance.CreateController(AOwner, AView, AContainer, LViews.Children[I]);
+        LController.Display;
+      end
+      else
+        raise EKError.Create(_('SubViews node may only contain View or Controller subnodes.'));
+    end;
   end;
 end;
 
