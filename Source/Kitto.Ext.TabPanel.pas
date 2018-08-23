@@ -45,7 +45,6 @@ type
     property View: TKView read FView;
     procedure InitDefaults; override;
     function TabsVisible: Boolean; virtual;
-    function GetDefaultTabSize: string; virtual;
     procedure TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);
   public
     procedure SetAsControllerContainer; virtual;
@@ -87,6 +86,7 @@ uses
 procedure TKExtTabPanelController.DoDisplay;
 begin
   inherited;
+  Layout := 'fit';
   FTabPanel.Config.Assign(Config);
   FTabPanel.FView := View;
   FTabPanel.SetAsControllerContainer;
@@ -111,7 +111,6 @@ end;
 procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
-  Layout := 'fit';
   FTabPanel := GetTabPanelClass.CreateAndAddToArray(Items);
 end;
 
@@ -181,12 +180,7 @@ var
   LView: TKView;
 begin
   Assert(Assigned(Config));
-  Assert(Assigned(FView));
-
-  if TabsVisible then
-    AddCls('tab-strip-' + Config.GetString('TabSize', GetDefaultTabSize))
-  else
-    AddCls('tab-strip-hidden');
+  Assert(Assigned(View));
 
   LViews := Config.FindNode('SubViews');
   if Assigned(LViews) then
@@ -204,20 +198,15 @@ begin
       end
       else if SameText(LViews.Children[I].Name, 'Controller') then
       begin
-        LController := TJSControllerFactory.Instance.CreateController(Self, FView, Self, LViews.Children[I]);
+        LController := TJSControllerFactory.Instance.CreateController(Self, View, Self, LViews.Children[I]);
         LController.Display;
       end
       else
-        raise EKError.Create(_('TabPanel''s SubViews node may only contain View or Controller subnodes.'));
+        raise EKError.Create(_('SubViews node may only contain View or Controller subnodes.'));
     end;
     if Items.Count > 0 then
       SetActiveTab(0);
   end;
-end;
-
-function TKExtTabPanel.GetDefaultTabSize: string;
-begin
-  Result := 'normal';
 end;
 
 procedure TKExtTabPanel.TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);

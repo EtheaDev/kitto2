@@ -63,7 +63,7 @@ type
 
   // Hosted by the tile panel controller; manages the additional tile page.
   TKExtTileTabPanel = class(TKExtTabPanel)
-  private
+  strict private
     FTilePanel: TKExtTilePanel;
     procedure AddTileSubPanel;
   strict protected
@@ -116,8 +116,8 @@ procedure TKExtTileTabPanel.DisplaySubViewsAndControllers;
 begin
   AddTileSubPanel;
   inherited;
-  if Items.Count > 0 then
-    SetActiveTab(0);
+  Assert(Items.Count > 0);
+  SetActiveTab(0);
 end;
 
 procedure TKExtTileTabPanel.SetAsControllerContainer;

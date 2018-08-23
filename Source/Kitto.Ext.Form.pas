@@ -142,7 +142,6 @@ type
     procedure LoadData; override;
     destructor Destroy; override;
     function GetFilterExpression: string; override;
-    function GetRegionName(const ARegion: string): string; override;
     procedure AfterConstruction; override;
     procedure ChangeRecord(const ARecord: TKViewTableRecord);
   //published
@@ -1206,13 +1205,6 @@ begin
   // Fallback to standard layout if no prefixed layout is available.
   if (Result = nil) and (LPrefix <> '') then
     Result := FindViewLayout(Config.GetString('Layout', 'Form'));
-end;
-
-function TKExtFormPanelController.GetRegionName(const ARegion: string): string;
-begin
-  Result := inherited GetRegionName(ARegion);
-//  if Config.GetObject('Sys/CallingController') <> nil then
-//    Result := 'SecondaryController/' + Result;
 end;
 
 function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TJSProcedure): TJSExpression;

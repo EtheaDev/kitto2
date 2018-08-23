@@ -71,6 +71,9 @@ var
   I: Integer;
   LView: TKView;
 begin
+  Assert(Assigned(Config));
+  Assert(Assigned(View));
+
   LViews := Config.FindNode('SubViews');
   if Assigned(LViews) then
   begin
@@ -82,6 +85,7 @@ begin
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
           LController := TJSControllerFactory.Instance.CreateController(Self, LView, Self);
+          InitSubController(LController);
           LController.Display;
         end;
       end
@@ -92,7 +96,7 @@ begin
         LController.Display;
       end
       else
-        raise EKError.Create(_('AccordionPanel''s SubViews node may only contain View or Controller subnodes.'));
+        raise EKError.Create(_('SubViews node may only contain View or Controller subnodes.'));
     end;
     if Items.Count > 0 then
       &On('afterrender', GenerateAnonymousFunction(JSName + '.getLayout().setActiveItem(0);'));
