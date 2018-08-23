@@ -23,8 +23,9 @@ function kittoInit()
         width: this.width + 5,
         height: this.height + 5,
         closable: this.closable,
-        resizable: this.resizable,
-        draggable: this.draggable,
+        resizable: true,
+        draggable: true,
+        maximizable: true,
         iconCls: this.iconCls,
         style: this.style,
         modal: isModal,
@@ -32,8 +33,6 @@ function kittoInit()
       });
       this.title = '';
       this.closable = false;
-      this.resizable = false;
-      this.draggable = false;
       this.header = false;
       this.setIconCls('');
       this.style = '';

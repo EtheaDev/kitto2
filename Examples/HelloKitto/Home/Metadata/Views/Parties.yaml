@@ -15,9 +15,6 @@ Controller: List
 MainTable:
   Model: Party
 
-  EditController:
-    Width: 700
-    Height: 640
   Controller:
     ToolViews:
       DownloadCSV:

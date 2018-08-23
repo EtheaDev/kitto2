@@ -704,14 +704,12 @@ type
   private
     FOnTabChange: TExtTabPanelOnTabChange;
     FLayoutOnTabChange: Boolean;
-    FEnableTabScroll: Boolean;
     FActiveTab: string;
     FDeferredRender: Boolean;
     FActiveTabNumber: Integer;
     procedure _SetActiveTab(const AValue: string);
     procedure SetActiveTabNumber(const AValue: Integer);
     procedure SetDeferredRender(const AValue: Boolean);
-    procedure SetEnableTabScroll(const AValue: Boolean);
     procedure SetLayoutOnTabChange(const AValue: Boolean);
     procedure SetOnTabChange(const AValue: TExtTabPanelOnTabchange);
   protected
@@ -726,7 +724,6 @@ type
     property ActiveTab: string read FActiveTab write _SetActiveTab;
     property ActiveTabNumber: Integer read FActiveTabNumber write SetActiveTabNumber;
     property DeferredRender: Boolean read FDeferredRender write SetDeferredRender;
-    property EnableTabScroll: Boolean read FEnableTabScroll write SetEnableTabScroll;
     property LayoutOnTabChange: Boolean read FLayoutOnTabChange
       write SetLayoutOnTabChange;
     property OnTabchange: TExtTabPanelOnTabchange read FOnTabChange write SetOnTabChange;
@@ -2062,11 +2059,6 @@ end;
 procedure TExtTabPanel.SetDeferredRender(const AValue: Boolean);
 begin
   FDeferredRender := SetConfigItem('deferredRender', AValue);
-end;
-
-procedure TExtTabPanel.SetEnableTabScroll(const AValue: Boolean);
-begin
-  FEnableTabScroll := SetConfigItem('enableTabScroll', AValue);
 end;
 
 procedure TExtTabPanel.SetLayoutOnTabChange(const AValue: Boolean);

@@ -45,7 +45,6 @@ type
     property View: TKView read FView;
     procedure InitDefaults; override;
     function TabsVisible: Boolean; virtual;
-    procedure ApplyTabSize;
     function GetDefaultTabSize: string; virtual;
     procedure TabChange(ATabPanel: TExtTabPanel; ANewTab: TExtComponent);
   public
@@ -185,10 +184,7 @@ begin
   Assert(Assigned(FView));
 
   if TabsVisible then
-  begin
-    ApplyTabSize;
-    EnableTabScroll := True;
-  end
+    AddCls('tab-strip-' + Config.GetString('TabSize', GetDefaultTabSize))
   else
     AddCls('tab-strip-hidden');
 
@@ -217,11 +213,6 @@ begin
     if Items.Count > 0 then
       SetActiveTab(0);
   end;
-end;
-
-procedure TKExtTabPanel.ApplyTabSize;
-begin
-  AddCls('tab-strip-' + Config.GetString('TabSize', GetDefaultTabSize));
 end;
 
 function TKExtTabPanel.GetDefaultTabSize: string;

@@ -81,7 +81,7 @@ type
   /// </summary>
   TKExtFormPanelController = class(TKExtDataPanelController)
   strict private
-    FTabPanel: TExtTabPanel;
+    FEditorContainer: TExtPanel;
     FFormPanel: TKExtEditPanel;
     FMainPage: TKExtEditPage;
     FIsReadOnly: Boolean;
@@ -103,7 +103,7 @@ type
     FDetailBottomPanel: TExtTabPanel;
     FChangesApplied: Boolean;
     procedure CreateEditors;
-    procedure CreateButtons;
+    procedure CreateButtons(const AIsMultiPage: Boolean);
     procedure ChangeEditorsState;
     procedure StartOperation;
     procedure FocusFirstField;
@@ -115,7 +115,7 @@ type
     function GetDetailBottomPanelHeight: Integer;
     procedure AssignFieldChangeEvent(const AAssign: Boolean);
     procedure FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
-    procedure CreateFormPanel;
+    procedure CreateFormPanel(const AIsMultiPage: Boolean);
     function LayoutContainsPageBreaks: Boolean;
     function GetConfirmJSCode(const AMethod: TJSProcedure): TJSExpression;
     procedure InitFlags;
@@ -262,11 +262,11 @@ begin
     end;
     // FIXME: We should really always use just Tbar here, but it is causing AV when
     // emitting the response items, so we are temporarily switching to a different panel.
-    if Assigned(FTabPanel) then
-      FTabPanel.Tbar := FDetailToolbar
-    else if Assigned(FFormPanel) then
-      FFormPanel.Tbar := FDetailToolbar
-    else
+//    if Assigned(FFormPanelContainer) then
+//      FFormPanelContainer.Tbar := FDetailToolbar
+//    else if Assigned(FFormPanel) then
+//      FFormPanel.Tbar := FDetailToolbar
+//    else
       Tbar := FDetailToolbar;
   end;
 end;
@@ -287,7 +287,6 @@ begin
     FDetailBottomPanel.AutoScroll := False;
     FDetailBottomPanel.BodyStyle := 'background:none'; // Respects parent's background color.
     FDetailBottomPanel.DeferredRender := False;
-    FDetailBottomPanel.EnableTabScroll := True;
     FDetailBottomPanel.Height := GetDetailBottomPanelHeight;
     FDetailBottomPanel.OnTabChange := TabChange;
     FDetailBottomPanel.On('tabchange', FDetailBottomPanel.GenerateAnonymousFunction(FDetailBottomPanel.JSName + '.updateLayout();'));
@@ -391,7 +390,7 @@ begin
   try
     Result.DataRecord := StoreRecord;
     Result.MainEditPanel := FFormPanel;
-    Result.TabPanel := FTabPanel;
+    Result.LayoutContainer := FEditorContainer;
     Result.OnNewEditItem :=
       procedure (AEditItem: IKExtEditItem)
       begin
@@ -462,7 +461,7 @@ var
 begin
   LDetailStyle := GetDetailStyle;
   if SameText(LDetailStyle, 'Tabs') then
-    CreateDetailPanels(FTabPanel)
+    CreateDetailPanels(FEditorContainer)
   else if SameText(LDetailStyle, 'Popup') then
     CreateDetailToolbar
   else if SameText(LDetailStyle, 'Bottom') then
@@ -755,10 +754,9 @@ begin
   end
 end;
 
-procedure TKExtFormPanelController.CreateButtons;
+procedure TKExtFormPanelController.CreateButtons(const AIsMultiPage: Boolean);
 var
   LCloneButtonNode: TEFNode;
-//  LHostWindow: TExtWindow;
   LApplyButtonNode: TEFNode;
   LToolbar: TKExtToolbar;
   LPreviousButtonNode: TEFNode;
@@ -772,7 +770,7 @@ begin
   // Navigation buttons
   FPreviousButton := nil;
   FNextButton := nil;
-  if Assigned(FTabPanel) and Config.GetBoolean('ShowNavigationButtons') then
+  if AIsMultiPage and Config.GetBoolean('ShowNavigationButtons') then
   begin
     FPreviousButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FPreviousButton.SetIconAndScale('previous', Config.GetString('ButtonScale', 'medium'));
@@ -786,7 +784,7 @@ begin
     begin
       FPreviousButton.Tooltip := _('Previous page');
     end;
-    FPreviousButton.Handler := GenerateAnonymousFunction(FTabPanel.JSName + '.goPrevious();');
+    FPreviousButton.Handler := GenerateAnonymousFunction(FEditorContainer.JSName + '.goPrevious();');
 
     FNextButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FNextButton.SetIconAndScale('next', Config.GetString('ButtonScale', 'medium'));
@@ -800,7 +798,7 @@ begin
     begin
       FNextButton.Tooltip := _('Next page');
     end;
-    FNextButton.Handler := GenerateAnonymousFunction(FTabPanel.JSName + '.goNext();');
+    FNextButton.Handler := GenerateAnonymousFunction(FEditorContainer.JSName + '.goNext();');
   end;
 
   TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
@@ -889,6 +887,8 @@ begin
 end;
 
 procedure TKExtFormPanelController.InitComponents;
+var
+  LIsMultiPage: Boolean;
 begin
   inherited;
   FOperation := Config.GetString('Sys/Operation');
@@ -897,10 +897,11 @@ begin
   Assert(FOperation <> '');
 
   InitFlags;
-  CreateFormPanel;
+  LIsMultiPage := ((ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs')) or LayoutContainsPageBreaks;
+  CreateFormPanel(LIsMultiPage);
 
   if not Config.GetBoolean('HideButtons') then
-    CreateButtons;
+    CreateButtons(LIsMultiPage);
 end;
 
 function TKExtFormPanelController.GetFilterExpression: string;
@@ -988,9 +989,7 @@ begin
     LabelAlign := LLabelAlign;
 end;
 
-procedure TKExtFormPanelController.CreateFormPanel;
-var
-  LDetailStyle: string;
+procedure TKExtFormPanelController.CreateFormPanel(const AIsMultiPage: Boolean);
 begin
   FFormPanel := TKExtEditPanel.CreateAndAddToArray(Items);
   FFormPanel.Region := 'center';
@@ -1001,31 +1000,30 @@ begin
   FFormPanel.LabelWidth := FORM_LABELWIDTH;
   FFormPanel.MonitorValid := True;
 
-  LDetailStyle := GetDetailStyle;
-  if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
+  if AIsMultiPage then
   begin
-    FTabPanel := TExtTabPanel.CreateAndAddToArray(FFormPanel.Items);
-    FTabPanel.Border := False;
-    FTabPanel.AutoScroll := False;
-    FTabPanel.DeferredRender := False;
-    FTabPanel.EnableTabScroll := True;
-    FMainPage := TKExtEditPage.CreateAndAddToArray(FTabPanel.Items);
+    FEditorContainer := TExtTabPanel.CreateAndAddToArray(FFormPanel.Items);
+    FEditorContainer.Border := False;
+    FEditorContainer.AutoScroll := False;
+    FMainPage := TKExtEditPage.CreateAndAddToArray(FEditorContainer.Items);
     FMainPage.Title := _(ViewTable.DisplayLabel);
     if Config.GetBoolean('Sys/ShowIcon', True) then
       FMainPage.IconCls := TKWebApplication.Current.SetViewIconStyle(ViewTable.View);
     FMainPage.LabelAlign := LabelAlign;
     FMainPage.MainEditPanel := FFormPanel;
-    FTabPanel.OnTabChange := TabChange;
-    FTabPanel.On('tabchange', FTabPanel.GenerateAnonymousFunction(FTabPanel.UpdateLayout));
-    FTabPanel.SetActiveTab(0);
+    TExtTabPanel(FEditorContainer).DeferredRender := False;
+    TExtTabPanel(FEditorContainer).OnTabChange := TabChange;
+    FEditorContainer.On('tabchange', FEditorContainer.GenerateAnonymousFunction(FEditorContainer.UpdateLayout));
+    TExtTabPanel(FEditorContainer).SetActiveTab(0);
     // Workaround for missing tabchange event when activating the first tab.
-    FTabPanel.FireEvent('tabchange', [FTabPanel, FTabPanel.Items[0]]);
+    FEditorContainer.FireEvent('tabchange', [FEditorContainer, FEditorContainer.Items[0]]);
   end
   else
   begin
-    FTabPanel := nil;
-    FMainPage := TKExtEditPage.CreateAndAddToArray(FFormPanel.Items);
-    FMainPage.Region := 'center';
+    FEditorContainer := TExtPanel.CreateAndAddToArray(FFormPanel.Items);
+    FEditorContainer.Padding := '10px 0 0 0';
+    FEditorContainer.Layout := 'fit';
+    FMainPage := TKExtEditPage.CreateAndAddToArray(FEditorContainer.Items);
     FMainPage.LabelAlign := LabelAlign;
   end;
   FMainPage.HideLabels := Config.GetBoolean('HideLabels');

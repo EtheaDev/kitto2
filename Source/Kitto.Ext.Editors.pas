@@ -566,7 +566,7 @@ type
     FEditContainers: TStack<IKExtEditContainer>;
     FOnNewEditItem: TProc<IKExtEditItem>;
     FOperation: TKExtEditOperation;
-    FTabPanel: TExtTabPanel;
+    FLayoutContainer: TExtContainer;
     FEditorManager: TKExtEditorManager;
     FOnlyRenderPageBreaks: Boolean;
     FForceReadOnly: Boolean;
@@ -599,7 +599,7 @@ type
     property ViewTable: TKViewTable read GetViewTable;
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property MainEditPanel: TKExtEditPanel read FMainEditPanel write FMainEditPanel;
-    property TabPanel: TExtTabPanel read FTabPanel write FTabPanel;
+    property LayoutContainer: TExtContainer read FLayoutContainer write FLayoutContainer;
     property CurrentEditPage: TKExtEditPage read FCurrentEditPage write FCurrentEditPage;
 
     property OnNewEditItem: TProc<IKExtEditItem> read FOnNewEditItem write FOnNewEditItem;
@@ -1208,12 +1208,12 @@ var
   LPageBreak: TKExtEditPage;
 begin
   Assert(Assigned(FMainEditPanel));
-  Assert(Assigned(FTabPanel));
+  Assert(Assigned(FLayoutContainer));
   Assert(Assigned(FDataRecord));
 
   FinalizeCurrentEditPage;
 
-  LPageBreak := TKExtEditPage.CreateAndAddToArray(FTabPanel.Items);
+  LPageBreak := TKExtEditPage.CreateAndAddToArray(FLayoutContainer.Items);
   LPageBreak.MainEditPanel := FMainEditPanel;
   LPageBreak.DataRecord := FDataRecord;
   LPageBreak.UnexpandedTitle := ATitle;
@@ -1363,7 +1363,7 @@ procedure TKExtEditPage.InitDefaults;
 begin
   inherited;
   Border := False;
-  Padding := '10px 10px 0 10px'; // top right bottom left
+  Padding := '10px 10px 0px 10px'; // top right bottom left
   AutoScroll := True;
 end;
 

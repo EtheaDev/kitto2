@@ -262,7 +262,7 @@ begin
   else
     Header := (Title <> '') and not Assigned(Container);
 
-  Draggable := Config.GetBoolean('Movable', False);
+  Draggable := Config.GetBoolean('Movable', Draggable);
 
   LWidthStr := Config.GetString('Width');
   if TryStrToInt(LWidthStr, LWidth) then
