@@ -1007,7 +1007,6 @@ begin
     FTabPanel := TExtTabPanel.CreateAndAddToArray(FFormPanel.Items);
     FTabPanel.Border := False;
     FTabPanel.AutoScroll := False;
-    FTabPanel.BodyStyle := 'background:none'; // Respects parent's background color.
     FTabPanel.DeferredRender := False;
     FTabPanel.EnableTabScroll := True;
     FMainPage := TKExtEditPage.CreateAndAddToArray(FTabPanel.Items);
