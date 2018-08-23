@@ -2,7 +2,6 @@
 
 Controller: List
   InplaceEditing: True
-  CenterController: GridPanel
   EastView:
     Controller: HtmlPanel
       Html: |
