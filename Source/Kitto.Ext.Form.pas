@@ -992,8 +992,6 @@ procedure TKExtFormPanelController.CreateFormPanel;
 var
   LDetailStyle: string;
 begin
-  Cls := 'x-panel-mc'; // Sets correct theme background color same as panel
-
   FFormPanel := TKExtEditPanel.CreateAndAddToArray(Items);
   FFormPanel.Region := 'center';
   FFormPanel.Border := False;
