@@ -236,7 +236,7 @@ begin
   if Container <> nil then
     Closable := Config.GetBoolean('AllowClose', GetDefaultAllowClose);
 
-  DisplayMode := Config.GetString('DisplayMode');
+  DisplayMode := Config.GetString('DisplayMode', DisplayMode);
 
   LRenderTo := Config.GetString('ContainerElementId');
   if LRenderTo <> '' then
