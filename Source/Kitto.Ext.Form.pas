@@ -1000,7 +1000,6 @@ begin
   FFormPanel.AutoScroll := False;
   FFormPanel.LabelWidth := FORM_LABELWIDTH;
   FFormPanel.MonitorValid := True;
-  FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
 
   LDetailStyle := GetDetailStyle;
   if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
