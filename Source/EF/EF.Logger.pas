@@ -67,7 +67,6 @@ type
     procedure LogDetailed(const AString: string); inline;
     procedure LogDebug(const AString: string); inline;
 
-    procedure LogStrings(const ATitle: string; const AStrings: TStrings; const ALogLevel: Integer = DEFAULT_LOG_LEVEL);
     procedure LogFmt(const AString: string; const AParams: array of const;
       const ALogLevel: Integer = DEFAULT_LOG_LEVEL);
 
@@ -110,12 +109,8 @@ end;
 
 procedure TEFLogger.Log(const AString: string; const ALogLevel: Integer);
 begin
-  TThread.Synchronize(nil,
-    procedure
-    begin
-      if FLogLevel >= ALogLevel then
-        NotifyObservers(AString);
-    end);
+  if FLogLevel >= ALogLevel then
+    NotifyObservers(AString);
 end;
 
 procedure TEFLogger.LogDebug(const AString: string);
@@ -147,15 +142,6 @@ end;
 procedure TEFLogger.LogMedium(const AString: string);
 begin
   Log(AString, LOG_MEDIUM);
-end;
-
-procedure TEFLogger.LogStrings(const ATitle: string;
-  const AStrings: TStrings; const ALogLevel: Integer);
-begin
-  Assert(Assigned(AStrings));
-
-  Log(ATitle, ALogLevel);
-  Log(AStrings.Text, ALogLevel);
 end;
 
 procedure TEFLogger.SetLogLevelFromConfig(const ALogLevelNode: TEFNode);

@@ -79,6 +79,8 @@ Log:
     FileName: %APP_PATH%log.txt
     # Set this to false to disable this logger without deleting its configuration.
     IsEnabled: True
+  Console:
+    IsEnabled: True
 
 Server:
   Port: 2602

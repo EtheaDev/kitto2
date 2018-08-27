@@ -8,15 +8,12 @@ program TasKittoConsole;
 
 uses
   System.SysUtils,
-  Kitto.Ext.Start,
+  EF.Logger.TextFile,
+  Kitto.Console.Start,
   UseKitto in '..\..\Source\UseKitto.pas',
-  Rules in '..\..\Source\Rules.pas';
+  Rules in '..\..\Source\Rules.pas',
+  Auth in '..\..\Source\Auth.pas';
 
 begin
-  try
-    TKExtStart.Start;
-  except
-    on E: Exception do
-      Writeln(E.ClassName, ': ', E.Message);
-  end;
+  TKStart.Start;
 end.

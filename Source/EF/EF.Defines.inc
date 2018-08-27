@@ -220,7 +220,7 @@
   {$DEFINE D24+}
 {$ENDIF}
 
-// 10.2 Tokio
+// 10.2 Tokyo
 
 {$IFDEF VER320}
   {$DEFINE D7+}
@@ -241,6 +241,30 @@
   {$DEFINE D24+}
   {$DEFINE D25}
   {$DEFINE D25+}
+{$ENDIF}
+
+// 10.3 "Carnival"
+
+{$IFDEF VER330}
+  {$DEFINE D7+}
+  {$DEFINE D9+}
+  {$DEFINE D10+}
+  {$DEFINE D11+}
+  {$DEFINE D12+}
+  {$DEFINE D14+}
+  {$DEFINE D15+}
+  {$DEFINE D16+}
+  {$DEFINE D17+}
+  {$DEFINE D18+}
+  {$DEFINE D19+}
+  {$DEFINE D20+}
+  {$DEFINE D21+}
+  {$DEFINE D22+}
+  {$DEFINE D23+}
+  {$DEFINE D24+}
+  {$DEFINE D25+}
+  {$DEFINE D26}
+  {$DEFINE D26+}
 {$ENDIF}
 
 {$IFDEF FPC}

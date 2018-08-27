@@ -19,7 +19,12 @@ unit EF.Logger.TextFile;
 interface
 
 uses
-  EF.Tree, EF.Macros, EF.Logger, EF.ObserverIntf, EF.Streams;
+  EF.Classes
+  , EF.Macros
+  , EF.Logger
+  , EF.ObserverIntf
+  , EF.Streams
+  ;
 
 type
   TEFTextFileLogEndpoint = class(TEFLogEndpoint)
@@ -31,7 +36,7 @@ type
     function GetStream: TEFTextStream;
   strict protected
     procedure DoLog(const AString: string); override;
-    procedure Configure(const AConfig: TEFNode;
+    procedure Configure(const AConfig: TEFComponentConfig;
       const AMacroExpansionEngine: TEFMacroExpansionEngine); override;
     property Stream: TEFTextStream read GetStream;
     procedure SetFileName(const AValue: string);
@@ -56,7 +61,7 @@ begin
   FFileName := ChangeFileExt(ParamStr(0), '.log');
 end;
 
-procedure TEFTextFileLogEndpoint.Configure(const AConfig: TEFNode;
+procedure TEFTextFileLogEndpoint.Configure(const AConfig: TEFComponentConfig;
   const AMacroExpansionEngine: TEFMacroExpansionEngine);
 var
   LFileName: string;
@@ -97,19 +102,24 @@ function TEFTextFileLogEndpoint.GetStream: TEFTextStream;
 var
   LCreateFlag: Integer;
 begin
-  if not Assigned(FStream) then
-  begin
-    if FileExists(FFileName) then
-      LCreateFlag := 0
-    else
+  MonitorEnter(Self);
+  try
+    if not Assigned(FStream) then
     begin
-      LCreateFlag := fmCreate;
-      ForceDirectories(ExtractFilePath(FFileName));
+      if FileExists(FFileName) then
+        LCreateFlag := 0
+      else
+      begin
+        LCreateFlag := fmCreate;
+        ForceDirectories(ExtractFilePath(FFileName));
+      end;
+      FStream := TEFTextStream.Create(TFileStream.Create(FFileName, LCreateFlag or fmOpenWrite or fmShareDenyWrite));
+      FStream.Seek(0, soFromEnd);
     end;
-    FStream := TEFTextStream.Create(TFileStream.Create(FFileName, LCreateFlag or fmOpenWrite or fmShareDenyWrite));
-    FStream.Seek(0, soFromEnd);
+    Result := FStream;
+  finally
+    MonitorExit(Self);
   end;
-  Result := FStream;
 end;
 
 procedure TEFTextFileLogEndpoint.SetFileName(const AValue: string);
