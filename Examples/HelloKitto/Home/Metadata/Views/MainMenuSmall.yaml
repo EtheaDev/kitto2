@@ -16,11 +16,3 @@ Folder:
     View: Hairs
 Folder: _(Parties)
   View: Parties
-Folder: _(User)
-  IsInitiallyCollapsed: True
-  View:
-    Controller: ChangePassword
-    ImageName: Password
-  View:
-    Controller: Logout
-    ImageName: Logout

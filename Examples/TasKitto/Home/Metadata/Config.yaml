@@ -47,6 +47,24 @@ Auth: TasKitto
     UserName: admin
     Password: admin
   ReadUserCommandText: select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
+  ValidatePassword:
+    Message: Min 8 with upper+lower+number+special chars
+    RegEx: ^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$
+  ResetMailMessage:
+    From: <support@kitto.org>
+    Subject: Reset password required from %Config:AppTitle%
+    Body: |
+      You have requested a password reset. 
+      The new temporary password you need to use the next time you log in is #TempPassword#.
+      Best regards.
+      
+      The team of %Config:AppTitle%
+    HTMLBody: |
+      <p>You have requested a password reset.<br> 
+      The new temporary password you need to use the next time you log in is <b>#TempPassword#</b>.<br>
+      Best regards.</p>
+      </p>
+      <p>The team of <b>%Config:AppTitle%</b><p>
 
 AccessControl: Null
 
@@ -62,6 +80,7 @@ ExtJS:
   AjaxTimeout: 100000
 
 LanguageId: en
+LanguagePerSession: True
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8

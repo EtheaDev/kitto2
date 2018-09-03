@@ -202,7 +202,7 @@ begin
 
   LObject := GetClassByType.Create(LOwner);
   try
-    // This extract the interface reference into Result.
+    // This extracts the interface reference into Result.
     if not Supports(LObject, IJSController, Result) then
       raise EKError.Create(_('Object does not support IJSController.'));
 

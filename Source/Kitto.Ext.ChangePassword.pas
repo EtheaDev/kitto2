@@ -145,6 +145,10 @@ procedure TKExtChangePassword.DoDisplay;
 
 begin
   inherited;
+  Title := _('Change password');
+  DisplayMode := 'Modal';
+  Closable := True;
+
   Layout := 'form';
 
   FOldPasswordHash := TKAuthenticator.Current.Password;

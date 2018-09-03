@@ -26,6 +26,7 @@ Folder: Maintenance
   View: Users
     ImageName: user
   View: UserForm
-  View: ChangePassword
+  View:
+    Controller: ChangePassword
   View:
     Controller: Logout

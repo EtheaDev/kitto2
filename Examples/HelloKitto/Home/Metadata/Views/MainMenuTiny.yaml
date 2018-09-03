@@ -10,6 +10,3 @@ Folder:
     Style: font-size: 200%
 Folder: _(Lookup tables)
   View: Hairs
-  View:
-    Controller: ChangePassword
-    ImageName: Login
