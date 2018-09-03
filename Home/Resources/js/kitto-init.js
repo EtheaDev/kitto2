@@ -22,7 +22,9 @@ function kittoInit()
         title: this.title,
         width: this.width + 5,
         height: this.height + 5,
-        closable: this.closable,
+        header: true,
+        closable: true,//this.closable, // not working
+        onEsc: Ext.emptyFn,
         resizable: true,
         draggable: true,
         maximizable: true,

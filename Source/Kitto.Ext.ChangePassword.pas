@@ -146,10 +146,16 @@ procedure TKExtChangePassword.DoDisplay;
 begin
   inherited;
   Title := _('Change password');
+
+  // Needed to force the controller to display as a modal window.
+  SetContainer(nil);
   DisplayMode := 'Modal';
   Closable := True;
+  Width := 400;
+  Height := 250;
 
   Layout := 'form';
+  BodyPadding := '10px 0 0 0';
 
   FOldPasswordHash := TKAuthenticator.Current.Password;
 

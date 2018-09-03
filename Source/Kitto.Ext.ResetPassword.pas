@@ -62,6 +62,7 @@ procedure TKExtResetPassword.DoDisplay;
 begin
   inherited;
   Layout := 'form';
+  BodyPadding := '10px 0 0 0';
 
   FEmailAddress := TExtFormTextField.CreateAndAddToArray(Items);
   FEmailAddress.Name := 'EmailAddress';
