@@ -67,6 +67,7 @@ uses
   , EF.StrUtils
   , Kitto.Types
   , Kitto.Config
+  , Kitto.Config.Defaults
   , Kitto.Auth
   , Kitto.JS
   , Kitto.JS.Formatting
@@ -155,7 +156,7 @@ begin
   Height := 250;
 
   Layout := 'form';
-  BodyPadding := '10px 0 0 0';
+  BodyPadding := Format('%dpx 0 0 0', [TKDefaults.GetSingleSpacing]);
 
   FOldPasswordHash := TKAuthenticator.Current.Password;
 

@@ -114,7 +114,7 @@ type
 
   TKExtEditPanel = class(TExtFormFormPanel);
 
-  TKExtEditPage = class(TExtPanel, IKExtEditItem, IKExtEditContainer)
+  TKExtEditPage = class(TKExtPanelBase, IKExtEditItem, IKExtEditContainer)
   strict private
     FMainEditPanel: TKExtEditPanel;
     FDataRecord: TKViewTableRecord;
@@ -725,6 +725,7 @@ uses
   , EF.Macros
   , EF.VariantUtils
   , Kitto.Config
+  , Kitto.Config.Defaults
   , Kitto.SQL
   , Kitto.Metadata
   , Kitto.Metadata.Models
@@ -1363,7 +1364,7 @@ procedure TKExtEditPage.InitDefaults;
 begin
   inherited;
   Border := False;
-  Padding := '10px 10px 0px 10px'; // top right bottom left
+  Padding := Format('%0:dpx %0:dpx 0px %0:dpx', [TKDefaults.GetSingleSpacing]); // top right bottom left
   AutoScroll := True;
 end;
 
@@ -2317,7 +2318,7 @@ procedure TKExtFormRowField.InitDefaults;
 begin
   inherited;
   Layout := 'fit';
-  Padding := '0 10px 0 0';
+  Padding := Format('0 %dpx 0 0', [TKDefaults.GetSingleSpacing]);
 end;
 
 function TKExtFormRowField.InternalSetOption(const ANode: TEFNode): Boolean;

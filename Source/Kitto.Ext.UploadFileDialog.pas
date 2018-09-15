@@ -21,12 +21,11 @@ interface
 uses
   Kitto.JS.Base
   , Kitto.JS
-  , Ext.Base
+  , Kitto.Ext.Base
   ;
 
 function ShowUploadFileDialog(const AOwner: TJSObject; const AUploadFieldLabel: string;
-  const AUploadURL: string; const AOnSubmitActionSuccess: TJSExpression;
-  const AWildcards: string = ''): TExtPanel;
+  const AUploadURL: string; const AOnSubmitActionSuccess: TJSExpression; const AWildcards: string = ''): TKExtPanelBase;
 
 implementation
 
@@ -34,13 +33,14 @@ uses
   SysUtils
   , StrUtils
   , EF.Localization
-  , Kitto.Ext.Base
+  , Ext.Base
   , Ext.Form
+  , Kitto.Config.Defaults
   , Kitto.Web.Request
   ;
 
 function ShowUploadFileDialog(const AOwner: TJSObject; const AUploadFieldLabel: string;
-  const AUploadURL: string; const AOnSubmitActionSuccess: TJSExpression; const AWildcards: string = ''): TExtPanel;
+  const AUploadURL: string; const AOnSubmitActionSuccess: TJSExpression; const AWildcards: string = ''): TKExtPanelBase;
 var
   LUploadButton: TKExtButton;
   LFormPanel: TExtFormFormPanel;
@@ -49,7 +49,7 @@ var
   LToolbar: TKExtToolbar;
   LCancelButton: TKExtButton;
 begin
-  Result := TExtPanel.Create(AOwner);
+  Result := TKExtPanelBase.Create(AOwner);
   Result.Title := _('File upload');
   Result.Width := 550;
   Result.Height := 150;
@@ -58,7 +58,7 @@ begin
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 50;
-  LFormPanel.Padding := '20px 10px 0 10px'; // top right bottom left
+  LFormPanel.Padding := Format('%1:dpx %0:dpx 0 %0:dpx', [TKDefaults.GetSingleSpacing, TKDefaults.GetDoubleSpacing]); // top right bottom left
   LFormPanel.Border := False;
 
   LUploadFormField := TExtFormFileField.CreateInlineAndAddToArray(LFormPanel.Items);

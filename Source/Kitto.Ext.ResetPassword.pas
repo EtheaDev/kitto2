@@ -50,6 +50,7 @@ uses
   , EF.Tree
   , Ext.Base
   , Kitto.Auth
+  , Kitto.Config.Defaults
   , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -62,7 +63,7 @@ procedure TKExtResetPassword.DoDisplay;
 begin
   inherited;
   Layout := 'form';
-  BodyPadding := '10px 0 0 0';
+  BodyPadding := Format('%0:dpx 0 0 0', [TKDefaults.GetSingleSpacing]);
 
   FEmailAddress := TExtFormTextField.CreateAndAddToArray(Items);
   FEmailAddress.Name := 'EmailAddress';

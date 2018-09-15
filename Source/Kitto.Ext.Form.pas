@@ -170,6 +170,7 @@ uses
   , EF.StrUtils
   , Kitto.Types
   , Kitto.AccessControl
+  , Kitto.Config.Defaults
   , Kitto.Rules
   , Kitto.SQL
   , Kitto.Config
@@ -1020,7 +1021,7 @@ begin
   else
   begin
     FEditorContainer := TExtPanel.CreateAndAddToArray(FFormPanel.Items);
-    FEditorContainer.Padding := '10px 0 0 0';
+    FEditorContainer.Padding := Format('%0:dpx 0 0 0', [TKDefaults.GetSingleSpacing]);
     FEditorContainer.Layout := 'fit';
     FMainPage := TKExtEditPage.CreateAndAddToArray(FEditorContainer.Items);
     FMainPage.LabelAlign := LabelAlign;

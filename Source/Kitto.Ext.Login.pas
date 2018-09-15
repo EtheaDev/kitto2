@@ -91,6 +91,7 @@ uses
   , EF.Macros
   , Kitto.JS
   , Kitto.Types
+  , Kitto.Config.Defaults
   , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -183,6 +184,7 @@ begin
   if Assigned(FResetPassword) and FResetPassword.AsBoolean then
   begin
     FResetPasswordLink := TExtBoxComponent.CreateAndAddToArray(LFormPanel.Items);
+    FResetPasswordLink.Padding := Format('0 0 %0:dpx 0', [TKDefaults.GetSingleSpacing]);
     LResetPasswordClickCode := GetJSCode(
       procedure
       begin
@@ -192,7 +194,7 @@ begin
       '<div style="text-align:right;"><a href="#" onclick="%s">%s</a></div>',
       [TNetEncoding.HTML.Encode(LResetPasswordClickCode), TNetEncoding.HTML.Encode(_('Password forgotten?'))]);
     FResetPasswordLink.Width := LEditWidth + LFormPanel.LabelWidth;
-    Inc(LHeight, CONTROL_HEIGHT);
+    Inc(LHeight, CONTROL_HEIGHT + TKDefaults.GetSingleSpacing);
   end
   else
     FResetPasswordLink := nil;
