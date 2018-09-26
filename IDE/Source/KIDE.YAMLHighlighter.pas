@@ -40,6 +40,7 @@ type
   end;
 
   procedure RegisterYAMLHighlighter;
+  procedure UnregisterYAMLHighlighter;
 
 implementation
 
@@ -377,7 +378,7 @@ begin
 end;
 
 Initialization
-  RegisterYAMLHighlighter;
+//  RegisterYAMLHighlighter;
 
 Finalization
   UnregisterYAMLHighlighter;

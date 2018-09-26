@@ -7,13 +7,17 @@ procedure Register;
 implementation
 
 uses
-  ToolsAPI
+  SysUtils
+  , ToolsAPI
+  , DesignIntf
   , KIDE.IOTA.ProjectWizard
   , KIDE.YAMLHighlighter
   ;
 
 procedure Register;
 begin
+  ForceDemandLoadState(dlDisable);
+
   // YAML Syntax Highlighter
   RegisterYAMLHighlighter;
 
@@ -24,6 +28,7 @@ begin
   { TODO : Implement if required. }
   //RegisterPackageWizard(TKModelIOTAProjectWizard.Create);
   //RegisterPackageWizard(TKViewIOTAProjectWizard.Create);
+
 end;
 
 end.
