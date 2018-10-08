@@ -34,7 +34,7 @@ inherited HtmlPanelControllerDesignerFrame: THtmlPanelControllerDesignerFrame
           object _FileName: TLabeledEdit
             Left = 3
             Top = 28
-            Width = 442
+            Width = 446
             Height = 21
             Anchors = [akLeft, akTop, akRight]
             EditLabel.Width = 43
@@ -46,8 +46,8 @@ inherited HtmlPanelControllerDesignerFrame: THtmlPanelControllerDesignerFrame
           object HtmlPanel: TPanel
             Left = 6
             Top = 72
-            Width = 439
-            Height = 248
+            Width = 443
+            Height = 342
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvLowered
             TabOrder = 1

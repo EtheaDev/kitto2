@@ -56,7 +56,7 @@ implementation
 uses
   StrUtils,
   EF.Macros,
-  Kitto.Ext.Controller, Kitto.Ext.Base,
+  Kitto.Ext.Base,
   Kitto.Ext.Form,
   KIDE.Project, KIDE.Config, KIDE.MainTableControllerDesignerFrameUnit;
 

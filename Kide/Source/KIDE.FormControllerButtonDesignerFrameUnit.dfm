@@ -3,8 +3,10 @@ inherited FormControllerButtonDesignerFrame: TFormControllerButtonDesignerFrame
   ExplicitWidth = 396
   inherited ClientPanel: TPanel
     Width = 396
+    ExplicitWidth = 396
     inherited DesignPanel: TPanel
       Width = 396
+      ExplicitWidth = 396
       object _Caption: TLabeledEdit
         Left = 6
         Top = 21

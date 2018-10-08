@@ -25,6 +25,10 @@ inherited SubViewDesignerFrame: TSubViewDesignerFrame
         OnChange = VCPageControlChange
         object ViewTabSheet: TTabSheet
           Caption = 'View'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ViewGroupBox: TGroupBox
             Left = 0
             Top = 0
@@ -135,10 +139,18 @@ inherited SubViewDesignerFrame: TSubViewDesignerFrame
         object ControllerTabSheet: TTabSheet
           Caption = 'Controller'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
         object MobileSettingsTabSheet: TTabSheet
           Caption = 'MobileSettings'
           ImageIndex = 2
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
       end
     end

@@ -224,6 +224,7 @@ begin
   CodeEditorFrame.Align := alClient;
   CodeEditorFrame.OnApply := CodeEditorApply;
   CodeEditorFrame.OnCancel := CodeEditorCancel;
+  CodeEditorFrame.EditorReadOnly := True;
 end;
 
 procedure TTreeDesignerFrame.Init(const ANode: TEFTree);

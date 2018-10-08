@@ -17,8 +17,6 @@ inherited UploadFileToolDesignerFrame: TUploadFileToolDesignerFrame
       inherited ControllerGroupBox: TGroupBox
         Width = 458
         Height = 405
-        ExplicitLeft = 0
-        ExplicitTop = 0
         ExplicitWidth = 458
         ExplicitHeight = 405
         inherited ToolGroupBox: TGroupBox
@@ -30,8 +28,6 @@ inherited UploadFileToolDesignerFrame: TUploadFileToolDesignerFrame
         end
         inherited DataToolGroupBox: TGroupBox
           Width = 454
-          ExplicitLeft = 2
-          ExplicitTop = 75
           ExplicitWidth = 454
           DesignSize = (
             454

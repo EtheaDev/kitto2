@@ -20,7 +20,6 @@ inherited ViewDesignerFrame: TViewDesignerFrame
     end
     inherited PathPanel: TStaticText
       Width = 476
-      ExplicitWidth = 476
     end
     inherited CodeEditorFrame: TCodeEditorFrame
       Top = 278

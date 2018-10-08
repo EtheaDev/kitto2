@@ -16,7 +16,7 @@ inherited GridPanelControllerDesignerFrame: TGridPanelControllerDesignerFrame
       ExplicitHeight = 588
       inherited ControllerGroupBox: TGroupBox
         Width = 554
-        Height = 548
+        Height = 545
         ExplicitWidth = 546
         ExplicitHeight = 560
         inherited PanelControllerGroupBox: TGroupBox
@@ -29,16 +29,22 @@ inherited GridPanelControllerDesignerFrame: TGridPanelControllerDesignerFrame
         end
         inherited ControllerPageControl: TPageControl
           Width = 550
-          Height = 474
+          Height = 471
+          ExplicitWidth = 550
+          ExplicitHeight = 474
           inherited SubControllersTabSheet: TTabSheet
+            ExplicitLeft = 0
+            ExplicitTop = 0
             ExplicitWidth = 546
             ExplicitHeight = 560
             inherited SubControllersPageControl: TPageControl
               Width = 542
-              Height = 345
+              Height = 342
               ExplicitWidth = 546
               ExplicitHeight = 560
               inherited CenterControllerTabSheet: TTabSheet
+                ExplicitLeft = 0
+                ExplicitTop = 0
                 ExplicitWidth = 538
                 ExplicitHeight = 532
               end
@@ -89,11 +95,13 @@ inherited GridPanelControllerDesignerFrame: TGridPanelControllerDesignerFrame
             end
           end
           inherited SubViewsTabSheet: TTabSheet
+            ExplicitLeft = 0
+            ExplicitTop = 0
             ExplicitWidth = 546
             ExplicitHeight = 560
             inherited SubViewsPageControl: TPageControl
               Width = 542
-              Height = 345
+              Height = 342
               ExplicitWidth = 546
               ExplicitHeight = 560
               inherited CenterViewTabSheet: TTabSheet
@@ -161,7 +169,7 @@ inherited GridPanelControllerDesignerFrame: TGridPanelControllerDesignerFrame
         ExplicitHeight = 0
         DesignSize = (
           554
-          548)
+          545)
         object _Grouping_SortFieldNames: TLabeledEdit
           Left = 304
           Top = 16

@@ -62,10 +62,12 @@ end;
 class function TMRUOptions.GetInstance: TMRUOptions;
 var
   LFileName: string;
+  LPath: string;
 begin
   if not Assigned(FInstance) then
   begin
-    LFileName := TEFMacroExpansionEngine.Instance.Expand('%APPDATA%\KIDE\MRU.yaml');
+    LFileName := '%APPDATA%\KIDE\MRU.yaml';
+    TEFMacroExpansionEngine.Instance.Expand(LFileName);
     if FileExists(LFileName) then
       FInstance := TEFTreeFactory.LoadFromFile<TMRUOptions>(LFileName)
     else

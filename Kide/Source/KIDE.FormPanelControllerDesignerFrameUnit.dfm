@@ -19,6 +19,8 @@ inherited FormPanelControllerDesignerFrame: TFormPanelControllerDesignerFrame
         inherited ControllerPageControl: TPageControl
           Top = 124
           Height = 303
+          ExplicitTop = 124
+          ExplicitHeight = 303
           inherited SubControllersTabSheet: TTabSheet
             ExplicitHeight = 275
             inherited SubControllersPageControl: TPageControl

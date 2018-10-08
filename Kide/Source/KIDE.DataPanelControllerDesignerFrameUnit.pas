@@ -53,7 +53,7 @@ implementation
 
 uses
   EF.Macros,
-  Kitto.Ext.Controller, Kitto.Ext.Base,
+  Kitto.Ext.Base,
   Kitto.Ext.DataPanelLeaf, Kitto.Ext.Form, Kitto.Ext.List;
 
 { TDataPanelLeafControllerDesignerFrame }

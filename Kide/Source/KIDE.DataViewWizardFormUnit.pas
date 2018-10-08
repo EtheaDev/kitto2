@@ -229,6 +229,8 @@ begin
 end;
 
 constructor TDataViewWizardForm.Create(AOwner: TComponent);
+var
+  LViewPath: string;
 
   function NormalizePath(const APath: string): string;
   begin
@@ -241,7 +243,9 @@ begin
   Assert(Assigned(TProject.CurrentProject));
 
   FViews := TKViews.Create(TProject.CurrentProject.Config.Models);
-  FViews.Path := TEFMacroExpansionEngine.Instance.Expand('%APPDATA%\KIDE\DataViewWizard\' + NormalizePath(TProject.CurrentProject.GetMRUKeyName));
+  LViewPath := '%APPDATA%\KIDE\DataViewWizard\' + NormalizePath(TProject.CurrentProject.GetMRUKeyName);
+  TEFMacroExpansionEngine.Instance.Expand(LViewPath);
+  FViews.Path := LViewPath;
   ForceDirectories(FViews.Path);
 end;
 

@@ -13,8 +13,6 @@ inherited UploadExcelToolDesignerFrame: TUploadExcelToolDesignerFrame
         ExplicitHeight = 412
         inherited UploadToolGroupBox: TGroupBox
           inherited _AcceptedWildcards: TLabeledEdit
-            EditLabel.ExplicitLeft = 0
-            EditLabel.ExplicitTop = -16
             EditLabel.ExplicitWidth = 49
           end
         end

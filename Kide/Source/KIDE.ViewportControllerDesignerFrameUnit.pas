@@ -44,12 +44,12 @@ implementation
 
 uses
   EF.Macros,
-  Kitto.Ext.Controller, Kitto.Ext.Base,
+  Kitto.Ext.Base,
   Kitto.Ext.AccordionPanel,
   Kitto.Ext.ToolBar,
-  Kitto.Ext.Viewport,
   Kitto.Ext.List,
   Kitto.Ext.Form,
+  Kitto.Ext.Panel,
   KIDE.SubViewDesignerFrameUnit;
 
 { TViewportControllerDesignerFrame }
@@ -74,8 +74,10 @@ var
 begin
   Assert(Assigned(ANode));
   LControllerClass := GetControllerClass(ANode);
+  Result := False;
   Result := Assigned(LControllerClass) and
-    LControllerClass.InheritsFrom(TKExtViewportController);
+    LControllerClass.InheritsFrom(TKExtPanelControllerBase) and
+      SameText(ANode.Value, 'viewport');
 end;
 
 procedure TViewportControllerDesignerFrame.UpdateDesignPanel(

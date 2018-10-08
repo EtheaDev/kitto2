@@ -672,7 +672,8 @@ begin
     if LData.Node is TEFNode then
     begin
       LText := GetNodeText(Column, TEFNode(LData.Node));
-      LExpandedText := TEFMacroExpansionEngine.Instance.Expand(LText);
+      LExpandedText := LText;
+      TEFMacroExpansionEngine.Instance.Expand(LExpandedText);
       if LText <> LExpandedText then
         HintText := LExpandedText;
     end;

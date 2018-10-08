@@ -52,10 +52,10 @@ implementation
 
 uses
   EF.Macros,
-  Kitto.Ext.Controller, Kitto.Ext.Base,
+  Kitto.Ext.Base,
   Kitto.Ext.AccordionPanel,
   Kitto.Ext.ToolBar,
-  Kitto.Ext.Window,
+  Kitto.Ext.Panel,
   Kitto.Ext.List,
   Kitto.Ext.Form,
   KIDE.SubViewDesignerFrameUnit;
@@ -90,8 +90,9 @@ var
 begin
   Assert(Assigned(ANode));
   LControllerClass := GetControllerClass(ANode);
-  Result := Assigned(LControllerClass) and
-    LControllerClass.InheritsFrom(TKExtWindowController);
+  Result := False; //TODO
+  //Result := Assigned(LControllerClass) and
+  //  LControllerClass.InheritsFrom(TKExtWindowController);
 end;
 
 procedure TWindowControllerDesignerFrame.UpdateDesignPanel(

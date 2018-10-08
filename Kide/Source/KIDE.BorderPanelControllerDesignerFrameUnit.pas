@@ -59,17 +59,17 @@ type
     procedure SpeedButtonClick(Sender: TObject);
   strict private
     function GetRegionViewName(
-      const ARegion: TExtBoxComponentRegion): string;
+      const ARegion: string): string;
     function GetRegionControllerName(
-      const ARegion: TExtBoxComponentRegion): string;
-    function FindBorderPanelControllerClass(const ANode: TEFNode): TKExtBorderPanelControllerClass;
-    procedure UpdateControllerGUI(const ARegion: TExtBoxComponentRegion;
+      const ARegion: string): string;
+    function FindBorderPanelControllerClass(const ANode: TEFNode): TExtTabPanel;
+    procedure UpdateControllerGUI(const ARegion: string;
       const AButton: TSpeedButton; const ATabSheet: TTabSheet);
-    procedure UpdateViewGUI(const ARegion: TExtBoxComponentRegion;
+    procedure UpdateViewGUI(const ARegion: string;
       const AButton: TSpeedButton; const ATabSheet: TTabSheet);
-    procedure GUIToViewNode(const ARegion: TExtBoxComponentRegion;
+    procedure GUIToViewNode(const ARegion: string;
       const AButton: TSpeedButton);
-    procedure GUIToControllerNode(const ARegion: TExtBoxComponentRegion;
+    procedure GUIToControllerNode(const ARegion: string;
       const AButton: TSpeedButton);
     protected
     class function SuitsNode(const ANode: TEFNode): Boolean; override;
@@ -87,7 +87,7 @@ implementation
 
 uses
   EF.Macros, Kitto.Metadata.Views, KIDE.Utils,
-  Kitto.Ext.Controller, Kitto.Ext.Base;
+  Kitto.Ext.Base;
 
 { TDownloadFileToolDesignerFrame }
 
@@ -96,18 +96,18 @@ begin
   inherited;
   Assert(Assigned(EditNode));
   //Clean SubControllers nodes
-  CleanupOrphanNode(GetRegionControllerName(rgCenter));
-  CleanupOrphanNode(GetRegionControllerName(rgNorth));
-  CleanupOrphanNode(GetRegionControllerName(rgWest));
-  CleanupOrphanNode(GetRegionControllerName(rgEast));
-  CleanupOrphanNode(GetRegionControllerName(rgSouth));
+  CleanupOrphanNode(GetRegionControllerName('Center'));
+  CleanupOrphanNode(GetRegionControllerName('North'));
+  CleanupOrphanNode(GetRegionControllerName('West'));
+  CleanupOrphanNode(GetRegionControllerName('East'));
+  CleanupOrphanNode(GetRegionControllerName('South'));
 
   //Clean SubViews nodes
-  CleanupOrphanNode(GetRegionViewName(rgCenter));
-  CleanupOrphanNode(GetRegionViewName(rgNorth));
-  CleanupOrphanNode(GetRegionViewName(rgWest));
-  CleanupOrphanNode(GetRegionViewName(rgEast));
-  CleanupOrphanNode(GetRegionViewName(rgSouth));
+  CleanupOrphanNode(GetRegionViewName('Center'));
+  CleanupOrphanNode(GetRegionViewName('North'));
+  CleanupOrphanNode(GetRegionViewName('West'));
+  CleanupOrphanNode(GetRegionViewName('East'));
+  CleanupOrphanNode(GetRegionViewName('South'));
 
 end;
 
@@ -118,7 +118,7 @@ end;
 
 procedure TBorderPanelControllerDesignerFrame.Init(const ANode: TEFTree);
 var
-  LBorderPanelControllerClass: TKExtBorderPanelControllerClass;
+  LBorderPanelControllerClass: TExtTabPanel;
 (*
   procedure InitController(const ANodeName: string; const ATabSheet: TTabSheet);
   var
@@ -156,21 +156,21 @@ begin
 end;
 
 function TBorderPanelControllerDesignerFrame.FindBorderPanelControllerClass(
-  const ANode: TEFNode): TKExtBorderPanelControllerClass;
+  const ANode: TEFNode): TExtTabPanel;
 var
   LControllerClass: TClass;
 begin
   LControllerClass := GetControllerClass(ANode);
   if Assigned(LControllerClass) then
-    Result := TKExtBorderPanelControllerClass(LControllerClass)
+    Result := TExtTabPanel(LControllerClass)
   else
     Result := nil;
 end;
 
 function TBorderPanelControllerDesignerFrame.GetRegionViewName(
-  const ARegion: TExtBoxComponentRegion): string;
+  const ARegion: string): string;
 var
-  LBorderPanelControllerClass: TKExtBorderPanelControllerClass;
+  LBorderPanelControllerClass: TExtTabPanel;
 begin
   LBorderPanelControllerClass := FindBorderPanelControllerClass(TEFNode(EditNode));
   if Assigned(LBorderPanelControllerClass) then
@@ -180,9 +180,9 @@ begin
 end;
 
 function TBorderPanelControllerDesignerFrame.GetRegionControllerName(
-  const ARegion: TExtBoxComponentRegion): string;
+  const ARegion: string): string;
 var
-  LBorderPanelControllerClass: TKExtBorderPanelControllerClass;
+  LBorderPanelControllerClass: TExtTabPanel;
 begin
   LBorderPanelControllerClass := FindBorderPanelControllerClass(EditNode as TEFNode);
   if Assigned(LBorderPanelControllerClass) then
@@ -191,7 +191,7 @@ begin
     Result := '';
 end;
 
-procedure TBorderPanelControllerDesignerFrame.GUIToViewNode(const ARegion: TExtBoxComponentRegion;
+procedure TBorderPanelControllerDesignerFrame.GUIToViewNode(const ARegion: string;
   const AButton: TSpeedButton);
 var
   LNodeName: string;
@@ -203,7 +203,7 @@ begin
     EditNode.SetString(LNodeName,'');
 end;
 
-procedure TBorderPanelControllerDesignerFrame.GUIToControllerNode(const ARegion: TExtBoxComponentRegion;
+procedure TBorderPanelControllerDesignerFrame.GUIToControllerNode(const ARegion: string;
   const AButton: TSpeedButton);
 var
   LNodeName: string;
@@ -219,17 +219,17 @@ begin
   inherited;
   ControllerPageControl.ActivePageIndex := 0;
 
-  GUIToViewNode(rgNorth, NorthViewButton);
-  GUIToViewNode(rgWest, WestViewButton);
-  GUIToViewNode(rgCenter, CenterViewButton);
-  GUIToViewNode(rgEast, EastViewButton);
-  GUIToViewNode(rgSouth, SouthViewButton);
+  GUIToViewNode('North', NorthViewButton);
+  GUIToViewNode('West', WestViewButton);
+  GUIToViewNode('Center', CenterViewButton);
+  GUIToViewNode('East', EastViewButton);
+  GUIToViewNode('South', SouthViewButton);
 
-  GUIToControllerNode(rgNorth, NorthControllerButton);
-  GUIToControllerNode(rgWest, WestControllerButton);
-  GUIToControllerNode(rgCenter, CenterControllerButton);
-  GUIToControllerNode(rgEast, EastControllerButton);
-  GUIToControllerNode(rgSouth, SouthControllerButton);
+  GUIToControllerNode('North', NorthControllerButton);
+  GUIToControllerNode('West', WestControllerButton);
+  GUIToControllerNode('Center', CenterControllerButton);
+  GUIToControllerNode('East', EastControllerButton);
+  GUIToControllerNode('South', SouthControllerButton);
 end;
 
 procedure TBorderPanelControllerDesignerFrame.SpeedButtonClick(Sender: TObject);
@@ -239,16 +239,16 @@ var
 begin
   inherited;
   LSpeedButton := Sender as TSpeedButton;
-  if      LSpeedButton = NorthControllerButton  then LNodeName := GetRegionControllerName(rgNorth)
-  else if LSpeedButton = WestControllerButton   then LNodeName := GetRegionControllerName(rgWest)
-  else if LSpeedButton = EastControllerButton   then LNodeName := GetRegionControllerName(rgEast)
-  else if LSpeedButton = SouthControllerButton  then LNodeName := GetRegionControllerName(rgSouth)
-  else if LSpeedButton = CenterControllerButton then LNodeName := GetRegionControllerName(rgCenter)
-  else if LSpeedButton = NorthViewButton        then LNodeName := GetRegionViewName(rgNorth)
-  else if LSpeedButton = WestViewButton         then LNodeName := GetRegionViewName(rgWest)
-  else if LSpeedButton = EastViewButton         then LNodeName := GetRegionViewName(rgEast)
-  else if LSpeedButton = SouthViewButton        then LNodeName := GetRegionViewName(rgSouth)
-  else if LSpeedButton = CenterViewButton       then LNodeName := GetRegionViewName(rgCenter)
+  if      LSpeedButton = NorthControllerButton  then LNodeName := GetRegionControllerName('North')
+  else if LSpeedButton = WestControllerButton   then LNodeName := GetRegionControllerName('West')
+  else if LSpeedButton = EastControllerButton   then LNodeName := GetRegionControllerName('East')
+  else if LSpeedButton = SouthControllerButton  then LNodeName := GetRegionControllerName('South')
+  else if LSpeedButton = CenterControllerButton then LNodeName := GetRegionControllerName('Center')
+  else if LSpeedButton = NorthViewButton        then LNodeName := GetRegionViewName('North')
+  else if LSpeedButton = WestViewButton         then LNodeName := GetRegionViewName('West')
+  else if LSpeedButton = EastViewButton         then LNodeName := GetRegionViewName('East')
+  else if LSpeedButton = SouthViewButton        then LNodeName := GetRegionViewName('South')
+  else if LSpeedButton = CenterViewButton       then LNodeName := GetRegionViewName('Center')
   else LNodeName := '';
   if LNodeName <> '' then
   begin
@@ -271,7 +271,7 @@ begin
     LControllerClass.InheritsFrom(TKExtBorderPanelController);
 end;
 
-procedure TBorderPanelControllerDesignerFrame.UpdateControllerGUI(const ARegion: TExtBoxComponentRegion;
+procedure TBorderPanelControllerDesignerFrame.UpdateControllerGUI(const ARegion: string;
   const AButton: TSpeedButton; const ATabSheet: TTabSheet);
 var
   LNodeName: string;
@@ -291,7 +291,7 @@ begin
   end;
 end;
 
-procedure TBorderPanelControllerDesignerFrame.UpdateViewGUI(const ARegion: TExtBoxComponentRegion;
+procedure TBorderPanelControllerDesignerFrame.UpdateViewGUI(const ARegion: string;
   const AButton: TSpeedButton; const ATabSheet: TTabSheet);
 var
   LNodeName: string;
@@ -316,11 +316,11 @@ begin
   inherited;
   ControllerPageControl.ActivePageIndex := 0;
   //Update SubView Buttons and Pages
-  UpdateViewGUI(rgNorth,  NorthViewButton,  NorthViewTabSheet );
-  UpdateViewGUI(rgWest,   WestViewButton,   WestViewTabSheet  );
-  UpdateViewGUI(rgCenter, CenterViewButton, CenterViewTabSheet);
-  UpdateViewGUI(rgEast,   EastViewButton,   EastViewTabSheet  );
-  UpdateViewGUI(rgSouth,  SouthViewButton,  SouthViewTabSheet );
+  UpdateViewGUI('North',  NorthViewButton,  NorthViewTabSheet );
+  UpdateViewGUI('West',   WestViewButton,   WestViewTabSheet  );
+  UpdateViewGUI('Center', CenterViewButton, CenterViewTabSheet);
+  UpdateViewGUI('East',   EastViewButton,   EastViewTabSheet  );
+  UpdateViewGUI('South',  SouthViewButton,  SouthViewTabSheet );
   SubViewsTabSheet.TabVisible :=
     CenterViewTabSheet.TabVisible or
     WestViewTabSheet.TabVisible or
@@ -329,11 +329,11 @@ begin
     SouthViewTabSheet.TabVisible;
 
   //Update SubController Buttons and Pages
-  UpdateControllerGUI(rgNorth,  NorthControllerButton,  NorthControllerTabSheet );
-  UpdateControllerGUI(rgWest,   WestControllerButton,   WestControllerTabSheet  );
-  UpdateControllerGUI(rgCenter, CenterControllerButton, CenterControllerTabSheet);
-  UpdateControllerGUI(rgEast,   EastControllerButton,   EastControllerTabSheet  );
-  UpdateControllerGUI(rgSouth,  SouthControllerButton,  SouthControllerTabSheet );
+  UpdateControllerGUI('North',  NorthControllerButton,  NorthControllerTabSheet );
+  UpdateControllerGUI('West',   WestControllerButton,   WestControllerTabSheet  );
+  UpdateControllerGUI('Center', CenterControllerButton, CenterControllerTabSheet);
+  UpdateControllerGUI('East',   EastControllerButton,   EastControllerTabSheet  );
+  UpdateControllerGUI('South',  SouthControllerButton,  SouthControllerTabSheet );
   SubControllersTabSheet.TabVisible :=
     CenterControllerTabSheet.TabVisible or
     WestControllerTabSheet.TabVisible or

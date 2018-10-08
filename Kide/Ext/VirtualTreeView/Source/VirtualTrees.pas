@@ -567,7 +567,7 @@ type
 const
   DefaultPaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toShowRoot, toThemeAware, toUseBlendedImages];
   DefaultAnimationOptions = [];
-  DefaultAutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoScrollOnExpand, toAutoDeleteMovedNodes, toAutoChangeScale, toAutoSort];
+  DefaultAutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoScrollOnExpand, toAutoDeleteMovedNodes, toAutoChangeScale, toAutoSort, toDisableAutoscrollOnFocus];
   DefaultSelectionOptions = [];
   DefaultMiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning,
     toEditOnClick];
@@ -2394,7 +2394,6 @@ type
     procedure SetFullyVisible(Node: PVirtualNode; Value: Boolean);
     procedure SetHasChildren(Node: PVirtualNode; Value: Boolean);
     procedure SetHeader(const Value: TVTHeader);
-    procedure SetHotNode(Value: PVirtualNode);
     procedure SetFiltered(Node: PVirtualNode; Value: Boolean);
     procedure SetImages(const Value: TCustomImageList);
     procedure SetIndent(Value: Cardinal);
@@ -3168,7 +3167,7 @@ type
     property FullyVisible[Node: PVirtualNode]: Boolean read GetFullyVisible write SetFullyVisible;
     property HasChildren[Node: PVirtualNode]: Boolean read GetHasChildren write SetHasChildren;
     property Header: TVTHeader read FHeader write SetHeader;
-    property HotNode: PVirtualNode read FCurrentHotNode write SetHotNode;
+    property HotNode: PVirtualNode read FCurrentHotNode;
     property IsDisabled[Node: PVirtualNode]: Boolean read GetDisabled write SetDisabled;
     property IsEffectivelyFiltered[Node: PVirtualNode]: Boolean read GetEffectivelyFiltered;
     property IsEffectivelyVisible[Node: PVirtualNode]: Boolean read GetEffectivelyVisible;
@@ -10891,7 +10890,7 @@ begin
         FStates := FStates - [hsDragging, hsDragPending,
                               hsColumnWidthTracking, hsColumnWidthTrackPending,
                               hsHeightTracking, hsHeightTrackPending];
-      end;// WM_NCLBUTTONUP
+      end;
     // hovering, mouse leave detection
     WM_NCMOUSEMOVE:
       with TWMNCMouseMove(Message), FColumns do
@@ -11501,7 +11500,7 @@ begin
 
       // Expressed in client coordinates (because RedrawWindow wants them so, they will actually become negative).
       MapWindowPoints(0, Handle, R, 2);
-      RedrawWindow(Handle, @R, 0, RDW_FRAME or RDW_INVALIDATE or RDW_UPDATENOW or RDW_VALIDATE or RDW_NOINTERNALPAINT or
+      RedrawWindow(Handle, @R, 0, RDW_FRAME or RDW_INVALIDATE or RDW_VALIDATE or RDW_NOINTERNALPAINT or
         RDW_NOERASE or RDW_NOCHILDREN);
     end;
 end;
@@ -11603,7 +11602,6 @@ begin
     end;
   finally
     Exclude(FStates, hsLoading);
-    RecalculateHeader();
     Treeview.DoColumnResize(NoColumn);
   end;
 end;
@@ -14654,7 +14652,6 @@ begin
     if Node = nil then
       Node := FRoot;
 
-    Assert(GetCurrentThreadId = MainThreadId, 'UI controls may only be chnaged in UI thread.');
     if NewChildCount = 0 then
       DeleteChildren(Node)
     else
@@ -14960,15 +14957,6 @@ procedure TBaseVirtualTree.SetHeader(const Value: TVTHeader);
 begin
   FHeader.Assign(Value);
 end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-procedure TBaseVirtualTree.SetHotNode(Value: PVirtualNode);
-
-begin
-  FCurrentHotNode := Value;
-end;
-
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -23238,19 +23226,6 @@ begin
         DoInitNode(nil, Node, InitStates)
       else
         DoInitNode(Parent, Node, InitStates);
-
-      // Fix: Any parent check state must be propagated here.
-	    // Because the CheckType is normally set in DoInitNode
-      // by the App.
-      if Node.CheckType in [ctTriStateCheckBox] then
-      begin
-        if ((Node.Parent.CheckState = csCheckedNormal)
-             or (Node.Parent.CheckState = csUncheckedNormal))
-            and (not Node.CheckState.IsDisabled())
-            and (Node.CheckState <> Node.Parent.CheckState) then
-          SetCheckState(Node, Node.Parent.CheckState);
-      end;
-
       if ivsDisabled in InitStates then
         Include(States, vsDisabled);
       if ivsHasChildren in InitStates then
@@ -32043,8 +32018,8 @@ begin
 
     if Horizontally then
       // 2) scroll horizontally
-      // Center only if there is enough space for the focused column, otherwise left align, see issue #397.
-      ScrolledHorizontally := ScrollIntoView(FFocusedColumn, Center and (R.Width <= (ClientWidth - Header.Columns.GetVisibleFixedWidth)));
+      ScrolledHorizontally := ScrollIntoView(FFocusedColumn, Center);
+
   end;
 
   Result := ScrolledVertically or ScrolledHorizontally;
@@ -32096,7 +32071,7 @@ begin
   else if not (coFixed in Header.Columns[Column].Options) then
   begin
     if ColumnRight > ClientWidth then
-      NewOffset := FEffectiveOffsetX - (Header.Columns.GetVisibleFixedWidth - ColumnLeft)
+      NewOffset := FEffectiveOffsetX + (ColumnRight - ClientWidth)
     else if (ColumnLeft < Header.Columns.GetVisibleFixedWidth) then
       NewOffset := FEffectiveOffsetX - (Header.Columns.GetVisibleFixedWidth - ColumnLeft);
     if NewOffset <> FEffectiveOffsetX then

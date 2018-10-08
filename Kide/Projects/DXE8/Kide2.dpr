@@ -1,4 +1,4 @@
-program Kide2;
+program KIDE2;
 
 {$R *.dres}
 
@@ -15,6 +15,7 @@ uses
   FireDAC.Phys.MSSQL,
   FireDAC.Phys.MSSQLMeta,
   FireDAC.Phys.IBBase,
+  FireDAC.Phys.IB,
   FireDAC.Phys.FB,
   FireDAC.UI.Intf,
   FireDAC.VCLUI.Wait,
@@ -25,6 +26,7 @@ uses
   Vcl.Styles,
   Vcl.Themes,
   Kitto.Config,
+  Kitto.Metadata.ModelImplementation,
   KIDE.BaseFormUnit in '..\..\Source\KIDE.BaseFormUnit.pas' {BaseForm},
   KIDE.UseKitto in '..\..\Source\KIDE.UseKitto.pas',
   MD_Label in '..\..\Ext\MDlabel\Source\MD_Label.pas',

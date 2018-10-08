@@ -65,7 +65,7 @@ function IsDatabaseNode(const ANode: TEFNode): Boolean;
 function GetControllerClass(const AControllerNode: TEFNode): TClass;
 function GetSubControllerClass(ANode: TEFNode): TClass;
 function GetRegionName(const ABorderPanelControllerClassName: string;
-  const ARegion: TExtBoxComponentRegion): string;
+  const ARegion: string): string;
 function GetControllerClassName(const AControllerNode: TEFNode): string;
 
 implementation
@@ -76,13 +76,14 @@ uses
   EF.Rtti, EF.Classes, EF.DB,
   KIDE.Project, KIDE.MRUOptions, KIDE.Config,
   KIDE.LoginWindowControllerDesignerFrameUnit,
-  Kitto.Metadata.Views, Kitto.Ext.List, Kitto.Ext.Base, Kitto.Ext.Controller,
+  Kitto.Metadata.Views, Kitto.Ext.List, Kitto.Ext.Base, Kitto.JS.Controller,
   EF.Macros, EF.StrUtils, EF.Localization;
 
 function GetHighLighterSettingsFileName(AEditor: TSynEdit): string;
 begin
-  Result := TEFMacroExpansionEngine.Instance.Expand('%APPDATA%\KIDE\'+
-    TStyleManager.ActiveStyle.Name + '_' + AEditor.Highlighter.LanguageName + '.ini');
+  Result := '%APPDATA%\KIDE\'+
+    TStyleManager.ActiveStyle.Name + '_' + AEditor.Highlighter.LanguageName + '.ini';
+  TEFMacroExpansionEngine.Instance.Expand(Result);
 end;
 
 procedure UpdateSynEditorStyle(AEditor: TSynEdit);
@@ -173,8 +174,9 @@ begin
     AImage.Picture.Bitmap := nil
   else
   begin
-    LFileName := TProject.CurrentProject.Application.FindImagePathName(
-      TEFMacroExpansionEngine.Instance.Expand(AImageName));
+    LFileName := AImageName;
+    TEFMacroExpansionEngine.Instance.Expand(LFileName);
+    TProject.CurrentProject.Application.FindImagePathName(LFileName);
     if FileExists(LFileName) then
       AImage.Picture.LoadFromFile(LFileName)
     else
@@ -185,13 +187,15 @@ end;
 procedure ShowViewImage(const AViewName: string; AImage: TImage);
 var
   LView: TKView;
+  LViewName: string;
 begin
   if AViewName = '' then
     AImage.Picture.Bitmap := nil
   else
   begin
-    LView := TProject.CurrentProject.Config.Views.FindView(
-      TEFMacroExpansionEngine.Instance.Expand(AViewName));
+    LViewName := AViewName;
+    TEFMacroExpansionEngine.Instance.Expand(LViewName);
+    LView := TProject.CurrentProject.Config.Views.FindView(LViewName);
     if Assigned(LView) then
       ShowImage(LView.ImageName, AImage)
     else
@@ -439,9 +443,9 @@ begin
 end;
 
 function GetRegionName(const ABorderPanelControllerClassName: string;
-  const ARegion: TExtBoxComponentRegion): string;
+  const ARegion: string): string;
 begin
-  Result := StripPrefix(GetEnumName(TypeInfo(TExtBoxComponentRegion), Ord(ARegion)), 'rg');
+  Result := StripPrefix(ARegion, 'rg');
 end;
 
 function GetControllerClassName(const AControllerNode: TEFNode): string;
@@ -482,7 +486,7 @@ begin
   LControllerNode := ANode.FindNode('Controller');
   if Assigned(LControllerNode) then
   begin
-    LControllerClass := TKExtControllerRegistry.Instance.FindClass(LControllerNode.AsString);
+    LControllerClass := TJSControllerRegistry.Instance.FindClass(LControllerNode.AsString);
     if Assigned(LControllerClass) then
       Result := LControllerClass;
   end;
@@ -495,7 +499,7 @@ begin
   Assert(Assigned(AControllerNode));
   LControllerClassName := GetControllerClassName(AControllerNode);
   if LControllerClassName <> '' then
-    Result := TKExtControllerRegistry.Instance.FindClass(LControllerClassName)
+    Result := TJSControllerRegistry.Instance.FindClass(LControllerClassName)
   else
     Result := nil;
 end;

@@ -69,6 +69,7 @@ type
     procedure SearchAgainActionExecute(Sender: TObject);
     procedure SearchAgainActionUpdate(Sender: TObject);
   private
+    FEditorReadOnly: Boolean;
     FOnApply: TNotifyEvent;
     FOriginalCode: string;
     FOnCancel: TNotifyEvent;
@@ -100,6 +101,7 @@ type
     procedure DoSearchReplaceText(const AReplace, ABackwards: Boolean);
     procedure ShowSearchReplaceDialog(const AReplace: Boolean);
     procedure InitHighlighter(const AExt: string);
+    procedure SetEditorReadOnly(const Value: Boolean);
   public
     procedure AfterConstruction; override;
 
@@ -132,6 +134,9 @@ type
     ///	original text to Code (by calling RefreshCode in order to bypass any
     ///	pending changes dialog box).</summary>
     property OnCancel: TNotifyEvent read FOnCancel write FOnCancel;
+
+    ///	<summary>Property to set ReadOnly of the internal editor</summary>
+    property EditorReadOnly: Boolean read FEditorReadOnly write SetEditorReadOnly;
   end;
 
 implementation
@@ -192,6 +197,7 @@ begin
 
   FEdit := CreateSynEditor(Self, Self, 'CodeEditor', FSynHighlighter);
   FEdit.OnChange := EditChange;
+  fEdit.ReadOnly := EditorReadOnly;
 
   FSynPrint := TSynEditPrint.Create(Self);
   FSynPrint.Copies := 1;
@@ -412,6 +418,13 @@ begin
     [mbYes, mbNo, mbCancel], 0) <> mrYes) then
     Abort;
   RefreshCode(AValue);
+end;
+
+procedure TCodeEditorFrame.SetEditorReadOnly(const Value: Boolean);
+begin
+  if Assigned(FEdit) then
+    FEdit.ReadOnly := Value;
+  FEditorReadOnly := Value;
 end;
 
 procedure TCodeEditorFrame.RefreshCode(const ACode: string);

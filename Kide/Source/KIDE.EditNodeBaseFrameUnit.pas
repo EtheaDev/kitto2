@@ -186,7 +186,7 @@ implementation
 
 uses
   Dialogs, TypInfo,
-  Ext.Base, Kitto.Ext.Controller, Kitto.Ext.List, Kitto.Ext.Base,
+  Ext.Base, Kitto.Ext.List, Kitto.Ext.Base,
   EF.Classes, KIDE.Utils;
 
 { TEditNodeFrameRegistry }

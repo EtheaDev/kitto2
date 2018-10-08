@@ -55,7 +55,7 @@ implementation
 
 uses
   EF.Macros,
-  Kitto.Ext.Controller, Kitto.Ext.Base,
+  Kitto.Ext.Base,
   Kitto.Ext.AccordionPanel,
   Kitto.Ext.ToolBar,
   Kitto.Ext.Login,
@@ -108,7 +108,7 @@ begin
   Assert(Assigned(ANode));
   LControllerClass := GetControllerClass(ANode);
   Result := Assigned(LControllerClass) and
-    LControllerClass.InheritsFrom(TKExtLoginWindow);
+    LControllerClass.InheritsFrom(TKExtLoginPanel);
 end;
 
 procedure TLoginWindowControllerDesignerFrame.UpdateDesignPanel(

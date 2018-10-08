@@ -53,7 +53,8 @@ implementation
 
 uses
   EF.Macros,
-  Kitto.Ext.Controller, Kitto.Ext.Base,
+  Ext.Base,
+  Kitto.Ext.Base,
   Kitto.Ext.AccordionPanel,
   Kitto.Ext.ToolBar,
   Kitto.Ext.TreePanel,
@@ -85,7 +86,7 @@ begin
   Assert(Assigned(ANode));
   LControllerClass := GetControllerClass(ANode);
   Result := Assigned(LControllerClass) and
-    LControllerClass.InheritsFrom(TKExtPanelControllerBase);
+    LControllerClass.InheritsFrom(TExtTabPanel);
 end;
 
 procedure TPanelControllerDesignerFrame.UpdateDesignPanel(

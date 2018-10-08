@@ -76,9 +76,7 @@ implementation
 uses
   StrUtils, EF.Macros,
   KIDE.Project, KIDE.Utils, KIDE.Config,
-  Kitto.Ext.Controller, Kitto.Ext.Base,
-  //View classes for this designer
-  Kitto.Ext.ViewPort, Kitto.Ext.Window,
+  Kitto.Ext.Base,
   KIDE.MobileSettingsDesignerFrameUnit;
 
 { TDownloadFileToolDesignerFrame }

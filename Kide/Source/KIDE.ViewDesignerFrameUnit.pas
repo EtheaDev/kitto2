@@ -45,7 +45,7 @@ implementation
 uses
   EF.Macros,
   KIDE.Project, KIDE.Utils, KIDE.EditNodeBaseFrameUnit,
-  Kitto.Ext.Controller, Kitto.Ext.Base,
+  Kitto.Ext.Base,
   //View classes for this designer
   Kitto.Ext.DataTool;
 

@@ -64,7 +64,7 @@ implementation
 uses
   EF.Macros,
   KIDE.Project, KIDE.Utils,
-  Kitto.Ext.Controller,
+  Kitto.JS.Controller,
   KIDE.PairsValuesFrameUnit,
   Kitto.Ext.DataTool;
 
@@ -119,7 +119,7 @@ begin
   LControllerNode := ANode.FindNode('Controller');
   if Assigned(LControllerNode) then
   begin
-    LControllerClass := TKExtControllerRegistry.Instance.FindClass(LControllerNode.AsString);
+    LControllerClass := TJSControllerRegistry.Instance.FindClass(LControllerNode.AsString);
     if Assigned(LControllerClass) and LControllerClass.InheritsFrom(TKExtToolController) then
       Result := TExtToolControllerClass(LControllerClass);
   end;

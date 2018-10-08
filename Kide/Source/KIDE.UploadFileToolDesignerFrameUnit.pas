@@ -47,7 +47,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Kitto.Metadata.Views, Kitto.Ext.Controller;
+  Kitto.Metadata.Views, Kitto.Ext.Files;
 
 { TUploadFileToolDesignerFrame }
 

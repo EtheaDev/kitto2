@@ -67,7 +67,7 @@ implementation
 
 uses
   EF.Macros,
-  Kitto.Ext.Controller, Kitto.Ext.Base, Kitto.Ext.GridPanel,
+  Kitto.Ext.Base, Kitto.Ext.GridPanel, Kitto.Ext.Panel,
   KIDE.ViewTableFormGridDesignerFrameUnit,
   KIDE.ViewTableFormControllerDesignerFrameUnit,
   KIDE.ViewTableControllerToolViewsFrameUnit;

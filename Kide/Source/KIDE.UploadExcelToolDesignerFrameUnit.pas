@@ -42,7 +42,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Kitto.Excel, Kitto.Metadata.Views, Kitto.Ext.Controller;
+  Kitto.Excel, Kitto.Metadata.Views;
 
 { TExportExcelToolDesignerFrame }
 

@@ -54,7 +54,7 @@ implementation
 
 uses
   KIDE.Project,
-  Kitto.Config, Kitto.Metadata.Views, Kitto.Ext.Controller,
+  Kitto.Config, Kitto.Metadata.Views,
   KIDE.SendEmailMessageNodeFrameUnit,
   KIDE.ConfigEmailSMTPServerNodeFrameUnit;
 

@@ -49,7 +49,7 @@ implementation
 
 uses
   EF.Macros,
-  Kitto.Ext.Controller, Kitto.Ext.Base, Kitto.Ext.HtmlPanel,
+  Kitto.Ext.Base, Kitto.Ext.HtmlPanel,
   KIDE.Utils;
 
 { TDownloadFileToolDesignerFrame }
