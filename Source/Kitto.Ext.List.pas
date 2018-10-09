@@ -236,7 +236,6 @@ begin
   Border := False;
   Layout := 'form';
   Collapsible := True;
-  Collapsed := False;
   Frame := True;
   AutoHeight := True;
 end;
@@ -289,6 +288,8 @@ begin
     if Assigned(LItems) and (LItems.ChildCount > 0) then
     begin
       FFilterPanel := TKExtFilterPanel.CreateAndAddToArray(Items);
+      FFilterPanel.Collapsible := Config.GetBoolean('Filters/Collapsible', True);
+      FFilterPanel.Collapsed := Config.GetBoolean('Filters/Collapsed', False);
       FFilterPanel.Region := 'north';
       FFilterPanel.OnChange := FilterPanelChange;
       FFilterPanel.Configure(ViewTable, LItems.Parent as TEFNode);
