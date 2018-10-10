@@ -117,6 +117,7 @@ var
   LLoginHandler: TJSAjaxCall;
   LResetPasswordClickCode: string;
   LEditWidth: Integer;
+  LExtraHeight, LExtraWidth: Integer;
 begin
   inherited;
   LTitle := Config.FindNode('Title');
@@ -152,7 +153,7 @@ begin
   FLoginButton.Text := _('Login');
 
   LFormPanel.BodyPadding := '20px 0 0 0';
-  LEditWidth := Config.GetInteger('FormPanel/EditWidth', 150);
+  LEditWidth := Config.GetInteger('EditWidth', 200);
 
   FUserName := TExtFormTextField.CreateAndAddToArray(LFormPanel.Items);
   FUserName.Name := 'UserName';
@@ -275,8 +276,10 @@ begin
 
   &On('render', GenerateAnonymousFunction(GetLocalStorageRetrieveJSCode(FLocalStorageMode, LLocalStorageAutoLogin)));
 
-  Height := LHeight + Config.GetInteger('ExtraHeight');
-  Width := Config.GetInteger('Width', STANDARD_WIDTH) + Config.GetInteger('ExtraWidth');
+  LExtraHeight := Config.GetInteger('ExtraHeight');
+  Height := LHeight + LExtraHeight;
+  LExtraWidth := Config.GetInteger('ExtraWidth');
+  Width := Config.GetInteger('Width', STANDARD_WIDTH) + LExtraWidth;
 end;
 
 function TKExtLoginPanel.GetEnableButtonJS: string;

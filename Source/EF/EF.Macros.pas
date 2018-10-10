@@ -801,7 +801,7 @@ procedure TEFEnvironmentVariableMacroExpander.InternalExpand(var AString: string
 begin
   inherited InternalExpand(AString);
   { TODO : Implement for linux? }
-  AString := ExpandEnvironmentVariables(AString);
+  ExpandEnvironmentVariables(AString);
 end;
 
 { TEFCmdLineParamMacroExpander }

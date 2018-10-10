@@ -47,7 +47,7 @@ var
 ///  function. Environment variable names should be enclosed between %
 ///  characters and are case-insensitive.
 /// </summary>
-function ExpandEnvironmentVariables(const AString: string): string;
+procedure ExpandEnvironmentVariables(var AString: string);
 
 /// <summary>
 ///  Tells whether APath is an absolute (True) or relative (False) path.
@@ -214,26 +214,31 @@ begin
   Result := GetUniqueFileName(TPath.GetTempPath, AFileExtension);
 end;
 
-function ExpandEnvironmentVariables(const AString: string): string;
+procedure ExpandEnvironmentVariables(var AString: string);
 var
   LPos1: Integer;
   LPos2: Integer;
-  LVariableValue: string;
+  LVariableValue, LValue: string;
 begin
-  Result := AString;
   LPos1 := Pos('%', AString);
   if LPos1 > 0 then
   begin
     LPos2 := PosEx('%', AString, LPos1 + 1);
     if LPos2 > 0 then
     begin
-      LVariableValue := GetEnvironmentVariable(Copy(Result, LPos1 + 1, LPos2 - LPos1 - 1));
+      LVariableValue := GetEnvironmentVariable(Copy(AString, LPos1 + 1, LPos2 - LPos1 - 1));
       if LVariableValue <> '' then
-        Result := Copy(Result, 1, LPos1 - 1) + LVariableValue
-          + ExpandEnvironmentVariables(Copy(Result, LPos2 + 1, MaxInt))
+      begin
+        LValue := Copy(AString, LPos2 + 1, MaxInt);
+        ExpandEnvironmentVariables(LValue);
+        AString := Copy(AString, 1, LPos1 - 1) + LVariableValue + LValue;
+      end
       else
-        Result := Copy(Result, 1, LPos2)
-          + ExpandEnvironmentVariables(Copy(Result, LPos2 + 1, MaxInt));
+      begin
+        LValue := Copy(AString, LPos2 + 1, MaxInt);
+        ExpandEnvironmentVariables(LValue);
+        AString := Copy(AString, 1, LPos2) + LValue;
+      end;
     end;
   end;
 end;
