@@ -43,13 +43,15 @@ type
     procedure UpdateFromTree(const ATree: TEFTree; const AReference: string);
   end;
 
-function GetdxgettextDirectory: string;
+function SetdxgettextDirectory(const APath: string): boolean;
 
-procedure ExtractdxTranslatableStrings(const ADirectory, AOutputFileName: string;
-  const AOutput: TStrings);
+function GetdxgettextDirectory(out APath: string): boolean;
 
-procedure MergePOFiles(const AInputFileName, AOutputFileName: string;
-  const AOutput: TStrings);
+function ExtractdxTranslatableStrings(const ADirectory, AOutputFileName: string;
+  const AOutput: TStrings): string;
+
+function MergePOFiles(const AInputFileName, AOutputFileName: string;
+  const AOutput: TStrings): string;
 
 function IsEnclosed(const AString: string): Boolean;
 function StripEnclosure(const AString: string): string;
@@ -61,42 +63,48 @@ uses
   EF.Localization, EF.StrUtils, EF.Sys.Windows,
   Kitto.Config;
 
-function GetdxgettextDirectory: string;
+function SetdxgettextDirectory(const APath: string): boolean;
 begin
-  Result := TKConfig.Instance.Config.GetExpandedString('Localization/dxgettext/Path');
-  if (Result = '') or not DirectoryExists(Result) then
-    Result := IncludeTrailingPathDelimiter(GetProgramFilesx86Directory) + 'dxgettext';
-  if not DirectoryExists(Result) then
-    Result := IncludeTrailingPathDelimiter(GetProgramFilesDirectory) + 'dxgettext';
-  if not DirectoryExists(Result) then
-    raise Exception.CreateFmt(_('Couldn''t find dxgettext installation. Please install dxgettext from %s.'),
-      [TKConfig.Instance.Config.GetExpandedString('Localization/dxgettext/URL')]);
-  if not FileExists(IncludeTrailingPathDelimiter(Result) + 'dxgettext.exe') then
-    raise Exception.CreateFmt(_('Couldn''t find dxgettext.exe. dxgettext installation might be broken. Please install again from %s.'),
-      [TKConfig.Instance.Config.GetExpandedString('Localization/dxgettext/URL')]);
-{ TODO : offer to locate or download it }
+   TKConfig.Instance.Config.SetString('Localization/dxgettext/Path', APath);
+  Result := FileExists(APath+ 'dxgettext.exe') and FileExists(APath+ 'msgcat.exe');
 end;
 
-procedure ExtractdxTranslatableStrings(const ADirectory, AOutputFileName: string;
-  const AOutput: TStrings);
-var
-  LCmdLine: string;
+function GetdxgettextDirectory(out APath: string): boolean;
 begin
-  //Exit;
-  LCmdLine := '"'+IncludeTrailingPathDelimiter(GetdxgettextDirectory) + 'dxgettext.exe" -q -b "' +
-    ADirectory + '" --delphi --so "' + AOutputFileName + '" --nonascii';
-  ExecuteApplication(LCmdLine, AOutput);
+  APath := IncludeTrailingPathDelimiter(TKConfig.Instance.Config.GetExpandedString('Localization/dxgettext/Path'));
+  Result := FileExists(APath+ 'dxgettext.exe') and FileExists(APath+ 'msgcat.exe');
 end;
 
-procedure MergePOFiles(const AInputFileName, AOutputFileName: string;
-  const AOutput: TStrings);
+function ExtractdxTranslatableStrings(const ADirectory, AOutputFileName: string;
+  const AOutput: TStrings): string;
 var
-  LCmdLine: string;
+  LPath, LCmdLine: string;
 begin
-  //Exit;
-  LCmdLine := '"'+IncludeTrailingPathDelimiter(GetdxgettextDirectory) + 'msgcat.exe" "' +
-    AInputFileName + '" "' + AOutputFileName + '" -o "' + AOutputFileName + '" --no-wrap';
-  ExecuteApplication(LCmdLine, AOutput);
+  if GetdxgettextDirectory(LPath) then
+  begin
+    LCmdLine := '"'+ LPath + 'dxgettext.exe" -q -b "' +
+      ADirectory + '" --delphi --so "' + AOutputFileName + '" --nonascii';
+    ExecuteApplication(LCmdLine, AOutput);
+    Result := LCmdLine;
+  end
+  else
+    raise Exception.Create('dxgettext.exe not found!');
+end;
+
+function MergePOFiles(const AInputFileName, AOutputFileName: string;
+  const AOutput: TStrings): string;
+var
+  LPath, LCmdLine: string;
+begin
+  if GetdxgettextDirectory(LPath) then
+  begin
+    LCmdLine := '"'+ LPath + 'msgcat.exe" "' +
+      AInputFileName + '" "' + AOutputFileName + '" -o "' + AOutputFileName + '" --no-wrap';
+    ExecuteApplication(LCmdLine, AOutput);
+    Result := LCmdLine;
+  end
+  else
+    raise Exception.Create('dxgettext.exe not found!');
 end;
 
 function IsEnclosed(const AString: string): Boolean;

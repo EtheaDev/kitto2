@@ -1,7 +1,6 @@
 Localization:
   dxgettext:
-    .Path: C:\Program Files (x86)\dxgettext
-    URL: http://dxgettext.po.dk/
+    Path: %APP_PATH%dxgettexttools
   Yaml:
     DefaultKeyNames:
       Key: AppTitle

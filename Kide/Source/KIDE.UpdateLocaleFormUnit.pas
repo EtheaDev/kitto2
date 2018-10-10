@@ -21,7 +21,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, KIDE.gettext, Vcl.StdCtrls,
   Vcl.ActnList, Kitto.Metadata, KIDE.BaseFormUnit, System.Actions,
-  EF.Tree;
+  EF.Tree, Vcl.StdActns;
 
 type
   TUpdateLocaleForm = class(TBaseForm)
@@ -32,11 +32,13 @@ type
     ActionList: TActionList;
     UpdateAction: TAction;
     cbUpdateAttributes: TCheckBox;
+    edgettextLocation: TLabeledEdit;
     procedure UpdateActionUpdate(Sender: TObject);
     procedure UpdateActionExecute(Sender: TObject);
     procedure SaveActionUpdate(Sender: TObject);
   private
     FFile: TPOFile;
+    procedure UpdatedxGetTextPath;
     procedure SetFileName(const AValue: string);
     function GetFileName: string;
     procedure UpdateLineCount;
@@ -275,7 +277,7 @@ begin
       // For now we just close - no use in reloading.
       //FFile.Reload;
       SetStatus(_('Done.'));
-      Close;
+      //Close;
     finally
       FreeAndNil(LOutput);
     end;
@@ -288,6 +290,16 @@ end;
 procedure TUpdateLocaleForm.UpdateActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(FFile);
+end;
+
+procedure TUpdateLocaleForm.UpdatedxGetTextPath;
+var
+  LPath: string;
+begin
+  if GetdxgettextDirectory(LPath) then
+    edgettextLocation.Text := LPath
+  else
+    edgettextLocation.Text := '';
 end;
 
 procedure TUpdateLocaleForm.UpdateLineCount;
@@ -308,6 +320,7 @@ begin
   LForm := TUpdateLocaleForm.Create(Application);
   try
     LForm.FileName := AFileName;
+    LForm.UpdatedxGetTextPath;
     LForm.ShowModal;
   finally
     FreeAndNil(LForm);

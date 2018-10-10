@@ -582,7 +582,8 @@ begin
   RebuildRecentProjectsMenu;
   BrowsePageControl.ActivePageIndex := TMRUOptions.Instance.GetInteger(GetMRURootKeyName + '/BrowsePageControl/ActivePageIndex', BrowsePageControl.ActivePageIndex);
 
-  LProjectName := ExpandEnvironmentVariables(GetCmdLineParamValue('project'));
+  LProjectName := GetCmdLineParamValue('project');
+  ExpandEnvironmentVariables(LProjectName);
   if LProjectName = '' then
     LProjectName := ParamStr(1);
   if SameText(ExtractFileExt(LProjectName),'.kproj') and (LProjectName <> '') and FileExists(LProjectName) then

@@ -66,7 +66,7 @@ var
 begin
   if not Assigned(FInstance) then
   begin
-    LFileName := '%APPDATA%\KIDE\MRU.yaml';
+    LFileName := '%APPDATA%\KIDE2\MRU.yaml';
     TEFMacroExpansionEngine.Instance.Expand(LFileName);
     if FileExists(LFileName) then
       FInstance := TEFTreeFactory.LoadFromFile<TMRUOptions>(LFileName)

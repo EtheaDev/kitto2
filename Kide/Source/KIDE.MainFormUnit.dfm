@@ -103,6 +103,10 @@ inherited MainForm: TMainForm
           Hint = 'Files of metadata'
           Caption = 'Metadata'
           ImageIndex = 80
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object MetadataTreeView: TTreeView
             Left = 0
             Top = 26
@@ -145,6 +149,10 @@ inherited MainForm: TMainForm
           Hint = 'Files of resources'
           Caption = 'Resources'
           ImageIndex = 20
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ResourcesActionToolBar: TActionToolBar
             Left = 0
             Top = 0
@@ -243,6 +251,10 @@ inherited MainForm: TMainForm
           Hint = 'Messages'
           Caption = 'Messages'
           ImageIndex = 86
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object LogListBox: TListBox
             Left = 0
             Top = 0
@@ -762,7 +774,7 @@ inherited MainForm: TMainForm
     Left = 448
     Top = 240
     Bitmap = {
-      494C010103000500480010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101030005004C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000003300000033000000330000
       0000000000000000000000000000000000000000000000000000000000000000
