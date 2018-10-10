@@ -6,7 +6,7 @@ Fields:
     DefaultValue: %COMPACT_GUID%
   DESCRIPTION: String(80) not null
     DisplayWidth: 50
-    Hint: Insert the activity description
+    Hint: _(Insert the activity description)
   PHASE: Reference(PHASE) not null
     Fields:
       PHASE_ID:
@@ -24,10 +24,10 @@ Fields:
       TYPE_ID:
     Hint: Select the Activity Type
   ACTIVITY_DATE: Date not null
-    NotifyChange: True  
+    NotifyChange: True
     Hint: Date
   START_TIME: Time
-    NotifyChange: True  
+    NotifyChange: True
     Hint: Start
   END_TIME: Time
     Hint: End

@@ -1,5 +1,5 @@
 ﻿Type: Data
-DisplayLabel: Activity Calendar
+DisplayLabel: _(Activity Calendar)
 Controller: List
   CenterController: CalendarPanel
 MainTable:

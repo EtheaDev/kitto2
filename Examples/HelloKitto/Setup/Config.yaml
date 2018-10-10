@@ -1,0 +1,132 @@
+﻿AppName: HelloKitto
+AppTitle: _(Peoria Dolls)
+AppIcon: HelloKittoIcon
+# Default is the application name in lower case.
+AppPath: /hellokitto
+Application:
+  # When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
+  # you can set this to False to gain some speed. Default is True.
+  HandleResources: False
+
+BlobPath: %HOME_PATH%UploadedFiles\
+
+# Change this to switch databases.
+DefaultDatabaseName: DBXFb
+#DefaultDatabaseName: ADOMSSQL
+#DefaultDatabaseName: FDMSSQL
+#DefaultDatabaseName: FDFb
+#DefaultDatabaseName: DBXMSSQL
+
+Databases:
+  DBXFb: DBX
+    Connection:
+      DriverName: Firebird
+      DataBase: localhost:HelloKitto
+      User_Name: SYSDBA
+      Password: masterkey
+      ServerCharSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
+
+  FDMSSQL: FD
+    Connection:
+      DriverID: MSSQL
+      Server: %COMPUTERNAME%\MSSQL2K8R2
+      ApplicationName: %APPTITLE%
+      Database: HelloKitto
+      OSAuthent: Yes
+      Isolation: RepeatableRead
+
+  FDFb: FD
+    Connection:
+      DriverID: FB
+      # Alias of database defined in Aliases.conf
+      Database: HELLOKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Protocol: TCPIP
+
+  DBXMSSQL: DBX
+    Connection:
+      DriverName: MSSQL
+      HostName: localhost
+      DataBase: HelloKitto
+      OS Authentication: True
+
+  ADOMSSQL: ADO
+    Connection:
+      # This doesn't work because of a bug with date and time fields in ADO/OLEDB.
+      # See http://qc.embarcadero.com/wc/qcmain.aspx?d=78910
+      #Provider: SQLOLEDB.1
+      # Using the Native client fixes the date bug but still not the time bug.
+      Provider: SQLNCLI10
+      Trusted_Connection: Yes
+      Initial Catalog: HelloKitto
+      Data Source: %COMPUTERNAME%
+
+Auth: DB
+  .Defaults:
+    UserName: administrator
+    Password: password
+
+AccessControl: Null
+
+LanguagePerSession: True
+
+Login:
+  Controller:
+    NorthController: HtmlPanel
+      Height: 80
+      Html: |
+        <div style="text-align: center">
+          <p/>
+          <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
+          <p/>
+        </div>
+    LabelWidth: 150
+    EditWidth: 200
+    ExtraHeight: 50
+    LocalStorage:
+      Mode: Password
+      AskUser: True
+        .Default: False
+      AutoLogin: False
+
+HomeGirls: Girls
+
+HomeDolls: Dolls
+
+HelloWorld:
+  Controller: HtmlPanel
+    DisplayMode: FullScreen
+    Html: <h1>Hello World!</h1>
+
+ExtJS:
+  Theme: crisp
+  AjaxTimeout: 100000
+
+# No language Id specified means try to use the language requested by the browser.
+LanguageId: en
+LanguagePerSession: True
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8
+
+Log:
+  # low, medium, high, detailed, debug
+  Level: detailed
+Server:
+  Port: 2601
+  # default 20
+  ThreadPoolSize: 15
+
+Engine:
+  Session:
+    # Minutes after which an inactive session is cleaned up. Defaults to 10.
+    TimeOut: 10
+    # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
+    CleanupInterval: 30
+

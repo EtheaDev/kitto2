@@ -13,7 +13,7 @@ uses
   FireDAC.Phys.IBBase, FireDAC.Phys.FB, //FireDac support for Firebird
 {$ENDIF}
   // Kitto.AccessControl.DB,
-  //Kitto.Auth.DB,
+  Kitto.Auth.DB,
   // Kitto.Auth.DBServer,
   // Kitto.Auth.OSDB,
   // Kitto.Auth.TextFile,

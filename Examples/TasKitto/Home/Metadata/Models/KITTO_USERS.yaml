@@ -1,6 +1,6 @@
 ﻿ModelName: KITTO_USERS
 ImageName: user
-DisplayLabel: User
+DisplayLabel: _(User)
 Fields:
   USER_NAME: String(20) not null primary key
     Rules:
@@ -15,3 +15,4 @@ Fields:
     DisplayLabel: Last Name
   EMAIL_ADDRESS: String(100)
     DisplayLabel: Email Address
+PluralDisplayLabel: _(User)

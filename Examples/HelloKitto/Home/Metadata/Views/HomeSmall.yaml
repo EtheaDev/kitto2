@@ -1,4 +1,4 @@
-﻿DisplayLabel: %Config:AppTitle%
+﻿DisplayLabel: _(%Config:AppTitle%)
 Controller: BorderPanel
   DisplayMode: FullScreen
   CenterView:

@@ -1,0 +1,124 @@
+﻿AppName: TasKitto
+AppTitle: Tasks & Activities
+
+# Default is the application name in lower case.
+AppPath: /taskitto
+Application:
+  # When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
+  # you can set this to False to gain some speed. Default is True.
+  HandleResources: False
+
+# Defaults for entire application
+Defaults:
+  Grid:
+    PageRecordCount: 50
+    DefaultAction: Edit
+  FormPanel:
+    HideLabels: False
+  Window:
+    Width: 800
+    Height: 600
+  Layout:
+    MemoWidth: 70
+    MaxFieldWidth: 70
+    MinFieldWidth: 6
+    RequiredLabelTemplate: <i>{label}*</i>
+# Default/Layout/LabelSeparator empty if you don't want hide the default LabelSeparator (:)
+    LabelSeparator:
+
+Databases:
+
+  Old: DBX
+    Connection:
+      DriverName: Firebird
+      DataBase: localhost:TASKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      ServerCharSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
+
+  Main: FD
+    Connection:
+      DriverID: FB
+      Database: TASKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Protocol: TCPIP
+
+Auth: TasKitto
+  IsClearPassword: True
+  .Defaults:
+    UserName: admin
+    Password: admin
+  ReadUserCommandText: select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
+  ValidatePassword:
+    Message: Min 8 with upper+lower+number+special chars
+    RegEx: ^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$
+  ResetMailMessage:
+    From: <support@kitto.org>
+    Subject: Reset password required from %Config:AppTitle%
+    Body: |
+      You have requested a password reset. 
+      The new temporary password you need to use the next time you log in is #TempPassword#.
+      Best regards.
+      
+      The team of %Config:AppTitle%
+    HTMLBody: |
+      <p>You have requested a password reset.<br> 
+      The new temporary password you need to use the next time you log in is <b>#TempPassword#</b>.<br>
+      Best regards.</p>
+      </p>
+      <p>The team of <b>%Config:AppTitle%</b><p>
+
+AccessControl: Null
+
+#Login: Login
+
+# Change this to use a custom view for the home page.
+# Alternatively, customize the Home view by replacing its controller.
+# Default: Home.
+#HomeView: Home
+
+ExtJS:
+  Theme: triton
+  AjaxTimeout: 100000
+
+# No language Id specified means try to use the language requested by the browser.
+LanguageId: en
+LanguagePerSession: True
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8
+
+FOPEnginePath: %FOP1_1%
+
+UserFormats:
+  Date: dd/mm/yyyy
+  Time: hh:nn
+
+Log:
+  # low, medium, high, detailed, debug
+  Level: detailed
+  TextFile:
+    FileName: %APP_PATH%log.txt
+    # Set this to false to disable this logger without deleting its configuration.
+    IsEnabled: True
+  Console:
+    IsEnabled: True
+
+Server:
+  Port: 2602
+  # default 20
+  ThreadPoolSize: 15
+
+Engine:
+  Session:
+    # Minutes after which an inactive session is cleaned up. Defaults to 10.
+    TimeOut: 10
+    # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
+    CleanupInterval: 30
+

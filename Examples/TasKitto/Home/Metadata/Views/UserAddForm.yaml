@@ -1,4 +1,4 @@
-﻿DisplayLabel: Modify Account
+﻿DisplayLabel: _(Modify Account)
 Type: Data
 Controller: Form
   Operation: Add

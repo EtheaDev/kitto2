@@ -2,11 +2,11 @@
 AppTitle: _(Peoria Dolls)
 AppIcon: HelloKittoIcon
 # Default is the application name in lower case.
-#AppPath: /hellokitto
+AppPath: /hellokitto
 Application:
   # When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
   # you can set this to False to gain some speed. Default is True.
-  #HandleResources: True
+  #HandleResources: False
 
 BlobPath: %HOME_PATH%UploadedFiles\
 
@@ -67,8 +67,8 @@ Databases:
       Initial Catalog: HelloKitto
       Data Source: %COMPUTERNAME%
 
-.Auth: DB
-  Defaults:
+Auth: DB
+  .Defaults:
     UserName: administrator
     Password: password
 
@@ -78,19 +78,17 @@ LanguagePerSession: True
 
 Login:
   Controller:
-    BorderPanel:
-      NorthView:
-        Controller: HtmlPanel
-          Height: 80
-          Html: |
-            <div style="text-align: center">
-              <p/>
-              <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
-              <p/>
-            </div>
-    ExtraWidth: 400
+    NorthController: HtmlPanel
+      Height: 80
+      Html: |
+        <div style="text-align: center">
+          <p/>
+          <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
+          <p/>
+        </div>
     LabelWidth: 150
-    ExtraHeight: 80
+    EditWidth: 200
+    ExtraHeight: 50
     LocalStorage:
       Mode: Password
       AskUser: True
@@ -107,15 +105,19 @@ HelloWorld:
     Html: <h1>Hello World!</h1>
 
 ExtJS:
-  Theme: triton
+  Theme: crisp
   AjaxTimeout: 100000
 
 # No language Id specified means try to use the language requested by the browser.
 LanguageId: en
+LanguagePerSession: True
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
 
+Log:
+  # low, medium, high, detailed, debug
+  Level: detailed
 Server:
   Port: 2601
   # default 20
@@ -128,5 +130,3 @@ Engine:
     # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
     CleanupInterval: 30
 
-Log:
-  Level: detailed

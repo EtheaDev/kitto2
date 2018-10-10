@@ -1,5 +1,5 @@
 ﻿Type: Tree
-Folder: Tables
+Folder: _(Tables)
   View: Employees
   View: Build AutoList
     Model: OPERATOR_ROLE
@@ -11,18 +11,18 @@ Folder: Tables
       Height: 160
     MainTable:
       Model: ACTIVITY_TYPE
-Folder: Customers
+Folder: _(Customers)
   View: Customers
   View: Projects
-Folder: Activities
+Folder: _(Activities)
   View: ActivityInput
   View: ActivitiesByType
   View: ActivityReport
-  #View: ActivityCalendar
-Folder: Statistics
+#View: ActivityCalendar
+Folder: _(Statistics)
   View: ActivityPieChart
   View: ActivityBarChart
-Folder: Maintenance
+Folder: _(Maintenance)
   View: Users
     ImageName: user
   View: UserForm

@@ -1,5 +1,5 @@
 ﻿Type: Data
-DisplayLabel: Bar Chart
+DisplayLabel: _(Bar Chart)
 Controller: List
 
   CenterController: ChartPanel

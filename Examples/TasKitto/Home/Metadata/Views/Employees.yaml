@@ -4,7 +4,7 @@ Controller: List
   Width: 1000
   Height: 600
   Filters:
-    DisplayLabel: Employee Filter
+    DisplayLabel: _(Employee Filter)
     Items:
       FreeSearch: Search Name
         # ExpressionTemplate should contain a {value} placeholder for the search term.

@@ -1,5 +1,5 @@
 ﻿Type: Data
-DisplayLabel: Activity Report
+DisplayLabel: _(Activity Report)
 Controller: List
   CenterController: TemplateDataPanel
     TemplateFileName: ActivityReport.html

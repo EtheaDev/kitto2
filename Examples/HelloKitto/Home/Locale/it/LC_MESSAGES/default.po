@@ -13,8 +13,31 @@
 #
 msgid ""
 msgstr ""
-"#-#-#-#-#  C: \\Users\\Carlo\\AppData\\Local\\Temp\\3P5Z2031.po (PACKAGE VERSION)  #-#-#-#-"
-"#\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-10-10 10:55\n"
+"PO-Revision-Date: 2018-10-10 10:57+0200\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2018-10-10 10:53\n"
+"PO-Revision-Date: 2018-10-10 10:53\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: dxgettext 1.3.0\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2018-10-10 10:48\n"
+"PO-Revision-Date: 2018-10-10 10:48\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: dxgettext 1.3.0\n"
+"#-#-#-#-#  C: \\Users\\Carlo\\AppData\\Local\\Temp\\3P5Z2031.po (PACKAGE VERSION)  #-#-#-#-#\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2015-03-05 16.17\n"
 "PO-Revision-Date: 2017-06-19 17:53+0200\n"
@@ -23,10 +46,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.0.2\n"
-"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default."
-"po  #-#-#-#-#\n"
-"#-#-#-#-#  C: \\Users\\Carlo\\AppData\\Local\\Temp\\73520MD8.po (PACKAGE VERSION)  #-#-#-#-"
-"#\n"
+"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\Carlo\\AppData\\Local\\Temp\\73520MD8.po (PACKAGE VERSION)  #-#-#-#-#\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2015-03-05 16.13\n"
 "PO-Revision-Date: 2015-03-05 16:15+0100\n"
@@ -35,8 +56,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.7.4\n"
-"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default."
-"po  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
@@ -254,28 +274,32 @@ msgstr "Catalogo bambole"
 
 #: Hair.yaml
 msgid "Hair Type"
-msgstr ""
-
-#: Hairs.yaml
-msgid "Cerca Hair Types"
-msgstr ""
+msgstr "Tipo capelli"
 
 #: Home.yaml
 msgid "%Config:AppTitle%"
-msgstr ""
+msgstr "%Config:AppTitle%"
 
 #: MainMenu.yaml
 msgid "Dolls Card"
-msgstr ""
+msgstr "Card Bambole"
 
 #: MainMenuSmall.yaml
 msgid "menu"
-msgstr ""
+msgstr "menu"
 
 #: Party.yaml
 msgid "Period"
-msgstr ""
+msgstr "Periodo"
+
+#: Dolls_Form.yaml
+msgid "Characteristics"
+msgstr "Caratteristiche"
 
 #: Hairs.yaml
-msgid "Ricerca libera"
-msgstr ""
+msgid "Search Hair Types"
+msgstr "Ricerca tipo capelli"
+
+#: Hairs.yaml
+msgid "Free search"
+msgstr "Ricerca libera"

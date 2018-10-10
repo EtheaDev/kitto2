@@ -1,6 +1,14 @@
 ﻿AppName: TasKitto
 AppTitle: Tasks & Activities
 
+# Default is the application name in lower case.
+AppPath: /taskitto
+Application:
+  # When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
+  # you can set this to False to gain some speed. Default is True.
+  #HandleResources: False
+
+# Defaults for entire application
 Defaults:
   Grid:
     PageRecordCount: 50
@@ -79,6 +87,7 @@ ExtJS:
   Theme: triton
   AjaxTimeout: 100000
 
+# No language Id specified means try to use the language requested by the browser.
 LanguageId: en
 LanguagePerSession: True
 # Either utf-8 or a SBCS corresponding to the system code page
@@ -92,8 +101,8 @@ UserFormats:
   Time: hh:nn
 
 Log:
-  # 1 = Minimal, 5 = Debug.
-  Level: 1
+  # low, medium, high, detailed, debug
+  Level: detailed
   TextFile:
     FileName: %APP_PATH%log.txt
     # Set this to false to disable this logger without deleting its configuration.
@@ -105,5 +114,11 @@ Server:
   Port: 2602
   # default 20
   ThreadPoolSize: 15
-  # In minutes.
-  SessionTimeOut: 10
+
+Engine:
+  Session:
+    # Minutes after which an inactive session is cleaned up. Defaults to 10.
+    TimeOut: 10
+    # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
+    CleanupInterval: 30
+

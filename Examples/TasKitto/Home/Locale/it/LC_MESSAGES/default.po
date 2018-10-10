@@ -1,0 +1,127 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-10-10 17:48\n"
+"PO-Revision-Date: 2018-10-10 17:51+0200\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2\n"
+"Language-Team: \n"
+"Language: it\n"
+
+#. For this demo, if the SMTP parameters are not configured we just log it.
+#: Auth.pas:68
+#, object-pascal-format
+msgid "Password generated: %s"
+msgstr "Password generata: %s"
+
+#: ACTIVITY.yaml
+msgid "Insert the activity description"
+msgstr "Inserisci la descrizione dell'attività"
+
+#: ACTIVITY_CALENDAR.yaml
+msgid "Activity"
+msgstr "Attività"
+
+#: KITTO_USERS.yaml
+msgid "User"
+msgstr "Utente"
+
+#: OPERATOR_ROLE.yaml
+msgid "Role"
+msgstr "Ruolo"
+
+#: ActivityAddForm.yaml
+msgid "Quick Add Activity"
+msgstr "Aggiungi attività"
+
+#: ActivityBarChart.yaml
+msgid "Bar Chart"
+msgstr "Grafico a barre"
+
+#: ActivityBarChart.yaml
+msgid "Duration in minutes"
+msgstr "Durata in minuti"
+
+#: ActivityBarChart.yaml
+msgid "Date"
+msgstr "Data"
+
+#: ActivityCalendar.yaml
+msgid "Activity Calendar"
+msgstr "Calendario attività"
+
+#: ActivityInput.yaml
+msgid "Search panel"
+msgstr "Pannello di ricerca"
+
+#: ActivityPieChart.yaml
+msgid "Pie Chart"
+msgstr "Grafico a torta"
+
+#: ActivityPieChart.yaml
+msgid "Activities By Type"
+msgstr "Attività per tipo"
+
+#: ActivityPieChart.yaml
+msgid "Duration"
+msgstr "Durata"
+
+#: ActivityReport.yaml
+msgid "Activity Report"
+msgstr "Report attività"
+
+#: Customers.yaml
+msgid "Customer Filter"
+msgstr "Filtro clienti"
+
+#: Employees.yaml
+msgid "Employee Filter"
+msgstr "Filtro fornitori"
+
+#: Home.yaml
+msgid "Main Menu"
+msgstr "Menu principale"
+
+#: HomeMini.yaml
+msgid "%Config:AppTitle%"
+msgstr "%Config:AppTitle%"
+
+#: MainMenu.yaml
+msgid "Tables"
+msgstr "Tabelle"
+
+#: MainMenu.yaml
+msgid "Customers"
+msgstr "Clienti"
+
+#: MainMenu.yaml
+msgid "Activities"
+msgstr "Attività"
+
+#: MainMenu.yaml
+msgid "Statistics"
+msgstr "Statistiche"
+
+#: MainMenu.yaml
+msgid "Maintenance"
+msgstr "Manutenzione"
+
+#: Projects.yaml
+msgid "Project Filter"
+msgstr "Filtro progetto"
+
+#: ResetPassword.yaml
+msgid "Reset password"
+msgstr "Ripristina password"
+
+#: UserAddForm.yaml
+msgid "Modify Account"
+msgstr "Modifica account"

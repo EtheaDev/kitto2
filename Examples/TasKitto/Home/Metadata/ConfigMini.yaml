@@ -1,7 +1,8 @@
-﻿AppTitle: Tasks & Activities
+﻿AppName: TasKitto
+AppTitle: Tasks & Activities
 
 Databases:
-  Main: DBX
+  Old: DBX
     Connection:
       DriverName: Firebird
       DataBase: localhost:TASKITTO
@@ -12,12 +13,40 @@ Databases:
       IsolationLevel: ReadCommitted
       Trim Char: False
 
-Auth: DB
+  Main: FD
+    Connection:
+      DriverID: FB
+      Database: TASKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Protocol: TCPIP
+
+Auth: TasKitto
   IsClearPassword: True
   .Defaults:
     UserName: admin
     Password: admin
-  ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
+  ReadUserCommandText: select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
+  ValidatePassword:
+    Message: Min 8 with upper+lower+number+special chars
+    RegEx: ^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$
+  ResetMailMessage:
+    From: <support@kitto.org>
+    Subject: Reset password required from %Config:AppTitle%
+    Body: |
+      You have requested a password reset. 
+      The new temporary password you need to use the next time you log in is #TempPassword#.
+      Best regards.
+      
+      The team of %Config:AppTitle%
+    HTMLBody: |
+      <p>You have requested a password reset.<br> 
+      The new temporary password you need to use the next time you log in is <b>#TempPassword#</b>.<br>
+      Best regards.</p>
+      </p>
+      <p>The team of <b>%Config:AppTitle%</b><p>
 
 AccessControl: Null
 
@@ -26,10 +55,13 @@ AccessControl: Null
 # Default: Home.
 HomeView: HomeMini
 
-Ext:
-  Theme: gray
+ExtJS:
+  Theme: triton
+  AjaxTimeout: 100000
 
+# No language Id specified means try to use the language requested by the browser.
 LanguageId: en
+LanguagePerSession: True
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
@@ -41,8 +73,8 @@ UserFormats:
   Time: hh:nn
 
 Log:
-  # 1 = Minimal, 5 = Debug.
-  Level: 5
+  # low, medium, high, detailed, debug
+  Level: detailed
   TextFile:
     FileName: %APP_PATH%log.txt
     # Set this to false to disable this logger without deleting its configuration.
@@ -52,5 +84,11 @@ Server:
   Port: 2602
   # default 20
   ThreadPoolSize: 15
-  # In minutes.
-  SessionTimeOut: 10
+
+Engine:
+  Session:
+    # Minutes after which an inactive session is cleaned up. Defaults to 10.
+    TimeOut: 10
+    # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
+    CleanupInterval: 30
+

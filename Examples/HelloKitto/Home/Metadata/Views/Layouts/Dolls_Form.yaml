@@ -8,7 +8,7 @@ Row:
   Field: Mom_Phone
     CharWidth: 10
     DisplayLabel: _(Mom's Phone)
-PageBreak: Characteristics
+PageBreak: _(Characteristics)
 Row:
   Field: Hair
   Field: Dress_Size

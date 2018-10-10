@@ -1,5 +1,5 @@
 ﻿ModelName: ACTIVITY_CALENDAR
-DisplayLabel: Activity
+DisplayLabel: _(Activity)
 PhysicalName: ACTIVITY
 Fields:
   Title:
@@ -52,3 +52,4 @@ Rules:
   EnforceRange:
     From: START_TIME
     To: END_TIME
+PluralDisplayLabel: _(Activity)

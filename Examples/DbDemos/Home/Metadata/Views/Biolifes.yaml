@@ -6,7 +6,7 @@ Controller: List
       FreeSearch: Free Search
         ExpressionTemplate: (BIOLIFE.CATEGORY like '%{value}%') or (BIOLIFE.COMMON_NAME like '%{value}%') or (BIOLIFE.SPECIES_NAME like '%{value}%') or (BIOLIFE.NOTES like '%{value}%')
   CenterController:
-    .AutoFormPlacement: Right
+    AutoFormPlacement: Right
       Size: 800
 MainTable:
   Model: Biolife
