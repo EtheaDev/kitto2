@@ -3,7 +3,7 @@
         <ProjectGuid>{76CC7595-3864-4FD1-8AF7-8E45A9B97D58}</ProjectGuid>
         <MainSource>DbDemos.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>

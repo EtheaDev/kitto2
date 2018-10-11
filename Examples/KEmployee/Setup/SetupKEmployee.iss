@@ -11,7 +11,7 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{9B15388C-31C6-4551-9775-FF7B0B2528A4}
+AppId={{BB2E2EFE-5EB7-4825-938E-BD64EA4CF987}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -19,7 +19,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName=C:\KittoApps\{#MyAppName}
+DefaultDirName=C:\Kitto2Apps\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputBaseFilename=SetupKEmployee
 Compression=lzma
@@ -46,14 +46,15 @@ Source: "..\..\..\Home\Locale\*"; DestDir: "{app}\Home\Locale"; Flags: ignorever
 
 ; Application files
 Source: "..\Home\KEmployee.exe"; DestDir: "{app}\Home"; Flags: ignoreversion
+Source: "..\Home\*.cmd"; DestDir: "{app}\Home"; Flags: ignoreversion
 Source: "..\Home\FileAuthenticator.txt"; DestDir: "{app}\Home"; Flags: ignoreversion
 Source: "..\Home\Metadata\Models\*"; DestDir: "{app}\Home\Metadata\Models"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Home\Metadata\Views\*"; DestDir: "{app}\Home\Metadata\Views"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Home\ReportTemplates\*"; DestDir: "{app}\Home\ReportTemplates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Home\Resources\*"; DestDir: "{app}\Home\Resources"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-;Custom Config for deployment: comparetimestamp so don't replace if file was changed directly on web-server
-Source: "Config.yaml"; DestDir: "{app}\Home\Metadata"; Flags: ignoreversion comparetimestamp uninsneveruninstall; Permissions: users-modify
+;Custom Config copy for deployment: comparetimestamp so don't replace if file was changed directly on web-server
+Source: "..\Home\Metadata\Config.yaml"; DestDir: "{app}\Home\Metadata"; Flags: ignoreversion comparetimestamp uninsneveruninstall; Permissions: users-modify
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
