@@ -35,6 +35,7 @@ implementation
 uses
   SysUtils
   , Classes
+  , EF.Tree
   , EF.Logger
   , EF.Macros
   , Kitto.Config
@@ -55,21 +56,23 @@ class procedure TKStart.Start;
   procedure Configure;
   var
     LConfig: TKConfig;
+    LLogNode: TEFNode;
   begin
     LConfig := TKConfig.Create;
     try
-      TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), TEFMacroExpansionEngine.Instance);
+      LLogNode := LConfig.Config.FindNode('Log');
+      TEFLogger.Instance.Configure(LLogNode, TEFMacroExpansionEngine.Instance);
+      TEFLogger.Instance.Log(Format('Using configuration: %s',[LConfig.BaseConfigFileName]));
     finally
       FreeAndNil(LConfig);
     end;
   end;
 
 begin
-  Configure;
-
   FIsService := not FindCmdLineSwitch('a');
   if FIsService then
   begin
+    Configure;
     {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as service.');
     if not Vcl.SvcMgr.Application.DelayInitialize or Vcl.SvcMgr.Application.Installing then
@@ -82,6 +85,9 @@ begin
   end
   else
   begin
+    if FindCmdLineSwitch('c') then
+      TKConfig.BaseConfigFileName := ParamStr(3);
+    Configure;
     {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as application.');
     Vcl.Forms.Application.Initialize;

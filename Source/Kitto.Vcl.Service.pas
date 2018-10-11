@@ -111,12 +111,20 @@ end;
 
 procedure TKService.ServiceCreate(Sender: TObject);
 begin
-  DisplayName := TKConfig.AppName;
+  Name := TKConfig.AppName;
+  DisplayName := FServiceDescription;
 
   FServer := TKWebServer.Create(nil);
   FServer.Engine.AddRoute(TKWebApplication.Create);
 
   Configure;
+end;
+
+procedure TKService.ServiceShutdown(Sender: TService);
+begin
+  TEFLogger.Instance.LogDetailed('Service shutdown. Turning off web server...');
+  FServer.Active := False;
+  TEFLogger.Instance.LogDetailed('Service shutdown. Web server off.');
 end;
 
 procedure TKService.Configure;
@@ -147,12 +155,6 @@ begin
   FreeAndNil(FLogEndPoint);
 end;
 
-procedure TKService.ServiceShutdown(Sender: TService);
-begin
-  TEFLogger.Instance.LogDetailed('Service shutdown. Turning off web server...');
-  FServer.Active := False;
-  TEFLogger.Instance.LogDetailed('Service shutdown. Web server off.');
-end;
 
 procedure TKService.ServiceStart(Sender: TService; var Started: Boolean);
 begin

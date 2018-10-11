@@ -496,9 +496,17 @@ begin
 end;
 
 class constructor TKConfig.Create;
+var
+  LAppName: string;
+  LDefaultConfig: string;
 begin
+  LAppName := ChangeFileExt(ExtractFileName(ParamStr(0)),'');
   FConfigClass := TKConfig;
-  FBaseConfigFileName := 'Config.yaml';
+  LDefaultConfig := Format('Config_%s.yaml',[LAppName]);
+  if FileExists(GetMetadataPath + LDefaultConfig) then
+    FBaseConfigFileName := LDefaultConfig
+  else
+    FBaseConfigFileName := 'Config.yaml';
 
   FJSFormatSettings := TFormatSettings.Create;
   FJSFormatSettings.DecimalSeparator := '.';
