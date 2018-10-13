@@ -634,6 +634,18 @@ function GetRCDATAResourceBytes(const AInstance: THandle; const AResourceName: s
 procedure GetVerInfo( const FileName : string;
   var MajorVersion, MinorVersion, Release, Build : integer);
 
+/// <summary>
+///  Tries to detect if the process is being run as a service by looking at
+///  services.exe as parent process and returns True if it is.
+/// </summary>
+function IsRunningAsService: Boolean;
+
+/// <summary>
+///  True if the install or uninstall command line switch was passed
+///  on the command line.
+/// </summary>
+function IsInstallingService: Boolean;
+
 implementation
 
 uses
@@ -641,6 +653,8 @@ uses
   , SysConst
   , StrUtils
   , PsAPI
+  , TlHelp32
+  , Generics.Collections
   , EF.Sys
   , EF.Localization
   , EF.StrUtils
@@ -1668,6 +1682,66 @@ begin
       FreeMem(VerBuf);
     end;
   end;
+end;
+
+function IsRunningAsService: Boolean;
+
+  function FindProcess(const ASnapshotHandle: THandle; const APId: DWORD; var AProcessEntry: TProcessEntry32): Boolean;
+  var
+    LContinueLoop: BOOL;
+  begin
+    LContinueLoop := Process32First(ASnapshotHandle, AProcessEntry);
+    while LContinueLoop do
+    begin
+      if AProcessEntry.th32ProcessID = APId then
+        Exit(True);
+      LContinueLoop := Process32Next(ASnapshotHandle, AProcessEntry);
+    end;
+    Result := False;
+  end;
+
+var
+  LCurentProcessId: DWORD;
+  LSnapshotHandle: THandle;
+  LProcessEntry32: TProcessEntry32;
+  LExeName, LPrevExeName: string;
+  LDeadlockProtection: TList<DWORD>;
+begin
+  Result := false;
+
+  LSnapshotHandle := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+  try
+    LDeadlockProtection := TList<DWORD>.Create;
+    try
+      LCurentProcessId := GetCurrentProcessId;
+      LProcessEntry32.dwSize := SizeOf(LProcessEntry32);
+      LExeName := '';
+      while FindProcess(LSnapshotHandle, LCurentProcessId, LProcessEntry32) do
+      begin
+        if LDeadlockProtection.IndexOf(LProcessEntry32.th32ProcessID) > -1 then
+          Break;
+        LDeadlockProtection.Add(LProcessEntry32.th32ProcessID);
+
+        LPrevExeName := LExeName;
+        LExeName := LProcessEntry32.szExeFile;
+
+        Result := SameText(LExeName, 'services.exe'); // Parent
+        if Result then
+          Exit;
+
+        LCurentProcessId := LProcessEntry32.th32ParentProcessID;
+      end;
+    finally
+      FreeAndNil(LDeadlockProtection);
+  end;
+  finally
+    CloseHandle(LSnapshotHandle);
+  end;
+end;
+
+function IsInstallingService: Boolean;
+begin
+  Result := FindCmdLineSwitch('install') or FindCmdLineSwitch('uninstall');
 end;
 
 initialization

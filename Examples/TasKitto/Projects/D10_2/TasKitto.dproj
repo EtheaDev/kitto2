@@ -3,7 +3,7 @@
         <ProjectGuid>{1FBC6B9D-04F2-4238-A7C5-07DEC4D673BB}</ProjectGuid>
         <MainSource>TasKitto.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
@@ -157,6 +157,9 @@
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k250.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp250.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclRESTBackendFMXComponents250.bpl">File c:\program files (x86)\embarcadero\studio\19.0\bin\dclRESTBackendFMXComponents250.bpl not found</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclfmxhrh250.bpl">File c:\program files (x86)\embarcadero\studio\19.0\bin\dclfmxhrh250.bpl not found</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclwbm250.bpl">File c:\program files (x86)\embarcadero\studio\19.0\bin\dclwbm250.bpl not found</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>

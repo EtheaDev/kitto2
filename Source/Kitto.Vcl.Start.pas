@@ -22,12 +22,8 @@ interface
 
 type
   TKStart = class
-  private
-    class var FIsService: Boolean;
   public
     class procedure Start;
-
-    class property IsService: Boolean read FIsService;
   end;
 
 implementation
@@ -39,7 +35,9 @@ uses
   , EF.Logger
   , EF.Macros
   , Kitto.Config
+  , EF.Sys
   {$IFDEF MSWINDOWS}
+  , EF.Sys.Windows
   , Vcl.Forms
   , Vcl.SvcMgr
   , Vcl.Themes
@@ -57,7 +55,11 @@ class procedure TKStart.Start;
   var
     LConfig: TKConfig;
     LLogNode: TEFNode;
+    LCustomConfig: string;
   begin
+    LCustomConfig := GetCmdLineParamValue('c');
+    if LCustomConfig <> '' then
+      TKConfig.BaseConfigFileName := LCustomConfig;
     LConfig := TKConfig.Create;
     try
       LLogNode := LConfig.Config.FindNode('Log');
@@ -69,34 +71,26 @@ class procedure TKStart.Start;
   end;
 
 begin
-  FIsService := not FindCmdLineSwitch('a');
-  if FIsService then
+  Configure;
+  {$IFDEF MSWINDOWS}
+  if IsRunningAsService or IsInstallingService then
   begin
-    Configure;
-    {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as service.');
     if not Vcl.SvcMgr.Application.DelayInitialize or Vcl.SvcMgr.Application.Installing then
       Vcl.SvcMgr.Application.Initialize;
     Vcl.SvcMgr.Application.CreateForm(TKService, KService);
     Vcl.SvcMgr.Application.Run;
-    {$ELSE}
-    TEFLogger.Instance.Log('Services not yet supported on this platform.');
-    {$ENDIF}
   end
   else
   begin
-    if FindCmdLineSwitch('c') then
-      TKConfig.BaseConfigFileName := ParamStr(3);
-    Configure;
-    {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as application.');
     Vcl.Forms.Application.Initialize;
     Vcl.Forms.Application.CreateForm(TKMainForm, KMainForm);
     Vcl.Forms.Application.Run;
-    {$ELSE}
-    TEFLogger.Instance.Log('GUI applications not yet supported on this platform.');
-    {$ENDIF}
   end;
+  {$ELSE}
+  TEFLogger.Instance.Log('Start not yet supported on this platform.');
+  {$ENDIF}
 end;
 
 initialization
