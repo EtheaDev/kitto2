@@ -324,7 +324,7 @@ var
   begin
     { TODO : implement cascade delete? }
     for I := 0 to ARecord.DetailStoreCount - 1 do
-      SaveRecords(ARecord.DetailStores[I], True, nil);
+      ARecord.DetailStores[I].ViewTable.Model.SaveRecords(ARecord.DetailStores[I], True, nil);
   end;
 
 begin
