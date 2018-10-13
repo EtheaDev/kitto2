@@ -110,10 +110,6 @@ type
     function DoHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKWebURL): Boolean; override;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
-    /// <summary>
-    ///  The name of the segment of the URL's path enclusing all method calls.
-    /// </summary>
-    const APP_NAMESPACE = 'app';
     class constructor Create;
     class destructor Destroy;
     procedure AfterConstruction; override;
@@ -324,7 +320,7 @@ begin
   LPathSegments := StripPrefixAndSuffix(AURLPath, '/', '/').Split(['/']);
   // Path segments are in the form appname/os/objectname, where "app" is the
   // object space itself (as opposed to "res" which is for static content).
-  if (Length(LPathSegments) > 2) and (LPathSegments[High(LPathSegments) - 1] = APP_NAMESPACE) then
+  if (Length(LPathSegments) > 2) and (LPathSegments[High(LPathSegments) - 1] = TKWebRequest.APP_NAMESPACE) then
     Result := LPathSegments[High(LPathSegments)]
   else
     Result := '';
@@ -759,7 +755,7 @@ end;
 
 function TKWebApplication.GetMethodURL(const AObjectName, AMethodName: string): string;
 begin
-  Result := FPath + '/' + APP_NAMESPACE + '/' + IfThen(AObjectName <> '',  AObjectName + '/', '') + AMethodName;
+  Result := FPath + '/' + TKWebRequest.APP_NAMESPACE + '/' + IfThen(AObjectName <> '',  AObjectName + '/', '') + AMethodName;
 end;
 
 procedure TKWebApplication.ActivateInstance;
