@@ -218,7 +218,7 @@ begin
     Result.View := AView;
 
     // Calls InitSubController. Do this only after everything else is set up.
-    if Assigned(AContainer) then
+    if Assigned(AContainer) and not Result.IsSynchronous then
     begin
       // For some reason assigning Container in AddItem causes it to be missing
       // when Display is called on a subcontroller. Refactoring needed here.
