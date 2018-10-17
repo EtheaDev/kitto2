@@ -57,6 +57,7 @@ AccessControl: Null
 
 Login:
   Controller:
+    Title: %Config:AppTitle% %APP_VERSION%
     NorthController: HtmlPanel
       Height: 120
       Html: |

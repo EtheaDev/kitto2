@@ -15,9 +15,9 @@ Controller: BorderPanel
     Border: True
     # List of views to be auto-opened in tabs.
     SubViews:
-  #View: ActivityInput
-  #View: ActivityReport
-  #View: Projects
+      View: ActivityInput
+      View: ActivityReport
+      View: Projects
   #View: ActivityBarChart
   #View: ActivityPieChart
 

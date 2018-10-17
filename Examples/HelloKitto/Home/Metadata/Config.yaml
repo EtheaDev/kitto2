@@ -78,6 +78,7 @@ LanguagePerSession: True
 
 Login:
   Controller:
+    Title: %Config:AppTitle% %APP_VERSION%
     NorthController: HtmlPanel
       Height: 80
       Html: |

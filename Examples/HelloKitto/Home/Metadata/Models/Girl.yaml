@@ -9,7 +9,7 @@ Fields:
   Girl_Name: String(40) not null
     DisplayLabel: _(Name)
     Rules:
-      ForceUpperCase:
+      #ForceUpperCase:
       SubType: alpha_space
   Age: Integer not null
     DefaultValue: 10

@@ -420,7 +420,7 @@ begin
   Result := 'http://localhost';
   if ATCPPort <> 80 then
     Result := Result + ':' + ATCPPort.ToString;
-  Result := Result + FPath + '/home';
+  Result := Result + FPath + '/' + TKWebRequest.APP_NAMESPACE;
 end;
 
 function TKWebApplication.GetHomeView(const AViewportWidthInInches: Integer): TKView;

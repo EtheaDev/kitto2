@@ -1,7 +1,7 @@
 ﻿Type: Data
 
 Controller: List
-  InplaceEditing: True
+  .InplaceEditing: True
   EastView:
     Controller: HtmlPanel
       Html: |

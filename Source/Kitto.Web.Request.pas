@@ -59,7 +59,6 @@ type
   public
     destructor Destroy; override;
   public
-    const HOME_DOCUMENT = 'home';
     /// <summary>
     ///  The name of the segment of the URL's path enclusing all method calls.
     /// </summary>
@@ -294,7 +293,7 @@ end;
 
 function TKWebRequest.IsPageRefresh(const AURLDocument: string): Boolean;
 begin
-  Result := not IsAjax and MatchText(AURLDocument, ['', HOME_DOCUMENT, APP_NAMESPACE]);
+  Result := not IsAjax and MatchText(AURLDocument, ['', APP_NAMESPACE]);
 end;
 
 class procedure TKWebRequest.SetCurrent(const AValue: TKWebRequest);

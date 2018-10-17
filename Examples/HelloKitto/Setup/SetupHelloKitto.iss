@@ -46,7 +46,7 @@ Source: "..\..\..\Home\Locale\*"; DestDir: "{app}\Home\Locale"; Flags: ignorever
 
 ; Application files
 Source: "..\Home\HelloKitto.exe"; DestDir: "{app}\Home"; Flags: ignoreversion
-Source: "..\Home\*.cmd"; DestDir: "{app}\Home"; Flags: ignoreversion
+Source: "*.cmd"; DestDir: "{app}\Home"; Flags: ignoreversion
 Source: "..\Home\Locale\*"; DestDir: "{app}\Home\Locale"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Home\Metadata\Models\*"; DestDir: "{app}\Home\Metadata\Models"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\Home\Metadata\Views\*"; DestDir: "{app}\Home\Metadata\Views"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -54,7 +54,7 @@ Source: "..\Home\ReportTemplates\*"; DestDir: "{app}\Home\ReportTemplates"; Flag
 Source: "..\Home\Resources\*"; DestDir: "{app}\Home\Resources"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ;Custom Config copy for deployment: comparetimestamp so don't replace if file was changed directly on web-server
-Source: "..\Home\Metadata\Config.yaml"; DestDir: "{app}\Home\Metadata"; Flags: ignoreversion comparetimestamp uninsneveruninstall; Permissions: users-modify
+Source: "Config.yaml"; DestDir: "{app}\Home\Metadata"; Flags: ignoreversion comparetimestamp uninsneveruninstall; Permissions: users-modify
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
