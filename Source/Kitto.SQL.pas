@@ -625,7 +625,7 @@ begin
     LKeyDBColumnNames := LModel.GetKeyDBColumnNames;
     Assert(Length(LKeyDBColumnNames) > 0);
     if Length(LKeyDBColumnNames) <> 1 then
-      LKeyValues := AKeyValues.Split([TKConfig.Instance.MultiFieldSeparator], None)
+      LKeyValues := AKeyValues.Split([TKConfig.Instance.MultiFieldSeparator], TStringSplitOptions.None)
     else
     begin
       SetLength(LKeyValues, 1);

@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{44E44607-5754-4B0C-BEEB-4EEC44A09CE7}</ProjectGuid>
         <MainSource>KittoCore.dpk</MainSource>
-        <ProjectVersion>18.3</ProjectVersion>
+        <ProjectVersion>18.4</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -154,6 +154,7 @@
         <DCCReference Include="..\..\Source\Kitto.Auth.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Auth.TextFile.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Config.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.Defaults.pas"/>
         <DCCReference Include="..\..\Source\Kitto.DatabaseRouter.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Excel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.AccordionPanel.pas"/>
@@ -164,7 +165,7 @@
         <DCCReference Include="..\..\Source\Kitto.Ext.CalendarPanel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.ChangePassword.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.ChartPanel.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.Ext.Controller.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Ext.Panel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.DataPanel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.DataPanelComposite.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.DataPanelLeaf.pas"/>
@@ -208,7 +209,6 @@
         <DCCReference Include="..\..\Source\Kitto.SQL.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Store.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Types.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.Utils.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Web.Application.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Web.Engine.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Web.Request.pas"/>
@@ -222,6 +222,8 @@
             <Form>KWebModule</Form>
             <DesignClass>TWebModule</DesignClass>
         </DCCReference>
+        <DCCReference Include="..\..\Source\Kitto.JS.Controller.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Rtti.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.ResetPassword.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.Files.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Ext.UploadFileDialog.pas"/>

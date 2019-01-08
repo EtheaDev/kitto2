@@ -1577,7 +1577,7 @@ begin
     function(AField: TKField): Boolean
     begin
       if AField.IsCompositeField then
-        LFound := MatchText(FieldName, AField.FieldName.Split([TKConfig.Instance.MultiFieldSeparator], None));
+        LFound := MatchText(FieldName, AField.FieldName.Split([TKConfig.Instance.MultiFieldSeparator], TStringSplitOptions.None));
       Result := not LFound;
     end);
   Result := LFound;

@@ -4,9 +4,9 @@ AppTitle: Tasks & Activities
 # Default is the application name in lower case.
 AppPath: /taskitto
 Application:
-  # When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
-  # you can set this to False to gain some speed. Default is True.
-  #HandleResources: False
+# When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
+# you can set this to False to gain some speed. Default is True.
+#HandleResources: False
 
 # Defaults for entire application
 Defaults:
@@ -23,7 +23,7 @@ Defaults:
     MaxFieldWidth: 70
     MinFieldWidth: 6
     RequiredLabelTemplate: <i>{label}*</i>
-# Default/Layout/LabelSeparator empty if you don't want hide the default LabelSeparator (:)
+    # Default/Layout/LabelSeparator empty if you don't want hide the default LabelSeparator (:)
     LabelSeparator:
 
 Databases:
@@ -121,4 +121,3 @@ Engine:
     TimeOut: 10
     # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
     CleanupInterval: 30
-
