@@ -104,19 +104,14 @@ unit SynEditPrintHeaderFooter;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QSynEditPrintTypes,
-  QSynEditPrintMargins,
-  QSynUnicode,
-  QGraphics,
-{$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  UITypes,
+  {$ENDIF}
   Windows,
   SynEditPrintTypes,
   SynEditPrintMargins,
   SynUnicode,
   Graphics,
-{$ENDIF}
   Classes,
   SysUtils;
 
@@ -242,11 +237,7 @@ uses
 {$IFDEF SYN_COMPILER_4_UP}
   Math,
 {$ENDIF}
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs;
-{$ELSE}
   SynEditMiscProcs;
-{$ENDIF}
 
 // Helper routine for AsString processing.
 function GetFirstEl(var Value: UnicodeString; Delim: WideChar): UnicodeString;
@@ -282,11 +273,7 @@ begin
   Result :=
     EncodeString(FText) + '/' +
 {$IFDEF SYN_COMPILER_3_UP}
-{$IFDEF SYN_CLX}
-    IntToStr(Ord(FFont.Charset)) + '/' +
-{$ELSE}
     IntToStr(FFont.Charset) + '/' +
-{$ENDIF}
 {$ELSE}
     IntToStr(DEFAULT_CHARSET)+'/' +                             
 {$ENDIF}
@@ -400,7 +387,7 @@ begin
             begin
               Inc(Run); // also the '$'
               Start := Run;
-              break;
+              Break;
             end
             else
             begin
@@ -528,11 +515,7 @@ begin
   s := Value;
   FText := DecodeString(GetFirstEl(s, '/'));
 {$IFDEF SYN_COMPILER_3_UP}
-{$IFDEF SYN_CLX}
-  GetFirstEl(s, '/');
-{$ELSE}
   FFont.Charset := StrToIntDef(GetFirstEl(s, '/'), 0);
-{$ENDIF}
 {$ELSE}
   GetFirstEl(s, '/');
 {$ENDIF}
@@ -670,9 +653,7 @@ var
   i, CurLine: Integer;
   AItem: THeaderFooterItem;
   FOrgHeight: Integer;
-{$IFNDEF SYN_CLX}
   TextMetric: TTextMetric;
-{$ENDIF}
 begin
   FFrameHeight := -1;
   if FItems.Count <= 0 then Exit;
@@ -689,14 +670,12 @@ begin
       FOrgHeight := FFrameHeight;
     end;
     ACanvas.Font.Assign(AItem.Font);
-  {$IFNDEF SYN_CLX}
     GetTextMetrics(ACanvas.Handle, TextMetric);
     with TLineInfo(FLineInfo[CurLine - 1]), TextMetric do
     begin
       LineHeight := Max(LineHeight, TextHeight(ACanvas, 'W'));
       MaxBaseDist := Max(MaxBaseDist, tmHeight - tmDescent);
     end;
-  {$ENDIF}
     FFrameHeight := Max(FFrameHeight, FOrgHeight + TextHeight(ACanvas, 'W'));
   end;
   FFrameHeight := FFrameHeight + 2 * FMargins.PHFInternalMargin;
@@ -793,9 +772,7 @@ var
   i, X, Y, CurLine: Integer;
   AStr: UnicodeString;
   AItem: THeaderFooterItem;
-{$IFNDEF SYN_CLX}
   OldAlign: UINT;
-{$ENDIF}
   TheAlignment: TAlignment;
 begin
   if (FFrameHeight <= 0) then Exit; // No header/footer
@@ -837,14 +814,10 @@ begin
       end;
     end;
       {Aligning at base line - Fonts can have different size in headers and footers}
-  {$IFNDEF SYN_CLX}
     OldAlign := SetTextAlign(ACanvas.Handle, TA_BASELINE);
     ExtTextOutW(ACanvas.Handle, X, Y + TLineInfo(FLineInfo[CurLine - 1]).MaxBaseDist,
       0, nil, PWideChar(AStr), Length(AStr), nil);
     SetTextAlign(ACanvas.Handle, OldAlign);
-  {$ELSE}
-    TextOut(ACanvas, X, Y + TLineInfo(FLineInfo[CurLine - 1]).MaxBaseDist, AStr);
-  {$ENDIF}
   end;
   RestoreFontPenBrush(ACanvas);
 end;
@@ -884,7 +857,7 @@ end;
 
 function THeaderFooter.GetAsString: UnicodeString;
 var
-  i: integer;
+  i: Integer;
 begin
   FixLines;
   Result := '';
@@ -972,7 +945,7 @@ end;
 
 procedure THeaderFooter.SaveToStream(AStream: TStream);
 var
-  i, Num: integer;
+  i, Num: Integer;
   aCharset: TFontCharset;
   aColor: TColor;
   aHeight: Integer;
@@ -980,7 +953,7 @@ var
   aPitch: TFontPitch;
   aSize: Integer;
   aStyle: TFontStyles;
-  aLen : integer;
+  aLen : Integer;
 begin
   with AStream do begin
     // write the header/footer properties first

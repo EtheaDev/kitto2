@@ -60,12 +60,6 @@
 (* SYN_COMPILER_21_UP   : Delphi XE7  or higher is the compiler.              *)
 (* SYN_COMPILER_22      : Delphi XE8  is the compiler.                        *)
 (* SYN_COMPILER_22_UP   : Delphi XE8  or higher is the compiler.              *)
-(* SYN_COMPILER_23      : Delphi 10   is the compiler.                        *)
-(* SYN_COMPILER_23_UP   : Delphi 10   or higher is the compiler.              *)
-(* SYN_COMPILER_24      : Delphi 10.1 is the compiler.                        *)
-(* SYN_COMPILER_24_UP   : Delphi 10.1 or higher is the compiler.              *)
-(* SYN_COMPILER_25      : Delphi 10.2 is the compiler.                        *)
-(* SYN_COMPILER_25_UP   : Delphi 10.2 or higher is the compiler.              *)
 (* SYN_CPPB             : Any version of C++Builder is being used.            *)
 (* SYN_CPPB_1           : C++B v1.0x is being used.                           *)
 (* SYN_CPPB_3           : C++B v3.0x is being used.                           *)
@@ -102,30 +96,31 @@
 (* SYN_DELPHI_2009_UP   : Delphi 2009 or higher is being used.                *)
 (* SYN_DELPHI_2010      : Delphi 2010 is being used.                          *)
 (* SYN_DELPHI_2010_UP   : Delphi 2010 or higher is being used.                *)
-(* SYN_DELPHI_XE        : Delphi XE   is being used.                          *)
-(* SYN_DELPHI_XE_UP     : Delphi XE   or higher is being used.                *)
-(* SYN_DELPHI_XE2       : Delphi XE2  is being used.                          *)
-(* SYN_DELPHI_XE2_UP    : Delphi XE2  or higher is being used.                *)
-(* SYN_DELPHI_XE3       : Delphi XE3  is being used.                          *)
-(* SYN_DELPHI_XE3_UP    : Delphi XE3  or higher is being used.                *)
-(* SYN_DELPHI_XE4       : Delphi XE4  is being used.                          *)
-(* SYN_DELPHI_XE4_UP    : Delphi XE4  or higher is being used.                *)
-(* SYN_DELPHI_XE5       : Delphi XE5  is being used.                          *)
-(* SYN_DELPHI_XE5_UP    : Delphi XE5  or higher is being used.                *)
-(* SYN_DELPHI_XE6       : Delphi XE6  is being used.                          *)
-(* SYN_DELPHI_XE6_UP    : Delphi XE6  or higher is being used.                *)
-(* SYN_DELPHI_XE7       : Delphi XE7  is being used.                          *)
-(* SYN_DELPHI_XE7_UP    : Delphi XE7  or higher is being used.                *)
-(* SYN_DELPHI_XE8       : Delphi XE8  is being used.                          *)
-(* SYN_DELPHI_XE8_UP    : Delphi XE8  or higher is being used.                *)
-(* SYN_DELPHI_10        : Delphi 10   is being used.                          *)
-(* SYN_DELPHI_10_UP     : Delphi 10   or higher is being used.                *)
-(* SYN_DELPHI_10_1      : Delphi 10.1 is being used.                          *)
-(* SYN_DELPHI_10_1_UP   : Delphi 10.1 or higher is being used.                *)
-(* SYN_DELPHI_10_2      : Delphi 10.2 is being used.                          *)
-(* SYN_DELPHI_10_2_UP   : Delphi 10.2 or higher is being used.                *)
+(* SYN_DELPHI_XE        : Delphi XE is being used.                            *)
+(* SYN_DELPHI_XE_UP     : Delphi XE or higher is being used.                  *)
+(* SYN_DELPHI_XE2       : Delphi XE2 is being used.                           *)
+(* SYN_DELPHI_XE2_UP    : Delphi XE2 or higher is being used.                 *)
+(* SYN_DELPHI_XE3       : Delphi XE3 is being used.                           *)
+(* SYN_DELPHI_XE3_UP    : Delphi XE3 or higher is being used.                 *)
+(* SYN_DELPHI_XE4       : Delphi XE4 is being used.                           *)
+(* SYN_DELPHI_XE4_UP    : Delphi XE4 or higher is being used.                 *)
+(* SYN_DELPHI_XE5       : Delphi XE5 is being used.                           *)
+(* SYN_DELPHI_XE5_UP    : Delphi XE5 or higher is being used.                 *)
+(* SYN_DELPHI_XE6       : Delphi XE6 is being used.                           *)
+(* SYN_DELPHI_XE6_UP    : Delphi XE6 or higher is being used.                 *)
+(* SYN_DELPHI_XE7       : Delphi XE7 is being used.                           *)
+(* SYN_DELPHI_XE7_UP    : Delphi XE7 or higher is being used.                 *)
+(* SYN_DELPHI_XE8       : Delphi XE8 is being used.                           *)
+(* SYN_DELPHI_XE8_UP    : Delphi XE8 or higher is being used.                 *)
+(* SYN_DELPHI_10        : Delphi RX 10 (Seattle) is being used.               *)
+(* SYN_DELPHI_10_UP     : Delphi RX 10 or higher is being used.               *)
+(* SYN_DELPHI_10_1      : Delphi RX 10.1 (Berlin) is being used.              *)
+(* SYN_DELPHI_10_1_UP   : Delphi RX 10.1 or higher is being used.             *)
+(* SYN_DELPHI_10_2      : Delphi RX 10.2 (Tokyo) is being used.               *)
+(* SYN_DELPHI_10_2_UP   : Delphi RX 10.2 or higher is being used.             *)
+(* SYN_DELPHI_10_3      : Delphi RX 10.3 (Rio) is being used.                 *)
+(* SYN_DELPHI_10_3_UP   : Delphi RX 10.3 or higher is being used.             *)
 (* SYN_KYLIX            : Kylix 1.0 is being using.                           *)
-(* SYN_CLX              : A CLX application is being created.                 *)
 (******************************************************************************)
 
 {$DEFINE SYNEDIT_INCLUDE}
@@ -169,6 +164,12 @@
 {------------------------------------------------------------------------------}
 { VERXXX to SYN_COMPILERX, SYN_DELPHIX and SYN_CPPBX mappings                  }
 {------------------------------------------------------------------------------}
+
+{$IFDEF VER330}
+  {$DEFINE SYN_COMPILER_26}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_10_3}
+{$ENDIF}
 
 {$IFDEF VER320}
   {$DEFINE SYN_COMPILER_25}
@@ -709,6 +710,35 @@
   {$DEFINE SYN_COMPILER_25_UP}
 {$ENDIF}
 
+{$IFDEF SYN_COMPILER_26}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+  {$DEFINE SYN_COMPILER_4_UP}
+  {$DEFINE SYN_COMPILER_5_UP}
+  {$DEFINE SYN_COMPILER_6_UP}
+  {$DEFINE SYN_COMPILER_7_UP}
+  {$DEFINE SYN_COMPILER_8_UP}
+  {$DEFINE SYN_COMPILER_9_UP}
+  {$DEFINE SYN_COMPILER_10_UP}
+  {$DEFINE SYN_COMPILER_11_UP}
+  {$DEFINE SYN_COMPILER_12_UP}
+  {$DEFINE SYN_COMPILER_14_UP}
+  {$DEFINE SYN_COMPILER_15_UP}
+  {$DEFINE SYN_COMPILER_16_UP}
+  {$DEFINE SYN_COMPILER_17_UP}
+  {$DEFINE SYN_COMPILER_18_UP}
+  {$DEFINE SYN_COMPILER_19_UP}
+  {$DEFINE SYN_COMPILER_20_UP}
+  {$DEFINE SYN_COMPILER_21_UP}
+  {$DEFINE SYN_COMPILER_22_UP}
+  {$DEFINE SYN_COMPILER_23_UP}
+  {$DEFINE SYN_COMPILER_24_UP}
+  {$DEFINE SYN_COMPILER_25_UP}
+  {$DEFINE SYN_COMPILER_26_UP}
+{$ENDIF}
+
+
 {$IFDEF SYN_DELPHI_2}
   {$DEFINE SYN_DELPHI_2_UP}
 {$ENDIF}
@@ -1024,7 +1054,6 @@
   {$DEFINE SYN_DELPHI_XE6_UP}
   {$DEFINE SYN_DELPHI_XE7_UP}
   {$DEFINE SYN_DELPHI_XE8_UP}
-  {$DEFINE SYN_DELPHI_10_UP}
   {$DEFINE SYN_DELPHI_10_1_UP}
 {$ENDIF}
 
@@ -1049,9 +1078,34 @@
   {$DEFINE SYN_DELPHI_XE6_UP}
   {$DEFINE SYN_DELPHI_XE7_UP}
   {$DEFINE SYN_DELPHI_XE8_UP}
-  {$DEFINE SYN_DELPHI_10_UP}
   {$DEFINE SYN_DELPHI_10_1_UP}
   {$DEFINE SYN_DELPHI_10_2_UP}
+{$ENDIF}
+
+{$IFDEF SYN_DELPHI_10_3}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+  {$DEFINE SYN_DELPHI_5_UP}
+  {$DEFINE SYN_DELPHI_6_UP}
+  {$DEFINE SYN_DELPHI_7_UP}
+  {$DEFINE SYN_DELPHI_8_UP}
+  {$DEFINE SYN_DELPHI_2005_UP}
+  {$DEFINE SYN_DELPHI_2006_UP}
+  {$DEFINE SYN_DELPHI_2007_UP}
+  {$DEFINE SYN_DELPHI_2009_UP}
+  {$DEFINE SYN_DELPHI_2010_UP}
+  {$DEFINE SYN_DELPHI_XE_UP}
+  {$DEFINE SYN_DELPHI_XE2_UP}
+  {$DEFINE SYN_DELPHI_XE3_UP}
+  {$DEFINE SYN_DELPHI_XE4_UP}
+  {$DEFINE SYN_DELPHI_XE5_UP}
+  {$DEFINE SYN_DELPHI_XE6_UP}
+  {$DEFINE SYN_DELPHI_XE7_UP}
+  {$DEFINE SYN_DELPHI_XE8_UP}
+  {$DEFINE SYN_DELPHI_10_1_UP}
+  {$DEFINE SYN_DELPHI_10_2_UP}
+  {$DEFINE SYN_DELPHI_10_3_UP}
 {$ENDIF}
 
 {$IFDEF SYN_CPPB_6}
@@ -1075,18 +1129,7 @@
 {$ENDIF}
 
 {$IFDEF SYN_KYLIX}
-  // A Kylix application is always a CLX application
-  {$DEFINE SYN_CLX}
-
-  {$IF not Declared(CompilerVersion)}
-    {$DEFINE SYN_KYLIX_1}
-  {$ELSEIF Declared(CompilerVersion) and (CompilerVersion > +14)}
-    {$DEFINE SYN_KYLIX_2}
-  {$ELSEIF Declared(CompilerVersion) and (CompilerVersion < +15)}
-    {$DEFINE SYN_KYLIX_3}
-  {$ELSEIF True}
-    Add new Kylix version
-  {$IFEND}
+  Kylix is no longer supported. Please refer to the branch 'Kylix'
 {$ELSE}
   {$DEFINE SYN_WIN32}
 {$ENDIF}
@@ -1111,6 +1154,12 @@
 {$ENDIF}
 
 // Turn this off if you don't need complex script support, since it is slower
-{.$DEFINE SYN_UNISCRIBE}
+{-$DEFINE SYN_UNISCRIBE}
 
-// $Id: SynEdit.inc,v 1.16.2.19 2009/06/14 13:41:44 maelh Exp $
+// Code Folding
+{$IFDEF SYN_DELPHI_XE_UP}
+  {$DEFINE SYN_CodeFolding}
+{$ENDIF}
+
+
+

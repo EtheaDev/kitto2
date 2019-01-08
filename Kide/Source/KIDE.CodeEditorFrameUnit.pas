@@ -164,7 +164,7 @@ begin
   else if SameText(AExt, '.css') then
   begin
     FSynHighlighter := TSynCssSyn.Create(Self);
-    TSynCssSyn(FSynHighlighter).KeyAttri.Foreground := clBlue;
+    TSynCssSyn(FSynHighlighter).KeywordAttribute.Foreground := clBlue;
     TSynCssSyn(FSynHighlighter).SymbolAttri.Foreground := clGreen;
     TSynCssSyn(FSynHighlighter).StringAttri.Foreground := clTeal;
     HelpContext := 150;

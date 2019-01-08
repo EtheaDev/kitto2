@@ -54,21 +54,11 @@ uses
   {$ELSE}
   Windows,
   {$ENDIF}
-  {$IFDEF SYN_CLX}
-  Types,
-  Qt,
-  QControls,
-  QSynEditTypes,
-  QSynEdit,
-  QSynHighlighterURI,
-  QSynUnicode,
-  {$ELSE}
   Controls,
   SynEditTypes,
   SynEdit,
   SynHighlighterURI,
   SynUnicode,
-  {$ENDIF}
   Classes;
 
 type
@@ -150,15 +140,9 @@ uses
   {$ELSE}
   ShellAPI,
   {$ENDIF}
-  {$IFDEF SYN_CLX}
-  QForms,
-  QSynEditHighlighter,
-  QSynEditKeyConst,
-  {$ELSE}
   Forms,
   SynEditHighlighter,
   SynEditKeyConst,
-  {$ENDIF}
   SysUtils;
 
 type
@@ -268,12 +252,12 @@ var
   Attri: TSynHighlighterAttributes;
 begin
   if (Button <> mbLeft) or (FCtrlActivatesLinks and not FControlDown) or
-    (Abs(FMouseDownX - X) > 4) or (Abs(FMouseDownY - Y) > 4) then exit;
+    (Abs(FMouseDownX - X) > 4) or (Abs(FMouseDownY - Y) > 4) then Exit;
 
   with TAccessCustomSynEdit(FEditor) do
   begin
     if (eoDragDropEditing in Options) and IsPointInSelection(ptLineCol) then
-      exit;
+      Exit;
 
     if X >= fGutterWidth then
     begin
@@ -394,7 +378,6 @@ begin
   Result := FVisitedURIs.Find(URI, Dummy);
 end;
 
-{$IFNDEF SYN_CLX}
 const
   IDC_LINK = MakeIntResource(32649);
 
@@ -405,6 +388,5 @@ initialization
   CursorHandle := LoadCursor(0, IDC_LINK);
   if CursorHandle <> 0 then
     Screen.Cursors[crHandPoint] := CursorHandle;
-{$ENDIF}
 
 end.

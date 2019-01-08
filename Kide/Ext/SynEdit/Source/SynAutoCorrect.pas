@@ -105,18 +105,6 @@ uses
 {$ELSE}
   Libc,
 {$ENDIF}
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QControls,
-  QForms,
-  QDialogs,
-  Types,
-  QSynEditMiscProcs,
-  QSynEditTypes,
-  QSynEditKeyCmds,
-  QSynEdit,
-  QSynUnicode,
-{$ELSE}
   Registry,
   Messages,
   Graphics,
@@ -127,9 +115,8 @@ uses
   SynEditTypes,
   SynEditKeyCmds,
   SynEdit,
-  SynEditMiscClasses,   
+  SynEditMiscClasses,
   SynUnicode,
-{$ENDIF}
   Classes,
   SysUtils,
   IniFiles;
@@ -171,7 +158,6 @@ type
     function GetItems: TUnicodeStrings;
     procedure SetItems(const Value: TUnicodeStrings);
   protected
-    { Protected declarations }
     procedure DefineProperties(Filer: TFiler); override;
     procedure KeyboardHandler(Sender: TObject; AfterProcessing: Boolean;
       var Handled: Boolean; var Command: TSynEditorCommand; var AChar: WideChar;
@@ -182,7 +168,6 @@ type
       Operation: TOperation); override;
     procedure SetEditor(Value: TCustomSynEdit);
   public
-    { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -194,10 +179,8 @@ type
     procedure LoadFromINI(AFileName, ASection: string);
     procedure SaveToINI(AFileName, ASection: string);
 
-{$IFNDEF SYN_CLX}
     procedure LoadFromRegistry(ARoot: DWORD; AKey: string);
     procedure SaveToRegistry(ARoot: DWORD; AKey: string);
-{$ENDIF}
 
     function LoadFromList(AFileName: string): Boolean;
     procedure SaveToList(AFileName: string);
@@ -205,7 +188,6 @@ type
     { Utility functions }
     function HalfString(Str: UnicodeString; GetFirstHalf: Boolean): UnicodeString;
   public
-    { Published declarations }
     property Enabled: Boolean read FEnabled write FEnabled default True;
     property Editor: TCustomSynEdit read FEditor write SetEditor;
     property Items: TUnicodeStrings read GetItems write SetItems;
@@ -220,7 +202,6 @@ type
 
   TSynAutoCorrect = class(TCustomSynAutoCorrect)
   published
-    { Published declarations }
     property Enabled;
     property Editor;
     property Items;
@@ -332,7 +313,6 @@ begin
   FItems.SaveToFile(AFileName);
 end;
 
-{$IFNDEF SYN_CLX}
 procedure TCustomSynAutoCorrect.LoadFromRegistry(ARoot: DWORD; AKey: string);
 var
   i: Integer;
@@ -382,7 +362,6 @@ begin
     Reg.Free;
   end;
 end;
-{$ENDIF}
 
 procedure TCustomSynAutoCorrect.Add(AOriginal, ACorrection: UnicodeString);
 begin

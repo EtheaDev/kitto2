@@ -44,19 +44,9 @@ unit SynEditKeyCmdEditor;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QMenus,
-  QControls,
-  QForms,
-  QDialogs,
-  QStdCtrls,
-  QExtCtrls,
-  QComCtrls,
-  QSynEditKeyCmds,
-  QSynEditMiscClasses,
-{$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  UITypes,
+  {$ENDIF}
   Windows,
   Messages,
   Graphics,
@@ -69,7 +59,6 @@ uses
   ExtCtrls,
   SynEditKeyCmds,
   SynEditMiscClasses,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -199,7 +188,7 @@ begin
 //This would be better if componentized, but oh well...
   WorkStr := AnsiUppercase(Copy(cmbCommand.Text, 1, cmbCommand.SelStart) + Key);
   i := 0;
-  While i < cmbCommand.Items.Count do
+  while i < cmbCommand.Items.Count do
   begin
     if pos(WorkStr, AnsiUppercase(cmbCommand.Items[i])) = 1 then
     begin
@@ -207,8 +196,10 @@ begin
       cmbCommand.SelStart := length(WorkStr);
       cmbCommand.SelLength := Length(cmbCommand.Text) - cmbCommand.SelStart;
       Key := #0;
-      break;
-    end else inc(i);
+      Break;
+    end
+    else
+      Inc(i);
   end;
 end;
 

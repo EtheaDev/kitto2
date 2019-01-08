@@ -48,19 +48,11 @@ unit SynExportHTML;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QSynEditExport,
-  QSynEditHighlighter,
-  QSynUnicode,  
-{$ELSE}
   Windows,
   Graphics,
   SynEditExport,
   SynEditHighlighter,
-  SynUnicode,    
-{$ENDIF}
+  SynUnicode,
   Classes;
 
 type
@@ -79,14 +71,14 @@ type
       Attri: TSynHighlighterAttributes; UniqueAttriName: string;
       Params: array of Pointer): Boolean;
   protected
-    fCreateHTMLFragment: boolean;
+    FCreateHTMLFragment: Boolean;
     procedure FormatAfterLastAttribute; override;
-    procedure FormatAttributeDone(BackgroundChanged, ForegroundChanged: boolean;
+    procedure FormatAttributeDone(BackgroundChanged, ForegroundChanged: Boolean;
       FontStylesChanged: TFontStyles); override;
-    procedure FormatAttributeInit(BackgroundChanged, ForegroundChanged: boolean;
+    procedure FormatAttributeInit(BackgroundChanged, ForegroundChanged: Boolean;
       FontStylesChanged: TFontStyles); override;
     procedure FormatBeforeFirstAttribute(BackgroundChanged,
-      ForegroundChanged: boolean; FontStylesChanged: TFontStyles); override;
+      ForegroundChanged: Boolean; FontStylesChanged: TFontStyles); override;
     procedure FormatNewLine; override;
     function GetFooter: UnicodeString; override;
     function GetFormatName: string; override;
@@ -98,8 +90,8 @@ type
     function SupportedEncodings: TSynEncodings; override;
   published
     property Color;
-    property CreateHTMLFragment: boolean read fCreateHTMLFragment
-      write fCreateHTMLFragment default False;
+    property CreateHTMLFragment: Boolean read FCreateHTMLFragment
+      write FCreateHTMLFragment default False;
     property DefaultFilter;
     property Encoding;
     property Font;
@@ -111,15 +103,9 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs,
-  QSynEditStrConst,
-  QSynHighlighterMulti,
-{$ELSE}
   SynEditMiscProcs,
-  SynEditStrConst,  
+  SynEditStrConst,
   SynHighlighterMulti,
-{$ENDIF}
   SysUtils;
 
 
@@ -130,10 +116,8 @@ const
   CF_HTML = 'HTML Format';
 begin
   inherited Create(AOwner);
-  {$IFNDEF SYN_CLX}
-  fClipboardFormat := RegisterClipboardFormat(CF_HTML);
-  {$ENDIF} // TODO: register for Kylix, too, see what Netscape Composer uses/accepts
-  fDefaultFilter := SYNS_FilterHTML;
+  FClipboardFormat := RegisterClipboardFormat(CF_HTML);
+  FDefaultFilter := SYNS_FilterHTML;
   FEncoding := seUTF8;
 end;
 
@@ -208,13 +192,13 @@ begin
 end;
 
 procedure TSynExporterHTML.FormatAttributeDone(BackgroundChanged,
-  ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
+  ForegroundChanged: Boolean; FontStylesChanged: TFontStyles);
 begin
   AddData('</span>');
 end;
 
 procedure TSynExporterHTML.FormatAttributeInit(BackgroundChanged,
-  ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
+  ForegroundChanged: Boolean; FontStylesChanged: TFontStyles);
 var
   StyleName: string;
 begin
@@ -223,7 +207,7 @@ begin
 end;
 
 procedure TSynExporterHTML.FormatBeforeFirstAttribute(BackgroundChanged,
-  ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
+  ForegroundChanged: Boolean; FontStylesChanged: TFontStyles);
 var
   StyleName: string;
 begin
@@ -243,7 +227,7 @@ begin
     Result := '</span>'#13#10'</code></pre>'#13#10
   else
     Result := '</code></pre><!--EndFragment-->';
-  if not(fCreateHTMLFragment and fExportAsText) then
+  if not(FCreateHTMLFragment and fExportAsText) then
     Result := Result + '</body>'#13#10'</html>';
 end;
 
@@ -292,7 +276,7 @@ begin
   Result := '';
   if fExportAsText then
   begin
-    if not fCreateHTMLFragment then
+    if not FCreateHTMLFragment then
       Result := Header;
 
     Result := Result + Format('<pre>'#13#10'<code><span style="font: %dpt %s;">',

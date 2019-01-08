@@ -49,7 +49,7 @@ Last Changes:
 unit SynUnicode;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -57,16 +57,11 @@ uses
   {$IFDEF SYN_WIN32}
   Windows,
   {$ENDIF}
-  {$IFDEF SYN_CLX}
-  QGraphics,
-  QClipbrd,  
-  {$ELSE}
   Messages,
   Controls,
   Forms,
   Graphics,
-  Clipbrd,  
-  {$ENDIF}
+  Clipbrd,
   {$IFDEF SYN_COMPILER_6_UP}
   Types,
   {$ENDIF}
@@ -201,7 +196,8 @@ type
     procedure LoadFromFile(const FileName: TFileName); virtual;
     procedure LoadFromStream(Stream: TStream); virtual;
     procedure Move(CurIndex, NewIndex: Integer); virtual;
-    procedure SaveToFile(const FileName: TFileName); virtual;
+    procedure SaveToFile(const FileName: TFileName); overload; virtual;
+    procedure SaveToFile(const FileName: TFileName; WithBOM: Boolean); overload; virtual;
     procedure SaveToStream(Stream: TStream; WithBOM: Boolean = True); virtual;
     procedure SetTextStr(const Value: UnicodeString); virtual;
 
@@ -305,7 +301,7 @@ procedure WStrDispose(Str: PWideChar);
 
 
 {$IFNDEF SYN_COMPILER_6_UP}
-{$IFDEF SYN_WIN32} // Kylix should have that from version 1 on
+{$IFDEF SYN_WIN32}
 function UnicodeToUtf8(Dest: PAnsiChar; MaxDestBytes: Cardinal;
   Source: PWideChar; SourceChars: Cardinal): Cardinal;
 function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: Cardinal;
@@ -445,13 +441,9 @@ var
 implementation
 
 uses
-  {$IFDEF SYN_CLX}
-  QSynEditTextBuffer,
-  {$ELSE}
   SynEditTextBuffer,
-    {$IFDEF SYN_UNISCRIBE}
-    SynUsp10,
-    {$ENDIF}
+  {$IFDEF SYN_UNISCRIBE}
+  SynUsp10,
   {$ENDIF}
   Math,
   {$IFDEF SYN_LINUX}
@@ -464,11 +456,7 @@ uses
   {$IFDEF SYN_COMPILER_6_UP}
   RTLConsts;
   {$ELSE}
-    {$IFDEF SYN_CLX}
-    QConsts;
-    {$ELSE}
-    Consts;
-    {$ENDIF}
+  Consts;
   {$ENDIF}
 
 {$IFNDEF UNICODE}
@@ -954,7 +942,15 @@ begin
         System.Move(ByteOrderMask[0], SA[1], BytesRead); // max 6 bytes = 6 chars
         if Size > BytesRead then
           Stream.Read(SA[7], Size - BytesRead); // first 6 chars were copied by System.Move
+          SW := UTF8Decode(SA);
+          if SW <> '' then
+           begin
+           FSaveFormat := sfUTF8;
+           SetTextStr(SW);
+           Loaded := True;
+           end;
       end;
+      if not Loaded then
       SetTextStr(SA);
     end;
   finally
@@ -998,6 +994,18 @@ begin
   Stream := TFileStream.Create(FileName, fmCreate);
   try
     SaveToStream(Stream);
+  finally
+    Stream.Free;
+  end;
+end;
+
+procedure TUnicodeStrings.SaveToFile(const FileName: TFileName; WithBOM: Boolean);
+var
+  Stream: TStream;
+begin
+  Stream := TFileStream.Create(FileName, fmCreate);
+  try
+    SaveToStream(Stream, WithBOM);
   finally
     Stream.Free;
   end;
@@ -1631,7 +1639,7 @@ asm
         JZ      @@1
         REPNE   SCASW
         JNE     @@1
-        INC     ECX
+        Inc     ECX
 @@1:    SUB     EBX,ECX
         MOV     EDI,ESI
         MOV     ESI,EDX
@@ -1726,7 +1734,7 @@ begin
       else if c > $7FF then
       begin
         if count + 3 > MaxDestBytes then
-          break;
+          Break;
         Dest[count] := Char($E0 or (c shr 12));
         Dest[count+1] := Char($80 or ((c shr 6) and $3F));
         Dest[count+2] := Char($80 or (c and $3F));
@@ -1735,7 +1743,7 @@ begin
       else //  $7F < Source[i] <= $7FF
       begin
         if count + 2 > MaxDestBytes then
-          break;
+          Break;
         Dest[count] := Char($C0 or (c shr 6));
         Dest[count+1] := Char($80 or (c and $3F));
         Inc(count,2);
@@ -1949,11 +1957,7 @@ begin
       Result := lpsz;
       while lpsz^ <> #0 do
       begin
-        {$IFDEF SYN_CLX}
-        lpsz^ := WideChar(QSynUnicode.WCharUpper(PWideChar(lpsz^)));
-        {$ELSE}
         lpsz^ := WideChar(SynUnicode.WCharUpper(PWideChar(lpsz^)));
-        {$ENDIF}
         Inc(lpsz);
       end;
     end;
@@ -1962,7 +1966,7 @@ end;
 
 function WCharUpperBuff(lpsz: PWideChar; cchLength: DWORD): DWORD;
 var
-  i: integer;
+  i: Integer;
 begin
   if Win32PlatformIsUnicode then
     Result := Windows.CharUpperBuffW(lpsz, cchLength)
@@ -1971,11 +1975,7 @@ begin
     Result := cchLength;
     for i := 1 to cchLength do
     begin
-      {$IFDEF SYN_CLX}
-      lpsz^ := WideChar(QSynUnicode.WCharUpper(PWideChar(lpsz^)));
-      {$ELSE}
       lpsz^ := WideChar(SynUnicode.WCharUpper(PWideChar(lpsz^)));
-      {$ENDIF}
       Inc(lpsz);
     end;
   end;
@@ -2009,11 +2009,7 @@ begin
       Result := lpsz;
       while lpsz^ <> #0 do
       begin
-        {$IFDEF SYN_CLX}
-        lpsz^ := WideChar(QSynUnicode.WCharLower(PWideChar(lpsz^)));
-        {$ELSE}
         lpsz^ := WideChar(SynUnicode.WCharLower(PWideChar(lpsz^)));
-        {$ENDIF}
         Inc(lpsz);
       end;
     end;
@@ -2022,7 +2018,7 @@ end;
 
 function WCharLowerBuff(lpsz: PWideChar; cchLength: DWORD): DWORD;
 var
-  i: integer;
+  i: Integer;
 begin
   if Win32PlatformIsUnicode then
     Result := Windows.CharLowerBuffW(lpsz, cchLength)
@@ -2031,11 +2027,7 @@ begin
     Result := cchLength;
     for i := 1 to cchLength do
     begin
-      {$IFDEF SYN_CLX}
-      lpsz^ := WideChar(QSynUnicode.WCharLower(PWideChar(lpsz^)));
-      {$ELSE}
       lpsz^ := WideChar(SynUnicode.WCharLower(PWideChar(lpsz^)));
-      {$ENDIF}
       Inc(lpsz);
     end;
   end;
@@ -2048,8 +2040,7 @@ begin
   Len := Length(S);
   SetString(Result, PWideChar(S), Len);
   if Len > 0 then
-    {$IFDEF SYN_CLX} QSynUnicode. {$ELSE} SynUnicode. {$ENDIF}
-    WCharUpperBuff(Pointer(Result), Len);
+    SynUnicode.WCharUpperBuff(Pointer(Result), Len);
 end;
 
 function SynWideLowerCase(const S: UnicodeString): UnicodeString;
@@ -2059,8 +2050,7 @@ begin
   Len := Length(S);
   SetString(Result, PWideChar(S), Len);
   if Len > 0 then
-    {$IFDEF SYN_CLX} QSynUnicode. {$ELSE} SynUnicode. {$ENDIF}
-    WCharLowerBuff(Pointer(Result), Len);
+    SynUnicode.WCharLowerBuff(Pointer(Result), Len);
 end;
 {$ELSE}
 function SynWideUpperCase(const S: UnicodeString): UnicodeString;
@@ -2539,40 +2529,25 @@ type
 
 function TextExtent(ACanvas: TCanvas; const Text: UnicodeString): TSize;
 begin
-{$IFDEF SYN_CLX}
-  Result := ACanvas.TextExtent(Text);
-{$ELSE}
   with TAccessCanvas(ACanvas) do
   begin
     RequiredState([csHandleValid, csFontValid]);
     Result := GetTextSize(Handle, PWideChar(Text), Length(Text));
   end;
-{$ENDIF}
 end;
 
 function TextWidth(ACanvas: TCanvas; const Text: UnicodeString): Integer;
 begin
-{$IFDEF SYN_CLX}
-  Result := ACanvas.TextExtent(Text).cX;
-{$ELSE}
   Result := TextExtent(ACanvas, Text).cX;
-{$ENDIF}
 end;
 
 function TextHeight(ACanvas: TCanvas; const Text: UnicodeString): Integer;
 begin
-{$IFDEF SYN_CLX}
-  Result := ACanvas.TextExtent(Text).cY;
-{$ELSE}
   Result := TextExtent(ACanvas, Text).cY;
-{$ENDIF}
 end;
 
 procedure TextOut(ACanvas: TCanvas; X, Y: Integer; const Text: UnicodeString);
 begin
-{$IFDEF SYN_CLX}
-  ACanvas.TextOut(X, Y, Text);
-{$ELSE}
   with TAccessCanvas(ACanvas) do
   begin
     Changing;
@@ -2584,19 +2559,13 @@ begin
     MoveTo(X + SynUnicode.TextWidth(ACanvas, Text), Y);
     Changed;
   end;
-{$ENDIF}
 end;
 
 procedure TextRect(ACanvas: TCanvas; Rect: TRect; X, Y: Integer;
   const Text: UnicodeString);
-{$IFNDEF SYN_CLX}
 var
   Options: Longint;
-{$ENDIF}
 begin
-{$IFDEF SYN_CLX}
-  ACanvas.TextRect(Rect, X, Y, Text);
-{$ELSE}
   with TAccessCanvas(ACanvas) do
   begin
     Changing;
@@ -2612,7 +2581,6 @@ begin
       Length(Text), nil);
     Changed;
   end;
-{$ENDIF}
 end;
 
 {$IFNDEF UNICODE}
@@ -2833,14 +2801,14 @@ var
   function CountOfTrailingBytes: Integer;
   begin
     Result := 0;
-    inc(i);
+    Inc(i);
     while (i < BufferSize) and (Result < 4) do
     begin
       if Buffer[i] in [$80..$BF] then
-        inc(Result)
+        Inc(Result)
       else
         Break;
-      inc(i);
+      Inc(i);
     end;
   end;
 
@@ -2888,48 +2856,48 @@ begin
           ;
         $C2..$DF:
           if CountOfTrailingBytes = 1 then
-            inc(FoundUTF8Strings)
+            Inc(FoundUTF8Strings)
           else
             Break;
         $E0:
           begin
-            inc(i);
+            Inc(i);
             if (i < BufferSize) and (Buffer[i] in [$A0..$BF]) and (CountOfTrailingBytes = 1) then
-              inc(FoundUTF8Strings)
+              Inc(FoundUTF8Strings)
             else
               Break;
           end;
         $E1..$EC, $EE..$EF:
           if CountOfTrailingBytes = 2 then
-            inc(FoundUTF8Strings)
+            Inc(FoundUTF8Strings)
           else
             Break;
         $ED:
           begin
-            inc(i);
+            Inc(i);
             if (i < BufferSize) and (Buffer[i] in [$80..$9F]) and (CountOfTrailingBytes = 1) then
-              inc(FoundUTF8Strings)
+              Inc(FoundUTF8Strings)
             else
               Break;
           end;
         $F0:
           begin
-            inc(i);
+            Inc(i);
             if (i < BufferSize) and (Buffer[i] in [$90..$BF]) and (CountOfTrailingBytes = 2) then
-              inc(FoundUTF8Strings)
+              Inc(FoundUTF8Strings)
             else
               Break;
           end;
         $F1..$F3:
           if CountOfTrailingBytes = 3 then
-            inc(FoundUTF8Strings)
+            Inc(FoundUTF8Strings)
           else
             Break;
         $F4:
           begin
-            inc(i);
+            Inc(i);
             if (i < BufferSize) and (Buffer[i] in [$80..$8F]) and (CountOfTrailingBytes = 2) then
-              inc(FoundUTF8Strings)
+              Inc(FoundUTF8Strings)
             else
               Break;
           end;
@@ -2946,7 +2914,7 @@ begin
         Break;
       end;
 
-      inc(i);
+      Inc(i);
     end;
   end;
 end;
@@ -3162,7 +3130,7 @@ var
           if (Length(BOM) <> Length(UTF8BOM)) or
             not CompareMem(@BOM[0], @UTF8BOM[0], Length(UTF8BOM))
           then
-            Stream.Seek(-Length(BOM), soCurrent)
+            Stream.Seek(-Length(BOM), {$IFDEF SYN_DELPHI_XE4_UP}soCurrent{$ELSE}soFromCurrent{$ENDIF})
           else
             Result := True;
         end;
@@ -3173,7 +3141,7 @@ var
           if (Length(BOM) <> Length(UTF16BOMLE)) or
             not CompareMem(@BOM[0], @UTF16BOMLE[0], Length(UTF16BOMLE))
           then
-            Stream.Seek(-Length(BOM), soCurrent)
+            Stream.Seek(-Length(BOM), {$IFDEF SYN_DELPHI_XE4_UP}soCurrent{$ELSE}soFromCurrent{$ENDIF})
           else
             Result := True;
         end;
@@ -3184,7 +3152,7 @@ var
           if (Length(BOM) <> Length(UTF16BOMBE)) or
             not CompareMem(@BOM[0], @UTF16BOMBE[0], Length(UTF16BOMBE))
           then
-            Stream.Seek(-Length(BOM), soCurrent)
+            Stream.Seek(-Length(BOM), {$IFDEF SYN_DELPHI_XE4_UP}soCurrent{$ELSE}soFromCurrent{$ENDIF})
           else
             Result := True;
         end;
@@ -3252,19 +3220,10 @@ end;
 
 function ClipboardProvidesText: Boolean;
 begin
-{$IFDEF SYN_CLX}
-  Result := Clipboard.Provides('text/plain');
-{$ELSE}
   Result := IsClipboardFormatAvailable(CF_TEXT) or IsClipboardFormatAvailable(CF_UNICODETEXT);
-{$ENDIF}
 end;
 
 function GetClipboardText: UnicodeString;
-{$IFDEF SYN_CLX}
-begin
-  Result := Clipboard.AsText;
-end;
-{$ELSE}
 var
   Mem: HGLOBAL;
   LocaleID: LCID;
@@ -3308,14 +3267,8 @@ begin
     Clipboard.Close;
   end;
 end;
-{$ENDIF}
 
 procedure SetClipboardText(const Text: UnicodeString);
-{$IFDEF SYN_CLX}
-begin
-  Clipboard.AsText := Text;
-end;
-{$ELSE}
 var
   Mem: HGLOBAL;
   P: PByte;
@@ -3369,7 +3322,6 @@ begin
     Clipboard.Close;
   end;
 end;
-{$ENDIF}
 
 {$IFNDEF UNICODE}
 {$IFNDEF SYN_COMPILER_6_UP}
@@ -3706,7 +3658,7 @@ begin
           begin
             PropInfo := PropList^[I];
             if (PropInfo = nil) then
-              break;
+              Break;
             if (PropInfo.PropType^.Kind = tkWString) then
               UnicodeStringFiler.DefineProperties(Filer, Instance, PropInfo.Name)
             else if (PropInfo.PropType^.Kind = tkWChar) then
