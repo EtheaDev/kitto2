@@ -58,13 +58,14 @@ type
     DBDBXCheckBox: TCheckBox;
     DBFDCheckBox: TCheckBox;
     DelphiGroupBox: TGroupBox;
+    SearchPathLabel: TLabel;
+    SearchPathComboBox: TComboBox;
     DXE7CheckBox: TCheckBox;
     DXE8CheckBox: TCheckBox;
     D10CheckBox: TCheckBox;
-    SearchPathLabel: TLabel;
-    SearchPathComboBox: TComboBox;
     D10_1CheckBox: TCheckBox;
     D10_2CheckBox: TCheckBox;
+    D10_3CheckBox: TCheckBox;
     ThreadPoolSizeLabel: TLabel;
     ServerThreadPoolSizeEdit: TSpinEdit;
     SessionTimeOutLabel: TLabel;
@@ -175,6 +176,7 @@ begin
     FTemplate.Options.SetBoolean('D10', D10CheckBox.Checked);
     FTemplate.Options.SetBoolean('D10_1', D10_1CheckBox.Checked);
     FTemplate.Options.SetBoolean('D10_2', D10_2CheckBox.Checked);
+    FTemplate.Options.SetBoolean('D10_3', D10_3CheckBox.Checked);
     FTemplate.Options.SetString('SearchPath', SearchPathComboBox.Text);
     FTemplate.Options.SetBoolean('DB/ADO', DBADOCheckBox.Checked);
     FTemplate.Options.SetBoolean('DB/DBX', DBDBXCheckBox.Checked);
@@ -233,6 +235,7 @@ begin
   D10CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10');
   D10_1CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_1');
   D10_2CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_2');
+  D10_3CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_3');
   SearchPathComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'SearchPath', '..\..\..\..');
   DBADOCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/ADO');
   DBDBXCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/DBX', True);
@@ -257,6 +260,7 @@ begin
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10', D10CheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_1', D10_1CheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_2', D10_2CheckBox.Checked);
+  TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_3', D10_3CheckBox.Checked);
   TMRUOptions.Instance.SetString(LKeyBase + 'SearchPath', SearchPathComboBox.Text);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/ADO', DBADOCheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/DBX', DBDBXCheckBox.Checked);
@@ -308,7 +312,7 @@ begin
   Result := True;
   if not DXE7CheckBox.Checked and not DXE8CheckBox.Checked and
     not D10CheckBox.Checked and not D10_1CheckBox.Checked and
-    not D10_2CheckBox.Checked then
+    not D10_2CheckBox.Checked and not D10_3CheckBox.Checked then
     Result := False
   else if SearchPathComboBox.Text = '' then
     Result := False;

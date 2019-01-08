@@ -1343,6 +1343,9 @@ var
   lRetries: Integer;
   lRetryDelay: Integer;
 begin
+  if not DirectoryExists(ADirectoryName) then
+    Exit;
+
   lRetries := FRetryCount;
   lRetryDelay := FRetryDelay;
   while True do
