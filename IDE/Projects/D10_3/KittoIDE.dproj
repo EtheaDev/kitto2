@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{245397D4-4D37-4125-9399-681D24762800}</ProjectGuid>
         <MainSource>KittoIDE.dpk</MainSource>
-        <ProjectVersion>18.5</ProjectVersion>
+        <ProjectVersion>18.6</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
