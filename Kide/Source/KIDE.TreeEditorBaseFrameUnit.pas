@@ -439,9 +439,9 @@ begin
   Assert(Assigned(ANode));
   DestroyNodeDesigner;
   if ANode is TEFNode then
-    FNodeDesigner := TNodeDesignerFrameFractory.Instance.CreateDesignerFrame(TEFNode(ANode), Self)
+    FNodeDesigner := TNodeDesignerFrameFactory.Instance.CreateDesignerFrame(TEFNode(ANode), Self)
   else
-    FNodeDesigner := TTreeDesignerFrameFractory.Instance.CreateDesignerFrame(TEFTree(ANode), Self);
+    FNodeDesigner := TTreeDesignerFrameFactory.Instance.CreateDesignerFrame(TEFTree(ANode), Self);
 
   FNodeDesigner.Parent := DesignerPanel;
   FNodeDesigner.Align := alClient;

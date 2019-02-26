@@ -166,13 +166,13 @@ type
   ///	  Queries the registry to create a specific designer frame for each node.
   //    It is friend to TNodeDesignerFrameRegistry.
   ///	</summary>
-  TEditNodeFrameFractory = class
+  TEditNodeFrameFactory = class
   private
-    class var FInstance: TEditNodeFrameFractory;
-    class function GetInstance: TEditNodeFrameFractory; static;
+    class var FInstance: TEditNodeFrameFactory;
+    class function GetInstance: TEditNodeFrameFactory; static;
   public
     class destructor Destroy;
-    class property Instance: TEditNodeFrameFractory read GetInstance;
+    class property Instance: TEditNodeFrameFactory read GetInstance;
 
     ///	<summary>
     ///   Returns the EditNodeFrame Class suitable for the specified node.
@@ -209,9 +209,9 @@ begin
   inherited RegisterClass(AId, AClass);
 end;
 
-{ TNodeDesignerFrameFractory }
+{ TNodeDesignerFrameFactory }
 
-function TEditNodeFrameFractory.GetEditNodeFrameClass(const ANode: TEFTree): TEditNodeBaseFrameClass;
+function TEditNodeFrameFactory.GetEditNodeFrameClass(const ANode: TEFTree): TEditNodeBaseFrameClass;
 var
   I: Integer;
   LClasses: TArray<TClass>;
@@ -242,15 +242,15 @@ begin
     Result := nil;
 end;
 
-class destructor TEditNodeFrameFractory.Destroy;
+class destructor TEditNodeFrameFactory.Destroy;
 begin
   FreeAndNil(FInstance);
 end;
 
-class function TEditNodeFrameFractory.GetInstance: TEditNodeFrameFractory;
+class function TEditNodeFrameFactory.GetInstance: TEditNodeFrameFactory;
 begin
   if FInstance = nil then
-    FInstance := TEditNodeFrameFractory.Create;
+    FInstance := TEditNodeFrameFactory.Create;
   Result := FInstance;
 end;
 

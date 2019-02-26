@@ -120,13 +120,13 @@ type
   ///	  Queries the registry to create a specific designer frame for each node.
   //    It is friend to TTreeDesignerFrameRegistry.
   ///	</summary>
-  TTreeDesignerFrameFractory = class
+  TTreeDesignerFrameFactory = class
   private
-    class var FInstance: TTreeDesignerFrameFractory;
-    class function GetInstance: TTreeDesignerFrameFractory; static;
+    class var FInstance: TTreeDesignerFrameFactory;
+    class function GetInstance: TTreeDesignerFrameFactory; static;
   public
     class destructor Destroy;
-    class property Instance: TTreeDesignerFrameFractory read GetInstance;
+    class property Instance: TTreeDesignerFrameFactory read GetInstance;
 
     ///	<summary>
     ///   Creates a designer frame suitable for the specified Tree.
@@ -163,9 +163,9 @@ begin
   inherited RegisterClass(AId, AClass);
 end;
 
-{ TTreeDesignerFrameFractory }
+{ TTreeDesignerFrameFactory }
 
-function TTreeDesignerFrameFractory.CreateDesignerFrame(const ANode: TEFTree;
+function TTreeDesignerFrameFactory.CreateDesignerFrame(const ANode: TEFTree;
   const AOwner: TComponent): TTreeDesignerFrame;
 var
   I: Integer;
@@ -204,15 +204,15 @@ begin
   End;
 end;
 
-class destructor TTreeDesignerFrameFractory.Destroy;
+class destructor TTreeDesignerFrameFactory.Destroy;
 begin
   FreeAndNil(FInstance);
 end;
 
-class function TTreeDesignerFrameFractory.GetInstance: TTreeDesignerFrameFractory;
+class function TTreeDesignerFrameFactory.GetInstance: TTreeDesignerFrameFactory;
 begin
   if FInstance = nil then
-    FInstance := TTreeDesignerFrameFractory.Create;
+    FInstance := TTreeDesignerFrameFactory.Create;
   Result := FInstance;
 end;
 
