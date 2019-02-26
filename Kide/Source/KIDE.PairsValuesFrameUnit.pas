@@ -268,6 +268,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TPairsValuesFrame.GetClassId, TPairsValuesFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TPairsValuesFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TPairsValuesFrame.GetClassId);
 
 end.

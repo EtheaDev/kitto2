@@ -85,6 +85,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TDataViewDesignerFrame.GetClassId, TDataViewDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TDataViewDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TDataViewDesignerFrame.GetClassId);
 
 end.

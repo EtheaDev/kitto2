@@ -346,6 +346,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TBorderPanelControllerDesignerFrame.GetClassId, TBorderPanelControllerDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TBorderPanelControllerDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TBorderPanelControllerDesignerFrame.GetClassId);
 
 end.

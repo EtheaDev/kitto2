@@ -80,6 +80,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TConfigEmailNodeFrame.GetClassId, TConfigEmailNodeFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TConfigEmailNodeFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TConfigEmailNodeFrame.GetClassId);
 
 end.

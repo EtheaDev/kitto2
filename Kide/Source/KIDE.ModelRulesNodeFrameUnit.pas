@@ -58,6 +58,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TModelRulesNodeFrame.GetClassId, TModelRulesNodeFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TModelRulesNodeFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TModelRulesNodeFrame.GetClassId);
 
 end.

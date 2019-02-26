@@ -109,6 +109,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TWindowControllerDesignerFrame.GetClassId, TWindowControllerDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TWindowControllerDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TWindowControllerDesignerFrame.GetClassId);
 
 end.

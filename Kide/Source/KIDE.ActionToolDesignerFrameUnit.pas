@@ -188,6 +188,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TActionToolDesignerFrame.GetClassId, TActionToolDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TActionToolDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TActionToolDesignerFrame.GetClassId);
 
 end.

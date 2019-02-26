@@ -93,6 +93,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TListControllerListFilterItemFrame.GetClassId, TListControllerListFilterItemFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TListControllerListFilterItemFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TListControllerListFilterItemFrame.GetClassId);
 
 end.

@@ -268,6 +268,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TSubViewDesignerFrame.GetClassId, TSubViewDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TSubViewDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TSubViewDesignerFrame.GetClassId);
 
 end.

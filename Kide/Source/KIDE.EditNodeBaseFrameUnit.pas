@@ -185,7 +185,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Dialogs, TypInfo,
+  Forms, Dialogs, TypInfo,
   Ext.Base, Kitto.Ext.List, Kitto.Ext.Base,
   EF.Classes, KIDE.Utils;
 
@@ -198,7 +198,7 @@ end;
 
 class function TEditNodeFrameRegistry.GetInstance: TEditNodeFrameRegistry;
 begin
-  if FInstance = nil then
+  if (FInstance = nil)and(not Application.Terminated) then
     FInstance := TEditNodeFrameRegistry.Create;
   Result := FInstance;
 end;

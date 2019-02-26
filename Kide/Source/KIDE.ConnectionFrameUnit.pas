@@ -72,6 +72,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TConnectionFrame.GetClassId, TConnectionFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TConnectionFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TConnectionFrame.GetClassId);
 
 end.

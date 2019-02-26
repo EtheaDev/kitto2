@@ -75,6 +75,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TUploadFileToolDesignerFrame.GetClassId, TUploadFileToolDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TUploadFileToolDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TUploadFileToolDesignerFrame.GetClassId);
 
 end.

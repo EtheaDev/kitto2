@@ -183,6 +183,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TViewFieldDesignerFrame.GetClassId, TViewFieldDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TViewFieldDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TViewFieldDesignerFrame.GetClassId);
 
 end.

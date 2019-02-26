@@ -84,6 +84,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(THtmlPanelControllerDesignerFrame.GetClassId, THtmlPanelControllerDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(THtmlPanelControllerDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(THtmlPanelControllerDesignerFrame.GetClassId);
 
 end.

@@ -86,6 +86,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TConfigEmailSMTPServerNodeFrame.GetClassId, TConfigEmailSMTPServerNodeFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TConfigEmailSMTPServerNodeFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TConfigEmailSMTPServerNodeFrame.GetClassId);
 
 end.
