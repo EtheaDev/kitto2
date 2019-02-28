@@ -181,6 +181,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TConfigAuthNodeFrame.GetClassId, TConfigAuthNodeFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TConfigAuthNodeFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TConfigAuthNodeFrame.GetClassId);
 
 end.

@@ -221,7 +221,7 @@ begin
   LNode := DatabaseFrame.CurrentDBConnection;
   if Assigned(LNode) then
   begin
-    FNodeDesigner := TNodeDesignerFrameFractory.Instance.CreateDesignerFrame(LNode, Self);
+    FNodeDesigner := TNodeDesignerFrameFactory.Instance.CreateDesignerFrame(LNode, Self);
     FNodeDesigner.Parent := DBConnectionProps;
     FNodeDesigner.Align := alClient;
     FNodeDesigner.OnApply := NodeDesignerApply;

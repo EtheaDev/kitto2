@@ -145,7 +145,7 @@ begin
   LControllerNode := ANode.FindNode('Controller');
   if Assigned(LControllerNode) then
   begin
-    LFrameClass := TEditNodeFrameFractory.Instance.GetEditNodeFrameClass(LControllerNode);
+    LFrameClass := TEditNodeFrameFactory.Instance.GetEditNodeFrameClass(LControllerNode);
     if Assigned(LFrameClass) then
       EmbedEditNodeFrame(ControllerTabSheet, LFrameClass, LControllerNode);
   end;
@@ -188,6 +188,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TActionToolDesignerFrame.GetClassId, TActionToolDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TActionToolDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TActionToolDesignerFrame.GetClassId);
 
 end.

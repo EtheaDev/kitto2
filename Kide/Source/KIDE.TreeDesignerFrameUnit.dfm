@@ -53,6 +53,7 @@ inherited TreeDesignerFrame: TTreeDesignerFrame
       ParentShowHint = False
       ShowHint = True
       TabOrder = 2
+      ExplicitWidth = 26
     end
     inline CodeEditorFrame: TCodeEditorFrame
       Left = 0

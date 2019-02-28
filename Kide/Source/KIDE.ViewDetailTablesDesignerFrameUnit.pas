@@ -113,7 +113,7 @@ begin
         LTabSheet.Name := Format('%s_%d', [LItemNode.Name, I]);
         LTabSheet.PageControl := DetailTablesPageControl;
         LTabSheet.Caption := LItemNode.Name;
-        LFrameClass := TEditNodeFrameFractory.Instance.GetEditNodeFrameClass(LItemNode);
+        LFrameClass := TEditNodeFrameFactory.Instance.GetEditNodeFrameClass(LItemNode);
         if Assigned(LFrameClass) then
           EmbedEditNodeFrame(LTabSheet, LFrameClass, LItemNode);
       end;
@@ -130,6 +130,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TViewDetailTablesDesignerFrame.GetClassId, TViewDetailTablesDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TViewDetailTablesDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TViewDetailTablesDesignerFrame.GetClassId);
 
 end.

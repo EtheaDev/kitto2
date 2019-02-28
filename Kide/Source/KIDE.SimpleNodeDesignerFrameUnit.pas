@@ -98,6 +98,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TSimpleNodeDesignerFrame.GetClassId, TSimpleNodeDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TSimpleNodeDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TSimpleNodeDesignerFrame.GetClassId);
 *)
 end.

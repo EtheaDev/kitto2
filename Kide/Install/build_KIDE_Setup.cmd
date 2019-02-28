@@ -9,7 +9,7 @@ rem This works on Windows 7 x64 ENU.
 @set PF=D:\Program Files (x86)\
 @set DOCS=%PUBLIC%\Documents
 
-@set dver=10_2
+@set dver=10_3
 
 if "%dver%"=="10_1" set BDS=%PF%\Embarcadero\Studio\18.0
 if "%dver%"=="10_1" set BDSCOMMONDIR=%DOCS%\Embarcadero\Studio\18.0
@@ -17,6 +17,9 @@ if "%dver%"=="10_1" set BDSINCLUDE=%PF%\Embarcadero\Studio\18.0\Include
 if "%dver%"=="10_2" set BDS=%PF%\Embarcadero\Studio\19.0
 if "%dver%"=="10_2" set BDSCOMMONDIR=%DOCS%\Embarcadero\Studio\19.0
 if "%dver%"=="10_2" set BDSINCLUDE=%PF%\Embarcadero\Studio\19.0\Include
+if "%dver%"=="10_3" set BDS=%PF%\Embarcadero\Studio\20.0
+if "%dver%"=="10_3" set BDSCOMMONDIR=%DOCS%\Embarcadero\Studio\20.0
+if "%dver%"=="10_3" set BDSINCLUDE=%PF%\Embarcadero\Studio\20.0\Include
 
 del /Q ..\bin\KIDE2.exe > nul
 

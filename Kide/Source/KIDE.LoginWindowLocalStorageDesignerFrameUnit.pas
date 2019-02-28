@@ -106,6 +106,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TLoginWindowLocalStorageDesignerFrame.GetClassId, TLoginWindowLocalStorageDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TLoginWindowLocalStorageDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TLoginWindowLocalStorageDesignerFrame.GetClassId);
 
 end.

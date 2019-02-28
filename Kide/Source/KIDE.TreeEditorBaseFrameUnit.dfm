@@ -11,8 +11,6 @@ inherited TreeEditorBaseFrame: TTreeEditorBaseFrame
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitTop = 30
-    ExplicitHeight = 424
     object BottomSplitter: TSplitter
       Left = 0
       Top = 325
@@ -65,7 +63,6 @@ inherited TreeEditorBaseFrame: TTreeEditorBaseFrame
       Align = alBottom
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitTop = 324
       inline CodeEditorFrame: TCodeEditorFrame
         Left = 0
         Top = 0

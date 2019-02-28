@@ -138,6 +138,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TSendEmailToolDesignerFrame.GetClassId, TSendEmailToolDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TSendEmailToolDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TSendEmailToolDesignerFrame.GetClassId);
 
 end.

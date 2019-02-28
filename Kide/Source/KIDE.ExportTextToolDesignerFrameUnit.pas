@@ -92,6 +92,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TExportTextToolDesignerFrame.GetClassId, TExportTextToolDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TExportTextToolDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TExportTextToolDesignerFrame.GetClassId);
 
 end.

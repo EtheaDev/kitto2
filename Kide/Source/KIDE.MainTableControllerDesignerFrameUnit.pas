@@ -170,6 +170,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TMainTableControllerDesignerFrame.GetClassId, TMainTableControllerDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TMainTableControllerDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TMainTableControllerDesignerFrame.GetClassId);
 
 end.

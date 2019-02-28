@@ -111,6 +111,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TTreeFolderNodeDesignerFrame.GetClassId, TTreeFolderNodeDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TTreeFolderNodeDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TTreeFolderNodeDesignerFrame.GetClassId);
 
 end.

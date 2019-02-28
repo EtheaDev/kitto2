@@ -166,13 +166,13 @@ type
   ///	  Queries the registry to create a specific designer frame for each node.
   //    It is friend to TNodeDesignerFrameRegistry.
   ///	</summary>
-  TEditNodeFrameFractory = class
+  TEditNodeFrameFactory = class
   private
-    class var FInstance: TEditNodeFrameFractory;
-    class function GetInstance: TEditNodeFrameFractory; static;
+    class var FInstance: TEditNodeFrameFactory;
+    class function GetInstance: TEditNodeFrameFactory; static;
   public
     class destructor Destroy;
-    class property Instance: TEditNodeFrameFractory read GetInstance;
+    class property Instance: TEditNodeFrameFactory read GetInstance;
 
     ///	<summary>
     ///   Returns the EditNodeFrame Class suitable for the specified node.
@@ -185,7 +185,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Dialogs, TypInfo,
+  Forms, Dialogs, TypInfo,
   Ext.Base, Kitto.Ext.List, Kitto.Ext.Base,
   EF.Classes, KIDE.Utils;
 
@@ -198,7 +198,7 @@ end;
 
 class function TEditNodeFrameRegistry.GetInstance: TEditNodeFrameRegistry;
 begin
-  if FInstance = nil then
+  if (FInstance = nil)and(not Application.Terminated) then
     FInstance := TEditNodeFrameRegistry.Create;
   Result := FInstance;
 end;
@@ -209,9 +209,9 @@ begin
   inherited RegisterClass(AId, AClass);
 end;
 
-{ TNodeDesignerFrameFractory }
+{ TNodeDesignerFrameFactory }
 
-function TEditNodeFrameFractory.GetEditNodeFrameClass(const ANode: TEFTree): TEditNodeBaseFrameClass;
+function TEditNodeFrameFactory.GetEditNodeFrameClass(const ANode: TEFTree): TEditNodeBaseFrameClass;
 var
   I: Integer;
   LClasses: TArray<TClass>;
@@ -242,15 +242,15 @@ begin
     Result := nil;
 end;
 
-class destructor TEditNodeFrameFractory.Destroy;
+class destructor TEditNodeFrameFactory.Destroy;
 begin
   FreeAndNil(FInstance);
 end;
 
-class function TEditNodeFrameFractory.GetInstance: TEditNodeFrameFractory;
+class function TEditNodeFrameFactory.GetInstance: TEditNodeFrameFactory;
 begin
   if FInstance = nil then
-    FInstance := TEditNodeFrameFractory.Create;
+    FInstance := TEditNodeFrameFactory.Create;
   Result := FInstance;
 end;
 

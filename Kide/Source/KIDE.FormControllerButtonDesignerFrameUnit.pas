@@ -95,6 +95,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TFormControllerButtonDesignerFrame.GetClassId, TFormControllerButtonDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TFormControllerButtonDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TFormControllerButtonDesignerFrame.GetClassId);
 
 end.

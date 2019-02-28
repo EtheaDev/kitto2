@@ -85,6 +85,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TMobileSettingsDesginerFrame.GetClassId, TMobileSettingsDesginerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TMobileSettingsDesginerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TMobileSettingsDesginerFrame.GetClassId);
 
 end.

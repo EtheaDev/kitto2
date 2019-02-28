@@ -63,6 +63,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TListControllerFilterColumnBreakFrame.GetClassId, TListControllerFilterColumnBreakFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TListControllerFilterColumnBreakFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TListControllerFilterColumnBreakFrame.GetClassId);
 
 end.

@@ -67,6 +67,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TToolDesignerFrame.GetClassId, TToolDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TToolDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TToolDesignerFrame.GetClassId);
 
 end.

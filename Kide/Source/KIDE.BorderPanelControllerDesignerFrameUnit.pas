@@ -128,7 +128,7 @@ var
     LNode := ANode.FindNode(ANodeName);
     if Assigned(LNode) then
     begin
-      LFrameClass := TEditNodeFrameFractory.Instance.GetEditNodeFrameClass(LNode);
+      LFrameClass := TEditNodeFrameFactory.Instance.GetEditNodeFrameClass(LNode);
       if Assigned(LFrameClass) then
         EmbedEditNodeFrame(ATabSheet, LFrameClass, LNode);
     end;
@@ -346,6 +346,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TBorderPanelControllerDesignerFrame.GetClassId, TBorderPanelControllerDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TBorderPanelControllerDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TBorderPanelControllerDesignerFrame.GetClassId);
 
 end.

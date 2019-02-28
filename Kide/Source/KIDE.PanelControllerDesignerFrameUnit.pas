@@ -100,6 +100,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TPanelControllerDesignerFrame.GetClassId, TPanelControllerDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TPanelControllerDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TPanelControllerDesignerFrame.GetClassId);
 
 end.

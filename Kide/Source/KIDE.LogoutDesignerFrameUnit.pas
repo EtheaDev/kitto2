@@ -58,6 +58,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TLogoutDesignerFrame.GetClassId, TLogoutDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TLogoutDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TLogoutDesignerFrame.GetClassId);
 
 end.

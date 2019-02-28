@@ -5,7 +5,7 @@ inherited NodeDesignerFrame: TNodeDesignerFrame
     Height = 439
     ExplicitHeight = 439
     inherited DesignPanel: TPanel
-      Height = 399
+      Height = 382
       ExplicitHeight = 399
     end
     inherited CodeEditorFrame: TCodeEditorFrame

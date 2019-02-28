@@ -136,6 +136,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TConfigAccessControlNodeFrame.GetClassId, TConfigAccessControlNodeFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TConfigAccessControlNodeFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TConfigAccessControlNodeFrame.GetClassId);
 
 end.

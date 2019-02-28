@@ -457,6 +457,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TModelFieldDesignerFrame.GetClassId, TModelFieldDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TModelFieldDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TModelFieldDesignerFrame.GetClassId);
 
 end.

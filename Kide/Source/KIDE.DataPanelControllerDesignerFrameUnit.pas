@@ -116,6 +116,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TDataPanelControllerDesignerFrame.GetClassId, TDataPanelControllerDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TDataPanelControllerDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TDataPanelControllerDesignerFrame.GetClassId);
 
 end.

@@ -78,6 +78,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TTreeViewDesignerFrame.GetClassId, TTreeViewDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TTreeViewDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TTreeViewDesignerFrame.GetClassId);
 
 end.

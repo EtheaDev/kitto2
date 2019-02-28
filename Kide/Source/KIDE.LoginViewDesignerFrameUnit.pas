@@ -72,6 +72,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TLoginViewDesignerFrame.GetClassId, TLoginViewDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TLoginViewDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TLoginViewDesignerFrame.GetClassId);
 
 end.

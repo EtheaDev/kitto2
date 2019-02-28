@@ -79,9 +79,9 @@ begin
   inherited;
   LViewNode := EditNode;
   if EditNode is TEFNode then
-    LFrameClass := TEditNodeFrameFractory.Instance.GetEditNodeFrameClass(EditNode)
+    LFrameClass := TEditNodeFrameFactory.Instance.GetEditNodeFrameClass(EditNode)
   else
-    LFrameClass := TEditNodeFrameFractory.Instance.GetEditNodeFrameClass(EditNode);
+    LFrameClass := TEditNodeFrameFactory.Instance.GetEditNodeFrameClass(EditNode);
   if Assigned(LFrameClass) then
     EmbedEditNodeFrame(DesignPanel, LFrameClass, EditNode);
 end;

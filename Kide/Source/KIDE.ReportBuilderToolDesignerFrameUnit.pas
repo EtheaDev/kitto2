@@ -79,6 +79,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TReportBuilderToolDesignerFrame.GetClassId, TReportBuilderToolDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TReportBuilderToolDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TReportBuilderToolDesignerFrame.GetClassId);
 
 end.

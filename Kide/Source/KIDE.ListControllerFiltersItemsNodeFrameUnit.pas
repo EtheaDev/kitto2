@@ -81,7 +81,7 @@ begin
       LTabSheet.Name := Format('%s_%d', [LItemNode.Name, I]);
       LTabSheet.PageControl := ItemsPageControl;
       LTabSheet.Caption := LItemNode.Name;
-      LFrameClass := TEditNodeFrameFractory.Instance.GetEditNodeFrameClass(LItemNode);
+      LFrameClass := TEditNodeFrameFactory.Instance.GetEditNodeFrameClass(LItemNode);
       if Assigned(LFrameClass) then
         EmbedEditNodeFrame(LTabSheet, LFrameClass, LItemNode);
     end;
@@ -110,6 +110,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TListControllerFiltersItemsNodeFrame.GetClassId, TListControllerFiltersItemsNodeFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TListControllerFiltersItemsNodeFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TListControllerFiltersItemsNodeFrame.GetClassId);
 
 end.

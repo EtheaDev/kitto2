@@ -82,6 +82,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TDownloadFileToolDesignerFrame.GetClassId, TDownloadFileToolDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TDownloadFileToolDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TDownloadFileToolDesignerFrame.GetClassId);
 
 end.

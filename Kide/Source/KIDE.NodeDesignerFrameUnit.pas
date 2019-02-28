@@ -65,13 +65,13 @@ type
   ///	  Queries the registry to create a specific designer frame for each node.
   //    It is friend to TNodeDesignerFrameRegistry.
   ///	</summary>
-  TNodeDesignerFrameFractory = class
+  TNodeDesignerFrameFactory = class
   private
-    class var FInstance: TNodeDesignerFrameFractory;
-    class function GetInstance: TNodeDesignerFrameFractory; static;
+    class var FInstance: TNodeDesignerFrameFactory;
+    class function GetInstance: TNodeDesignerFrameFactory; static;
   public
     class destructor Destroy;
-    class property Instance: TNodeDesignerFrameFractory read GetInstance;
+    class property Instance: TNodeDesignerFrameFactory read GetInstance;
 
     ///	<summary>
     ///   Creates a designer frame suitable for the specified node.
@@ -108,9 +108,9 @@ begin
   inherited RegisterClass(AId, AClass);
 end;
 
-{ TNodeDesignerFrameFractory }
+{ TNodeDesignerFrameFactory }
 
-function TNodeDesignerFrameFractory.CreateDesignerFrame(const ANode: TEFNode;
+function TNodeDesignerFrameFactory.CreateDesignerFrame(const ANode: TEFNode;
   const AOwner: TComponent): TNodeDesignerFrame;
 var
   I: Integer;
@@ -151,15 +151,15 @@ begin
   End;
 end;
 
-class destructor TNodeDesignerFrameFractory.Destroy;
+class destructor TNodeDesignerFrameFactory.Destroy;
 begin
   FreeAndNil(FInstance);
 end;
 
-class function TNodeDesignerFrameFractory.GetInstance: TNodeDesignerFrameFractory;
+class function TNodeDesignerFrameFactory.GetInstance: TNodeDesignerFrameFactory;
 begin
   if FInstance = nil then
-    FInstance := TNodeDesignerFrameFractory.Create;
+    FInstance := TNodeDesignerFrameFactory.Create;
   Result := FInstance;
 end;
 
@@ -186,7 +186,7 @@ end;
 
 class function TNodeDesignerFrame.GetEditNodeFrameClass(ANode: TEFNode): TEditNodeBaseFrameClass;
 begin
-  Result := TEditNodeFrameFractory.Instance.GetEditNodeFrameClass(ANode);
+  Result := TEditNodeFrameFactory.Instance.GetEditNodeFrameClass(ANode);
 end;
 
 procedure TNodeDesignerFrame.Init(const ANode: TEFTree);

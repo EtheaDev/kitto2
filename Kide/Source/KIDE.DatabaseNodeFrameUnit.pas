@@ -77,6 +77,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TDatabaseNodeFrame.GetClassId, TDatabaseNodeFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TDatabaseNodeFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TDatabaseNodeFrame.GetClassId);
 
 end.

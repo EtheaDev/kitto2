@@ -96,6 +96,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TViewTableControllerToolViewsFrame.GetClassId, TViewTableControllerToolViewsFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TViewTableControllerToolViewsFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TViewTableControllerToolViewsFrame.GetClassId);
 
 end.

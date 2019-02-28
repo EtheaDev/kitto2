@@ -91,6 +91,7 @@ initialization
   TEditNodeFrameRegistry.Instance.RegisterClass(TViewportControllerDesignerFrame.GetClassId, TViewportControllerDesignerFrame);
 
 finalization
-  TEditNodeFrameRegistry.Instance.UnregisterClass(TViewportControllerDesignerFrame.GetClassId);
+  if Assigned(TEditNodeFrameRegistry.Instance) then
+    TEditNodeFrameRegistry.Instance.UnregisterClass(TViewportControllerDesignerFrame.GetClassId);
 
 end.
