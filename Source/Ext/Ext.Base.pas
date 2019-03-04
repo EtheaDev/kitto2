@@ -700,6 +700,7 @@ type
   // Procedural types for events TExtTabPanel
   TExtTabPanelOnTabChange = procedure(ATabPanel: TExtTabPanel; ANewTab: TExtComponent) of object;
 
+  TExtTabPanelClass = class of TExtPanel;
   TExtTabPanel = class(TExtPanel)
   private
     FOnTabChange: TExtTabPanelOnTabChange;
