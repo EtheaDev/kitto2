@@ -62,7 +62,7 @@ type
       const ARegion: string): string;
     function GetRegionControllerName(
       const ARegion: string): string;
-    function FindBorderPanelControllerClass(const ANode: TEFNode): TExtTabPanel;
+    function FindBorderPanelControllerClass(const ANode: TEFNode): TExtTabPanelClass;
     procedure UpdateControllerGUI(const ARegion: string;
       const AButton: TSpeedButton; const ATabSheet: TTabSheet);
     procedure UpdateViewGUI(const ARegion: string;
@@ -118,7 +118,7 @@ end;
 
 procedure TBorderPanelControllerDesignerFrame.Init(const ANode: TEFTree);
 var
-  LBorderPanelControllerClass: TExtTabPanel;
+  LBorderPanelControllerClass: TExtTabPanelClass;
 (*
   procedure InitController(const ANodeName: string; const ATabSheet: TTabSheet);
   var
@@ -156,13 +156,13 @@ begin
 end;
 
 function TBorderPanelControllerDesignerFrame.FindBorderPanelControllerClass(
-  const ANode: TEFNode): TExtTabPanel;
+  const ANode: TEFNode): TExtTabPanelClass;
 var
   LControllerClass: TClass;
 begin
   LControllerClass := GetControllerClass(ANode);
   if Assigned(LControllerClass) then
-    Result := TExtTabPanel(LControllerClass)
+    Result := TExtTabPanelClass(LControllerClass)
   else
     Result := nil;
 end;
@@ -170,7 +170,7 @@ end;
 function TBorderPanelControllerDesignerFrame.GetRegionViewName(
   const ARegion: string): string;
 var
-  LBorderPanelControllerClass: TExtTabPanel;
+  LBorderPanelControllerClass: TExtTabPanelClass;
 begin
   LBorderPanelControllerClass := FindBorderPanelControllerClass(TEFNode(EditNode));
   if Assigned(LBorderPanelControllerClass) then
@@ -182,7 +182,7 @@ end;
 function TBorderPanelControllerDesignerFrame.GetRegionControllerName(
   const ARegion: string): string;
 var
-  LBorderPanelControllerClass: TExtTabPanel;
+  LBorderPanelControllerClass: TExtTabPanelClass;
 begin
   LBorderPanelControllerClass := FindBorderPanelControllerClass(EditNode as TEFNode);
   if Assigned(LBorderPanelControllerClass) then
