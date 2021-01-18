@@ -2,6 +2,7 @@
 
 Kitto<sup>2</sup> allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **ExtJS 6** (through webbroker technology) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
 
+![Delphi10.4Sydney Support](https://github.com/EtheaDev/InstantObjects/wiki/SupportingDelphi10.4Sydney_small.jpg)
 
 The major differences of Kitto<sup>2</sup>, compared to the first version are:
 
