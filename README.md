@@ -4,6 +4,8 @@ Kitto<sup>2</sup> allows to create **Rich Internet Applications** based on a dat
 
 ![Delphi10.4Sydney Support](https://github.com/EtheaDev/InstantObjects/wiki/SupportingDelphi10.4Sydney_small.jpg)
 
+Related links: https://www.embarcadero.com/ - https://learndelphi.org/
+
 The major differences of Kitto<sup>2</sup>, compared to the first version are:
 
 - ExtPascal library has been removed
