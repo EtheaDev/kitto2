@@ -3479,7 +3479,7 @@ object SplashForm: TSplashForm
     Height = 16
     Alignment = taRightJustify
     Anchors = [akRight, akBottom]
-    Caption = #169' 2012-2018 Ethea'
+    Caption = #169' 2012-2021 Ethea'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13

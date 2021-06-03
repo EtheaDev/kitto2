@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -125,6 +125,7 @@ uses
   , EF.StrUtils
   , EF.Classes
   , EF.Localization
+  , EF.Macros
   , Kitto.Web.Session
   , Kitto.Web.Application
   , Kitto.Web.Response
@@ -172,8 +173,10 @@ begin
       Result := CallViewControllerStringMethod(LView, 'GetDefaultDisplayLabel', Result);
   end
   else
+  begin
     Result := _(ANode.AsString);
-  Result := Result;
+    TEFMacroExpansionEngine.Instance.Expand(Result);
+  end;
 end;
 
 function GetTreeViewNodeImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
@@ -278,6 +281,7 @@ var
   LMenu: TExtMenuMenu;
   LIsEnabled: Boolean;
   LView: TKView;
+  LImageName: string;
 begin
   Assert(Assigned(ANode));
   Assert(Assigned(AContainer));
@@ -294,9 +298,17 @@ begin
     LButton.View := LView;
     if Assigned(LButton.View) then
     begin
+      //Button for View
       LButton.IconCls := TKWebApplication.Current.SetViewIconStyle(LButton.View, GetTreeViewNodeImageName(ANode, LButton.View));
       LButton.On('click', GetClickFunction(LButton.View));
       LButton.Disabled := not LIsEnabled;
+    end
+    else
+    begin
+      //Folder
+      LImageName := ANode.GetString('ImageName');
+      if LImageName <> '' then
+        LButton.SetIconAndScale(LImageName, 'small');
     end;
     LButton.Text := TNetEncoding.HTML.Encode(ADisplayLabel);
     if TKWebApplication.Current.TooltipsEnabled then

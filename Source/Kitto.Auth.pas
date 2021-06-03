@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ type
     function Authenticate(const AAuthData: TEFNode): Boolean;
 
     /// <summary>Clears AuthData and turns off IsAuthenticated.</summary>
-    procedure Logout;
+    procedure Logout; virtual;
 
     /// <summary>A unique identifier for the currently logged in user. The
     /// value depends on the particular descendant. By default, it's
@@ -158,6 +158,8 @@ type
     procedure ResetPassword(const AParams: TEFNode); virtual; abstract;
 
     class property Current: TKAuthenticator read GetCurrent write SetCurrent;
+  public
+    function CanBypassURLParam(const AParamName: string): Boolean; virtual;
   end;
   TKAuthenticatorClass = class of TKAuthenticator;
 
@@ -173,6 +175,8 @@ type
     procedure InternalDefineAuthData(const AAuthData: TEFNode); override;
     function GetUserName: string; override;
     function GetPassword: string; override;
+  public
+    function CanBypassURLParam(const AParamName: string): Boolean; override;
   end;
 
   /// <summary>The Null authenticator does not require authentication data and
@@ -334,6 +338,12 @@ procedure TKAuthenticator.InternalBeforeAuthenticate(const AAuthData: TEFNode);
 begin
 end;
 
+function TKAuthenticator.CanBypassURLParam(const AParamName: string): Boolean;
+begin
+  //No URL param is protected: Session can pass it to login
+  Result := False;
+end;
+
 procedure TKAuthenticator.Logout;
 begin
   ClearAuthData;
@@ -402,6 +412,14 @@ begin
   AAuthData.SetString('UserName', '');
   AAuthData.SetString('Password', '');
   AAuthData.SetString('Language', '');
+end;
+
+function TKClassicAuthenticator.CanBypassURLParam(
+  const AParamName: string): Boolean;
+begin
+  //UserName and Password params are protected: Session cannot pass it to login
+  Result := not SameText(AParamName, 'UserName') and
+    not SameText(AParamName, 'Password');
 end;
 
 initialization

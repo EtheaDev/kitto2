@@ -8,6 +8,16 @@ Application:
 # you can set this to False to gain some speed. Default is True.
 #HandleResources: False
 
+EmailSupport: <support@kitto.org>
+Email:
+  SMTP:
+    Default:
+      HostName: abc.it
+      UserName: qwerty@abc.com
+      Password: qwerty 
+      Port: 100
+      UseTLS: True
+
 # Defaults for entire application
 Defaults:
   Grid:
@@ -26,7 +36,20 @@ Defaults:
     # Default/Layout/LabelSeparator empty if you don't want hide the default LabelSeparator (:)
     LabelSeparator:
 
+
 Databases:
+
+  Main: DBX
+    Connection:
+      DriverName: Firebird
+      Database: TasKitto
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
 
   Old: DBX
     Connection:
@@ -50,11 +73,16 @@ Databases:
       Protocol: TCPIP
 
 Auth: TasKitto
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: password
   IsClearPassword: True
   .Defaults:
     UserName: admin
     Password: admin
-  ReadUserCommandText: select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
+  ReadUserCommandText: |
+    select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME 
+    from KITTO_USERS 
+    where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
   ValidatePassword:
     Message: Min 8 with upper+lower+number+special chars
     RegEx: ^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$
@@ -73,10 +101,27 @@ Auth: TasKitto
       Best regards.</p>
       </p>
       <p>The team of <b>%Config:AppTitle%</b><p>
+  NewUserMailMessage:
+    From: <support@kitto.org>
+    Subject: New user registration from %Config:AppTitle%
+    Body: |
+      Welcome #UserName#.
+      You have created a new user. 
+      The new temporary password you need on your first log in is #TempPassword#.
+      Best regards.
+      
+      The team of %Config:AppTitle%
+    HTMLBody: |
+      <p>Welcome <b>#UserName#</b>.<br>
+      <p>You have created a new user.<br> 
+      The new temporary password you need on your first log in is <b>#TempPassword#</b>.<br>
+      Best regards.</p>
+      </p>
+      <p>The team of <b>%Config:AppTitle%</b><p>    
 
 AccessControl: Null
 
-#Login: Login
+Login: LoginView
 
 # Change this to use a custom view for the home page.
 # Alternatively, customize the Home view by replacing its controller.
@@ -84,7 +129,11 @@ AccessControl: Null
 #HomeView: Home
 
 ExtJS:
-  Theme: triton
+  #Theme: triton
+  #Theme: gray
+  Theme: neptune
+  #Theme: ARIA
+  #Theme: material
   AjaxTimeout: 100000
 
 # No language Id specified means try to use the language requested by the browser.

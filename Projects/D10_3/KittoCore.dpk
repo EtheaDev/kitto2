@@ -84,7 +84,7 @@ contains
   Ext.Tree in '..\..\Source\Ext\Ext.Tree.pas',
   Ext.Ux in '..\..\Source\Ext\Ext.Ux.pas',
   ADOX_TypeLibrary in '..\..\Source\ThirdParty\ADOX_TypeLibrary.pas',
-  DebenuPDFLibraryLite1112_TypeLibrary in '..\..\Source\ThirdParty\DebenuPDFLibraryLite1112_TypeLibrary.pas',
+  DebenuPDFLibraryLite1114_TLB in '..\..\Source\ThirdParty\DebenuPDFLibraryLite1114_TLB.pas',
   gnugettext in '..\..\Source\ThirdParty\gnugettext.pas',
   Kitto.AccessControl.DB in '..\..\Source\Kitto.AccessControl.DB.pas',
   Kitto.AccessControl in '..\..\Source\Kitto.AccessControl.pas',
@@ -163,6 +163,7 @@ contains
   Kitto.Rtti in '..\..\Source\Kitto.Rtti.pas',
   Kitto.Ext.ResetPassword in '..\..\Source\Kitto.Ext.ResetPassword.pas',
   Kitto.Ext.Files in '..\..\Source\Kitto.Ext.Files.pas',
-  Kitto.Ext.UploadFileDialog in '..\..\Source\Kitto.Ext.UploadFileDialog.pas';
+  Kitto.Ext.UploadFileDialog in '..\..\Source\Kitto.Ext.UploadFileDialog.pas',
+  Kitto.DebenuQuickPDF in '..\..\Source\Kitto.DebenuQuickPDF.pas';
 
 end.

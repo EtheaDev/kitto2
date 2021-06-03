@@ -1,0 +1,14 @@
+DisplayLabel: Register new User
+# Empty ACName allows the view to be opened when no user is logged in.
+ACName:
+Type: Data
+Controller: Form
+  Width: 400
+  Height: 200
+  Operation: Add
+  KeepOpenAfterOperation: False
+MainTable:
+  Model: KITTO_USERS
+  Controller:
+    Form:
+      Layout: RegisterNewUser_Form

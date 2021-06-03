@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -67,16 +67,16 @@ type
     FTempFileNames: TStrings;
     FFileName: string;
     FStream: TStream;
-    function GetClientFileName: string;
     function GetContentType: string;
     function GetFileName: string;
     procedure DoDownloadStream(const AStream: TStream;
       const AFileName: string; const AContentType: string);
     procedure PersistFile(const AStream: TStream);
   strict protected
-    function GetPersistentFileName: string;
+    function GetClientFileName: string; virtual;
+    function GetPersistentFileName: string; virtual;
     procedure ExecuteTool; override;
-    function GetFileExtension: string;
+    function GetFileExtension: string; virtual;
     function GetDefaultFileExtension: string; virtual;
     procedure AddTempFilename(const AFileName: string);
     procedure Cleanup;

@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -237,6 +237,7 @@ begin
   CreateEditors;
   LoadData;
   ChangeEditorsState;
+  StoreRecord.ApplyAfterShowEditWindowRules;
 end;
 
 procedure TKExtFormPanelController.CreateDetailToolbar;
@@ -651,6 +652,7 @@ begin
     UpdateHostWindowTitle(LNewTitle)
   else
     Title := LNewTitle;
+  FStoreRecord.ApplyAfterShowEditWindowRules;
   StartOperation;
 end;
 
@@ -830,7 +832,7 @@ begin
       FCloneButton.SetIconAndScale('accept_clone', Config.GetString('ButtonScale', 'medium'));
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
-      FCloneButton.Hidden := FIsReadOnly or IsViewMode;
+      FCloneButton.Hidden := FIsReadOnly or IsViewMode or LCloneButtonNode.GetBoolean('Hidden');
       FFormPanel.On('validitychange', GenerateAnonymousFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
     end;
   end;
@@ -943,7 +945,8 @@ begin
       // the single record contained.
       if ServerStore.RecordCount = 0 then
         ViewTable.Model.LoadRecords(ServerStore, GetFilterExpression, '', 0, 0);
-      Assert(ServerStore.RecordCount = 1);
+      if ServerStore.RecordCount <> 1 then
+        raise EEFError.Create(_('Operation not available in this context.'));
       StoreRecord := ServerStore.Records[0];
     end;
   end;
@@ -1005,6 +1008,7 @@ begin
     FEditorContainer := TExtTabPanel.CreateAndAddToArray(FFormPanel.Items);
     FEditorContainer.Border := False;
     FEditorContainer.AutoScroll := False;
+    FEditorContainer.BodyStyle := 'background:none'; // Respects parent's background color.
     FMainPage := TKExtEditPage.CreateAndAddToArray(FEditorContainer.Items);
     FMainPage.Title := _(ViewTable.DisplayLabel);
     if Config.GetBoolean('Sys/ShowIcon', True) then
@@ -1066,6 +1070,7 @@ begin
       // Handlers must be re-generated now as their code depends from newly added
       // editors (see GetConfirmJSCode).
       SetConfirmButtonHandlers;
+      FStoreRecord.ApplyAfterShowEditWindowRules;
     end;
 
     if Supports(ANewTab, IJSActivable, LActivable) then
@@ -1097,6 +1102,7 @@ begin
   if MatchText(FOperation, ['Add', 'Dup']) then
   begin
     ServerStore.RemoveRecord(StoreRecord);
+    StoreRecord.OnSetTransientProperty := nil;
     StoreRecord := nil;
   end
   else if SameText(FOperation, 'Edit') then
@@ -1104,6 +1110,7 @@ begin
     StoreRecord.Store.DoWithChangeNotificationsDisabled(
       procedure
       begin
+        StoreRecord.OnSetTransientProperty := nil;
         StoreRecord.Refresh;
       end);
   end;

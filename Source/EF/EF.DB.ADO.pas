@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants, ADOInt,
-  EF.Localization, EF.VariantUtils, EF.Types, EF.Tree, EF.SQL;
+  EF.Localization, EF.VariantUtils, EF.Types, EF.Tree, EF.SQL, EF.Logger;
 
 function ADODataTypeToEFDataType(const AADODataType: Integer): string;
 begin
@@ -320,8 +320,13 @@ begin
 
   if AStatement = '' then
     raise EEFError.Create(_('Unspecified Statement text.'));
-  Open;
-  FConnection.Execute(AStatement, Result);
+  try
+    Open;
+    FConnection.Execute(AStatement, Result);
+  except
+    on E: Exception do
+      raise EEFDBError.CreateForQuery(E.Message, AStatement);
+  end;
 end;
 
 function TEFDBADOConnection.FetchSequenceGeneratorValue(
@@ -374,12 +379,17 @@ end;
 
 function TEFDBADOCommand.Execute: Integer;
 begin
-  UpdateInternalCommandCommandText;
-  Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
-  UpdateInternalCommandParams;
-  inherited;
-  FCommand.Execute(Result, EmptyParam);
-  UpdateParamsFromParameters;
+  try
+    UpdateInternalCommandCommandText;
+    Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
+    UpdateInternalCommandParams;
+    inherited;
+    FCommand.Execute(Result, EmptyParam);
+    UpdateParamsFromParameters;
+  except
+    on E: Exception do
+      raise EEFDBError.CreateForQuery(E.Message, FCommandText);
+  end;
 end;
 
 function TEFDBADOCommand.GetCommandText: string;
@@ -478,20 +488,16 @@ end;
 
 procedure TEFDBADOQuery.Open;
 begin
-  UpdateInternalQueryCommandText;
-  Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
-  UpdateInternalQueryParams;
-  InternalBeforeExecute;
   try
+    UpdateInternalQueryCommandText;
+    Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
+    UpdateInternalQueryParams;
+    InternalBeforeExecute;
+    TEFLogger.Instance.Log(FQuery.SQL.Text, 5);
     DataSet.Open;
   except
     on E: Exception do
-    begin
-      raise EEFError.Create(_(Format('Error "%s" opening query: %s.',
-        [E.Message, FCommandText])));
-    end
-    else
-      raise;
+      raise EEFDBError.CreateForQuery(E.Message, FCommandText);
   end;
 end;
 

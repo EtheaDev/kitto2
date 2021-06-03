@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -41,7 +41,13 @@ uses
   , Kitto.JS.Controller
   ;
 
+const
+  ExtUILib = 'classic';
+//  ExtUILib = 'modern';
+
 type
+  ERedirectError = Exception;
+
   TKWebApplication = class;
 
   TKApplicationMacroExpander = class(TEFTreeMacroExpander)
@@ -287,7 +293,8 @@ begin
     ExpandMacros(AString, '%SESSION_ID%', TKWebSession.Current.SessionId);
     ExpandMacros(AString, '%LANGUAGE_ID%', TKWebSession.Current.Language);
     // Expand %Auth:*%.
-    ExpandTreeMacros(AString, TKWebSession.Current.AuthData);
+    if Assigned(TKWebSession.Current.AuthData) then
+      ExpandTreeMacros(AString, TKWebSession.Current.AuthData);
   end;
 
   if FApplication <> nil then
@@ -338,9 +345,9 @@ begin
   if not Assigned(Result) then
   begin
     {$IFDEF DEBUG}
-    raise Exception.CreateFmt('Handler object %s for method %s not found in session. The session might have expired. Please refresh the page.', [LJSName, AURL.Document]);
+    raise Exception.Create(_('Your session has expired. Please refresh the page to start a new session.'));
     {$ELSE}
-    raise Exception.Create('Your session has expired. Please refresh the page to start a new session.');
+    raise Exception.Create(_('Your session has expired. Please refresh the page to start a new session.'));
     {$ENDIF}
   end;
 end;
@@ -704,6 +711,12 @@ var
     Error(LMessage, False);
   end;
 
+  procedure MethodRedirectError(const AURLToRedirect: string);
+  begin
+    TKWebResponse.Current.Items.Clear;
+    TKWebResponse.Current.Items.ExecuteJSCode(Format('window.location.href=''%s''', [AURLToRedirect]));
+  end;
+
   procedure MethodNotFoundError(const AMethodName: string);
   begin
     Error(Format('Method: ''%s'' not found', [AMethodName]), True);
@@ -732,6 +745,13 @@ begin
             Result := CallObjectMethod(LHandlerObject, AURL.Document);
           end;
         except
+(*
+          on E: ERedirectError do
+          begin
+            MethodRedirectError(E.Message);
+            Result := True;
+          end;
+*)
           on E: Exception do
           begin
             MethodCallError(E.Message, AURL.Document, AURL.Params);
@@ -895,6 +915,12 @@ begin
 end;
 
 procedure TKWebApplication.Home;
+var
+  LParamName, LParamValue: string;
+  LAuthenticator: TKAuthenticator;
+  LJSAjaxCall: TJSAjaxCall;
+  I: Integer;
+
 
   procedure SetAjaxTimeout;
   var
@@ -909,8 +935,9 @@ begin
   if TKWebRequest.Current.IsAjax then
     raise Exception.Create('Cannot call Home page in an Ajax request.');
 
+  LAuthenticator := GetAuthenticator;
   if not TKWebSession.Current.RefreshingLanguage then
-    GetAuthenticator.Logout;
+    LAuthenticator.Logout;
 
   TKWebSession.Current.HomeViewNodeName := TKWebRequest.Current.GetQueryField('home');
   SetViewportContent;
@@ -928,8 +955,22 @@ begin
 //  if FAutoOpenViewName <> '' then
 //    Query['view'] := '';
 
-  TKWebResponse.Current.Items.AjaxCallMethod(TKWebSession.Current.ObjectSpace).SetMethod(DelayedHome)
-    .AddParam('vpWidthInches', GetViewportWidthInInches);
+  LJSAjaxCall := TKWebResponse.Current.Items.AjaxCallMethod(TKWebSession.Current.ObjectSpace).SetMethod(DelayedHome);
+
+  LJSAjaxCall.AddParam('vpWidthInches', GetViewportWidthInInches);
+
+  //Build RawParams with params found on the URL request form home
+  //but only if the Authenticator can Bypass them
+  //eg: Classic Authenticator do not Bypass UserName and Password Param
+  for I := 0 to TKWebRequest.Current.QueryTree.ChildCount -1 do
+  begin
+    LParamName := TKWebRequest.Current.QueryTree.Children[I].Name;
+    if (LParamName <> '') and LAuthenticator.CanBypassURLParam(LParamName) then
+    begin
+      LParamValue := TNetEncoding.URL.Encode(TKWebRequest.Current.QueryTree.Children[I].Value);
+      LJSAjaxCall.AddParam(LParamName, TNetEncoding.URL.Decode(LParamValue));
+    end;
+  end;
 
   ServeHomePage;
 end;
@@ -973,10 +1014,10 @@ begin
 Find a way to reference optional libraries only if the controllers that need
 them are linked in; maybe a global repository fed by initialization sections.
 Duplicates must be handled/ignored. }
-  AddReference('ext/build/packages/ux/classic/ux'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
-  AddReference('ext/build/packages/ux/classic/' + FTheme + '/resources/ux-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
-  AddReference('ext/build/packages/charts/classic/charts'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
-  AddReference('ext/build/packages/charts/classic/' + FTheme + '/resources/charts-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
+  AddReference('ext/build/packages/ux/'+ExtUILib+'/ux'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
+  AddReference('ext/build/packages/ux/'+ExtUILib+'/' + FTheme + '/resources/ux-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
+  AddReference('ext/build/packages/charts/'+ExtUILib+'/charts'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
+  AddReference('ext/build/packages/charts/'+ExtUILib+'/' + FTheme + '/resources/charts-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
   // DateTimePicker is required by DateTimeField and we want to load it
   // explicitly otherwise Ext.Loader will kick in and try to load it from a
   // default path (since now is too early to set a custom one).
@@ -1130,11 +1171,11 @@ begin
   LHtml := ReplaceText(LHtml, '<%ManifestLink%>', IfThen(GetManifestFileName = '', '',
     Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
   LHtml := ReplaceText(LHtml, '<%ThemeLink%>',
-    IfThen(Theme = '', '', '<link rel=stylesheet href="res/ext/build/classic/theme-' + Theme +
+    IfThen(Theme = '', '', '<link rel=stylesheet href="res/ext/build/'+ExtUILib+'/theme-' + Theme +
       '/resources/theme-' + Theme + '-all.css" />'));
   LHtml := ReplaceText(LHtml, '<%LanguageLink%>',
     IfThen((TKWebSession.Current.Language = 'en') or (TKWebSession.Current.Language = ''), '',
-      '<script src="res/ext/build/classic/locale/locale-' + TKWebSession.Current.Language + '.js"></script>'));
+      '<script src="res/ext/build/'+ExtUILib+'/locale/locale-' + TKWebSession.Current.Language + '.js"></script>'));
   LHtml := ReplaceText(LHtml, '<%LoadingImageURL%>', GetImageURL('loading.gif'));
   LHtml := ReplaceText(LHtml, '<%LoadingMessage%>', Format(_('Loading %s...'), [Config.AppTitle]));
   LHtml := ReplaceText(LHtml, '<%LibraryTags%>', GetLibraryTags);
@@ -1147,7 +1188,7 @@ end;
 
 function TKWebApplication.GetMainPageTemplate: string;
 begin
-  Result := GetPageTemplate('index');
+  Result := GetPageTemplate(FConfig.Config.GetString('HomePage', 'index'));
 end;
 
 function TKWebApplication.GetManifestFileName: string;

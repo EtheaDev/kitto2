@@ -1,7 +1,7 @@
 program {ProjectName};
 
 uses
-  Kitto.Ext.Start,
+  Kitto.Vcl.Start,
   Controllers in '..\..\Source\Controllers.pas',
   Rules in '..\..\Source\Rules.pas',
   UseKitto in '..\..\Source\UseKitto.pas';
@@ -9,5 +9,5 @@ uses
 {$R *.res}
 
 begin
-  TKExtStart.Start;
+  TKStart.Start;
 end.

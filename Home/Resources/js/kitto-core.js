@@ -16,7 +16,9 @@ function AjaxError(m) {
 
 function AjaxSuccess(response) {
   try {
-    eval(response.responseText);
+	//In ExtJS 7.X CORS respond with html content
+    if (response.responseText != "<HTML><BODY><B>200 OK</B></BODY></HTML>")
+      eval(response.responseText);
   } catch (err) {
     console.log(err.stack);
     if (err.message)

@@ -68,6 +68,8 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: password
   .Defaults:
     UserName: administrator
     Password: password

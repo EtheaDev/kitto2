@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -208,6 +208,10 @@ type
     /// from the database. Override this method to change the name or the
     /// structure of the predefined table of users.</summary>
     function GetReadUserCommandText(const AUserName: string): string; virtual;
+
+    procedure GetSuppliedAuthData(const AAuthData: TEFNode; const AHashNeeded: Boolean;
+      out ASuppliedUserName, ASuppliedPasswordHash: string;
+      out AIsPassepartoutAuthentication: Boolean); virtual;
 
     /// <summary>Extracts from AAuthData the supplied password, in order to use
     /// it in an authentication attempt. If AHashNeeded is True, the password
@@ -441,6 +445,16 @@ begin
   end;
 end;
 
+procedure TKDBAuthenticator.GetSuppliedAuthData(
+  const AAuthData: TEFNode; const AHashNeeded: Boolean;
+  out ASuppliedUserName, ASuppliedPasswordHash: string;
+  out AIsPassepartoutAuthentication: Boolean);
+begin
+  ASuppliedUserName := GetSuppliedUserName(AAuthData);
+  ASuppliedPasswordHash := GetSuppliedPasswordHash(AAuthData, AHashNeeded);
+  AIsPassepartoutAuthentication := IsPassepartoutAuthentication(ASuppliedPasswordHash);
+end;
+
 function TKDBAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
 var
   LSuppliedUserName: string;
@@ -448,9 +462,8 @@ var
   LIsPassepartoutAuthentication: Boolean;
   LUser: TKAuthUser;
 begin
-  LSuppliedUserName := GetSuppliedUserName(AAuthData);
-  LSuppliedPasswordHash := GetSuppliedPasswordHash(AAuthData, not IsClearPassword);
-  LIsPassepartoutAuthentication := IsPassepartoutAuthentication(LSuppliedPasswordHash);
+  GetSuppliedAuthData(AAuthData, not IsClearPassword,
+    LSuppliedUserName, LSuppliedPasswordHash, LIsPassepartoutAuthentication);
 
   if LSuppliedUserName <> '' then
   begin
@@ -480,7 +493,7 @@ begin
   LIsPassepartoutEnabled := Config.GetBoolean('IsPassepartoutEnabled', False);
   if LIsPassepartoutEnabled then
     LPassepartoutPassword := Config.GetString('PassepartoutPassword', '');
-  Result := LIsPassepartoutEnabled and (ASuppliedPasswordHash = LPassepartoutPassword);
+  Result := LIsPassepartoutEnabled and (ASuppliedPasswordHash = GetStringHash(LPassepartoutPassword));
 end;
 
 function TKDBAuthenticator.IsValidUserName(const AUserName: string): Boolean;
@@ -558,9 +571,13 @@ begin
     try
       LDBCommand.Connection.StartTransaction;
       try
+        //Pezza funzionante
+        LCommandText := StringReplace(StringReplace(LCommandText,':EMAIL_ADDRESS',QuotedStr(LEmailAddress),[rfReplaceAll, rfIgnoreCase]),':PASSWORD_HASH',QuotedStr(LPassword),[rfReplaceAll, rfIgnoreCase]);
         LDBCommand.CommandText := LCommandText;
-        LDBCommand.Params.ParamByName('EMAIL_ADDRESS').AsString := LEmailAddress;
-        LDBCommand.Params.ParamByName('PASSWORD_HASH').AsString := LPasswordHash;
+        //Codice originale problematico
+        //LDBCommand.CommandText := LCommandText;
+        //LDBCommand.Params.ParamByName('EMAIL_ADDRESS').AsString := LEmailAddress;
+        //LDBCommand.Params.ParamByName('PASSWORD_HASH').AsString := LPasswordHash;
         if LDBCommand.Execute <> 1 then
           raise EKError.Create(_('Error resetting password.'));
         AfterResetPassword(LDBConnection, AParams);

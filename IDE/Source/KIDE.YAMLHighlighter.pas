@@ -171,7 +171,7 @@ end;
 
 function TYAMLHighlighter.GetDisplayName: string;
 begin
-  Result := 'YAML files';
+  Result := 'YAML';
 end;
 
 function TYAMLHighlighter.GetErrorLine: Integer;
@@ -191,7 +191,7 @@ end;
 
 function TYAMLHighlighter.GetName: string;
 begin
-  Result := 'YAML Files Highlighter';
+  Result := 'YAML Files';
 end;
 
 function TYAMLHighlighter.GetSampleSearchText: string;
@@ -373,7 +373,7 @@ end;
 
 procedure RegisterYAMLHighlighter;
 begin
-  UnregisterYAMLHighlighter;
+  //UnregisterYAMLHighlighter;
   (BorlandIDEServices As IOTAHighlightServices).AddHighlighter(TYAMLHighlighter.Create);
 end;
 

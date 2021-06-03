@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -834,9 +834,8 @@ type
 
   TEFTreeClass = class of TEFTree;
 
-  /// <summary>
-  ///  A tree that stores a file name (or other logical identifier).
-  /// </summary>
+  /// <summary>A tree that stores a file name (or other logical
+  /// identifier).</summary>
   TEFPersistentTree = class(TEFTree)
   strict private
     FPersistentName: string;
@@ -853,9 +852,7 @@ type
 
     property IsPersistent: Boolean read GetIsPersistent;
 
-    /// <summary>
-    ///  Returns the full path name of the persistent file.
-    /// </summary>
+    /// <summary>Returns the full path name of the persistent file.</summary>
     property PersistentFileName: string read GetPersistentFileName;
   end;
 
@@ -3188,6 +3185,8 @@ begin
     LFormatSetting.DateSeparator := '-';
     Result := StrToDateTime(AValue, LFormatSetting);
   end
+  else if VarIsNull(AValue) then
+    Result := 0
   else
     Result := AValue;
 end;
@@ -3203,6 +3202,8 @@ begin
     LFormatSetting.TimeSeparator := ':';
     Result := StrToDateTime(AValue, LFormatSetting);
   end
+  else if VarIsNull(AValue) then
+    Result := 0
   else
     Result := AValue;
 end;

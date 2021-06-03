@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ type
     class procedure SetAppHomePath(const AValue: string); static;
     class function GetSystemHomePath: string; static;
     class procedure SetSystemHomePath(const AValue: string); static;
+    class function GetDatabase: TEFDBConnection; static;
 
     function GetDBConnectionNames: TStringDynArray;
     function GetMultiFieldSeparator: string;
@@ -79,10 +80,13 @@ type
     function GetDefaultDatabaseName: string;
     function GetDatabaseName: string;
     function GetLanguagePerSession: Boolean;
+    function GetFOPEnginePath: string;
   strict protected
+    function GetUploadPath: string;
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
   public
+    class procedure DestroyInstance;
     procedure AfterConstruction; override;
     destructor Destroy; override;
     class constructor Create;
@@ -161,6 +165,11 @@ type
     class property Instance: TKConfig read GetInstance;
 
     /// <summary>
+    ///   Returns the database instance.
+    /// </summary>
+    class property Database: TEFDBConnection read GetDatabase;
+
+    /// <summary>
     ///  A reference to the model catalog, opened on first access.
     /// </summary>
     property Models: TKModels read GetModels;
@@ -237,6 +246,16 @@ type
     property MultiFieldSeparator: string read GetMultiFieldSeparator;
 
     property LanguagePerSession: Boolean read GetLanguagePerSession;
+
+    /// <summary>
+    ///   <para>Returns or changes the home path for FOP engine.</para>
+    /// </summary>
+    property FOPEnginePath: string read GetFOPEnginePath;
+
+    /// <summary>
+    ///   <para>Returns or changes the Upload path accessible via %UPLOAD_PATH% macro.</para>
+    /// </summary>
+    property UploadPath: string read GetUploadPath;
   end;
 
   /// <summary>
@@ -275,6 +294,7 @@ uses
   , EF.StrUtils
   , EF.YAML
   , EF.Localization
+  , Kitto.Web.Application
   , Kitto.Types
   , Kitto.DatabaseRouter
   ;
@@ -422,6 +442,11 @@ begin
   Result := Config.GetExpandedString('DefaultDatabaseName', 'Main');
 end;
 
+function TKConfig.GetFOPEnginePath: string;
+begin
+  Result := Config.GetExpandedString('FOPEnginePath');
+end;
+
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
 var
   LDbAdapterKey: string;
@@ -480,6 +505,11 @@ begin
   else
     Result := FindSystemHomePath;
   Result := IncludeTrailingPathDelimiter(Result);
+end;
+
+function TKConfig.GetUploadPath: string;
+begin
+  Result := Config.GetExpandedString('UploadPath');
 end;
 
 function TKConfig.GetViews: TKViews;
@@ -549,6 +579,11 @@ begin
       FInstance := FConfigClass.Create;
     Result := FInstance;
   end;
+end;
+
+class function TKConfig.GetDatabase: TEFDBConnection;
+begin
+  Result := TKConfig.Instance.CreateDBConnection(TKConfig.Instance.DatabaseName);
 end;
 
 function TKConfig.GetLanguagePerSession: Boolean;
@@ -634,6 +669,11 @@ begin
   end;
 end;
 
+class procedure TKConfig.DestroyInstance;
+begin
+  FreeAndNil(FInstance);
+end;
+
 { TKConfigMacroExpander }
 
 constructor TKConfigMacroExpander.Create(const AConfig: TKConfig);
@@ -645,6 +685,16 @@ begin
 end;
 
 procedure TKConfigMacroExpander.InternalExpand(var AString: string);
+const
+  IMAGE_MACRO_HEAD = '%IMAGE(';
+  MACRO_TAIL = ')%';
+  UPLOAD_PATH = '%UPLOAD_PATH%';
+var
+  LPosHead: Integer;
+  LPosTail: Integer;
+  LName: string;
+  LURL: string;
+  LRest: string;
 begin
   inherited InternalExpand(AString);
   ExpandMacros(AString, '%HOME_PATH%', TKConfig.AppHomePath);
@@ -652,6 +702,25 @@ begin
   ExpandMacros(AString, '%Config.AppHomePath%', FConfig.AppHomePath);
   ExpandMacros(AString, '%Config.AppTitle%', FConfig.Instance.AppTitle);
   ExpandMacros(AString, '%Config.AppIcon%', FConfig.AppIcon);
+  if Pos(UPLOAD_PATH, AString) > 0 then
+    ExpandMacros(AString, UPLOAD_PATH, IncludeTrailingPathDelimiter(Config.UploadPath));
+
+  LPosHead := Pos(IMAGE_MACRO_HEAD, AString);
+  if LPosHead > 0 then
+  begin
+    LPosTail := PosEx(MACRO_TAIL, AString, LPosHead + 1);
+    if LPosTail > 0 then
+    begin
+      LName := Copy(AString, LPosHead + Length(IMAGE_MACRO_HEAD),
+        LPosTail - (LPosHead + Length(IMAGE_MACRO_HEAD)));
+      LURL := TKWebApplication.Current.GetImageURL(LName);
+      LRest := Copy(AString, LPosTail + Length(MACRO_TAIL), MaxInt);
+      InternalExpand(LRest);
+      Delete(AString, LPosHead, MaxInt);
+      Insert(LURL, AString, Length(AString) + 1);
+      Insert(LRest, AString, Length(AString) + 1);
+    end;
+  end;
 end;
 
 end.

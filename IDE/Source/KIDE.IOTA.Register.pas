@@ -16,14 +16,14 @@ uses
 
 procedure Register;
 begin
-  ForceDemandLoadState(dlDisable);
+//  ForceDemandLoadState(dlDisable);
 
   // YAML Syntax Highlighter
   RegisterYAMLHighlighter;
 
   // Kitto projects.
-  RegisterPackageWizard(TVclIOTAProjectWizard.Create);
-  RegisterPackageWizard(TWindowsServiceIOTAProjectWizard.Create);
+//  RegisterPackageWizard(TVclIOTAProjectWizard.Create);
+//  RegisterPackageWizard(TWindowsServiceIOTAProjectWizard.Create);
   // Kitto files.
   { TODO : Implement if required. }
   //RegisterPackageWizard(TKModelIOTAProjectWizard.Create);

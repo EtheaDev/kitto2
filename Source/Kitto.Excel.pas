@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -136,7 +136,7 @@ uses
   , EF.Sys
   , Kitto.Metadata.Models
   , Kitto.Config
-  ;
+  , EF.Macros;
 
 const
   ADO_EXCEL_2000 = 'Excel 8.0';
@@ -422,6 +422,7 @@ var
 begin
   //Opens the Ado table using a range defined inside the excel file
   LAdoTable := OpenExcelRange(AExcelFileName, AExcelRangeName);
+  TEFMacroExpansionEngine.Instance.DisableForCurrentThread;
   try
     LFirstAccepted := False;
     LZeroValueForced := False;
@@ -482,11 +483,13 @@ begin
     end;
   finally
     CloseExcelRange(LAdoTable);
+    TEFMacroExpansionEngine.Instance.EnableForCurrentThread;
   end;
 
   if LZeroValueForced then
   begin
     LAdoTable := OpenExcelRange(AExcelFileName, AExcelRangeName);
+    TEFMacroExpansionEngine.Instance.DisableForCurrentThread;
     Try
       //Reassign only blank values with NULL
       LAdoTable.First;
@@ -515,6 +518,7 @@ begin
     finally
       LAdoTable.Close;
       LAdoTable.Free;
+      TEFMacroExpansionEngine.Instance.EnableForCurrentThread;
     end;
   end;
 end;

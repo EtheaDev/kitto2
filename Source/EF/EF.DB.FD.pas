@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -367,8 +367,12 @@ begin
 
   if AStatement = '' then
     raise EEFError.Create(_('Unspecified Statement text.'));
-
-  Result := FConnection.ExecSQL(AStatement);
+  try
+    Result := FConnection.ExecSQL(AStatement);
+  except
+    on E: Exception do
+      raise EEFDBError.CreateForQuery(E.Message, AStatement);
+  end;
 end;
 
 function TEFDBFDConnection.FetchSequenceGeneratorValue(
@@ -432,11 +436,16 @@ end;
 function TEFDBFDCommand.Execute: Integer;
 begin
   UpdateInternalCommandCommandText;
-  Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
-  UpdateInternalCommandParams;
-  inherited;
-  FCommand.Execute;
-  Result := FCommand.RowsAffected;
+  try
+    Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
+    UpdateInternalCommandParams;
+    inherited;
+    FCommand.Execute;
+    Result := FCommand.RowsAffected;
+  except
+    on E: Exception do
+      raise EEFDBError.CreateForQuery(E.Message, FCommandText);
+  end;
 end;
 
 function TEFDBFDCommand.GetCommandText: string;
@@ -524,20 +533,15 @@ end;
 
 procedure TEFDBFDQuery.Open;
 begin
-  UpdateInternalQueryCommandText;
-  Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
-  UpdateInternalQueryParams;
-  InternalBeforeExecute;
   try
+    UpdateInternalQueryCommandText;
+    Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
+    UpdateInternalQueryParams;
+    InternalBeforeExecute;
     FQuery.Open;
   except
     on E: Exception do
-    begin
-      raise EEFError.Create(_(Format('Error "%s" opening query: %s.',
-        [E.Message, FCommandText])));
-    end
-    else
-      raise;
+      raise EEFDBError.CreateForQuery(E.Message, FCommandText);
   end;
 end;
 

@@ -13,16 +13,6 @@
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
         <Base>true</Base>
     </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Android' and '$(Base)'=='true') or '$(Base_Android)'!=''">
-        <Base_Android>true</Base_Android>
-        <CfgParent>Base</CfgParent>
-        <Base>true</Base>
-    </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Linux64' and '$(Base)'=='true') or '$(Base_Linux64)'!=''">
-        <Base_Linux64>true</Base_Linux64>
-        <CfgParent>Base</CfgParent>
-        <Base>true</Base>
-    </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
         <Base_Win32>true</Base_Win32>
         <CfgParent>Base</CfgParent>
@@ -65,14 +55,6 @@
         <DCC_SYMBOL_PLATFORM>false</DCC_SYMBOL_PLATFORM>
         <DCC_UNIT_PLATFORM>false</DCC_UNIT_PLATFORM>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_Android)'!=''">
-        <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
-        <EnabledSysJars>android-support-v4.dex.jar;cloud-messaging.dex.jar;fmx.dex.jar;google-analytics-v2.dex.jar;google-play-billing.dex.jar;google-play-licensing.dex.jar;google-play-services.dex.jar</EnabledSysJars>
-        <DCC_UsePackage>rtl;$(DCC_UsePackage)</DCC_UsePackage>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_Linux64)'!=''">
-        <DCC_UsePackage>rtl;$(DCC_UsePackage)</DCC_UsePackage>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
@@ -108,63 +90,27 @@
         <DCCReference Include="designide.dcp"/>
         <DCCReference Include="KittoCore.dcp"/>
         <DCCReference Include="VclSmp.dcp"/>
-        <DCCReference Include="..\..\Source\KIDE.IOTA.ProjectWizard.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.IOTA.Register.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.IOTA.ProjectCreator.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.IOTA.Utils.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.IOTA.ModuleCreator.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.BaseForm.pas">
-            <Form>BaseForm</Form>
-            <FormType>dfm</FormType>
+        <DCCReference Include="..\..\Source\KIDE.YAMLHighlighter.pas">
+            <Form>*
+  ,KIDE.IOTA.ProjectWizard in &apos;..\..\Source\KIDE.IOTA.ProjectWizard.pas&apos;
+  ,KIDE.IOTA.ProjectCreator in &apos;..\..\Source\KIDE.IOTA.ProjectCreator.pas&apos;
+  ,KIDE.IOTA.Utils in &apos;..\..\Source\KIDE.IOTA.Utils.pas&apos;
+  ,KIDE.IOTA.ModuleCreator in &apos;..\..\Source\KIDE.IOTA.ModuleCreator.pas&apos;
+  ,KIDE.BaseForm in &apos;..\..\Source\KIDE.BaseForm.pas&apos; {BaseForm}
+  ,KIDE.BaseWizardForm in &apos;..\..\Source\KIDE.BaseWizardForm.pas&apos; {BaseWizardForm}
+  ,KIDE.NewProjectWizardForm in &apos;..\..\Source\KIDE.NewProjectWizardForm.pas&apos; {NewProjectWizardForm}
+  ,KIDE.MRUOptions in &apos;..\..\Source\KIDE.MRUOptions.pas&apos;
+  ,KIDE.ProjectTemplateFrame in &apos;..\..\Source\KIDE.ProjectTemplateFrame.pas&apos; {ProjectTemplateFrame</Form>
+            <DesignClass>TFrame}
+  ,KIDE.BaseFrame in &apos;..\..\Source\KIDE.BaseFrame.pas&apos; {BaseFrame: TFrame}
+  ,KIDE.ProjectTemplate in &apos;..\..\Source\KIDE.ProjectTemplate.pas&apos;
+  ,KIDE.Config in &apos;..\..\Source\KIDE.Config.pas&apos;
+  ,KIDE.Project in &apos;..\..\Source\KIDE.Project.pas&apos;
+  ,KIDE.MainDataModule in &apos;..\..\Source\KIDE.MainDataModule.pas&apos; {MainDataModule: TDataModule}
+  ,KIDE.IOTA.MainFormCreator in &apos;..\..\Source\KIDE.IOTA.MainFormCreator.pas&apos;
+  ,KIDE.IOTA.Register in &apos;..\..\Source\KIDE.IOTA.Register.pas&apos;
+*</DesignClass>
         </DCCReference>
-        <DCCReference Include="..\..\Source\KIDE.BaseWizardForm.pas">
-            <Form>BaseWizardForm</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="..\..\Source\KIDE.NewProjectWizardForm.pas">
-            <Form>NewProjectWizardForm</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="..\..\Source\KIDE.MRUOptions.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.ProjectTemplateFrame.pas">
-            <Form>ProjectTemplateFrame</Form>
-            <FormType>dfm</FormType>
-            <DesignClass>TFrame</DesignClass>
-        </DCCReference>
-        <DCCReference Include="..\..\Source\KIDE.BaseFrame.pas">
-            <Form>BaseFrame</Form>
-            <FormType>dfm</FormType>
-            <DesignClass>TFrame</DesignClass>
-        </DCCReference>
-        <DCCReference Include="..\..\Source\KIDE.ProjectTemplate.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.Config.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.Project.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.YAMLHighlighter.pas"/>
-        <DCCReference Include="..\..\Source\KIDE.MainDataModule.pas">
-            <Form>MainDataModule</Form>
-            <FormType>dfm</FormType>
-            <DesignClass>TDataModule</DesignClass>
-        </DCCReference>
-        <DCCReference Include="..\..\Source\KIDE.IOTA.MainFormCreator.pas"/>
-        <RcItem Include="..\..\Images\KittoVclApplication.ico">
-            <ResourceType>ICON</ResourceType>
-            <ResourceId>KittoVclApplication</ResourceId>
-        </RcItem>
-        <RcItem Include="..\..\Images\KittoWindowsServiceApplication.ico">
-            <ResourceType>ICON</ResourceType>
-            <ResourceId>KittoWindowsServiceApplication</ResourceId>
-        </RcItem>
-        <RcCompile Include="..\..\ProjectTemplates\Basic\Template_Basic.rc">
-            <Form>Template_Basic.res</Form>
-        </RcCompile>
-        <RcCompile Include="..\..\ProjectTemplates\Empty\Template_Empty.rc">
-            <Form>Template_Empty.res</Form>
-        </RcCompile>
-        <RcItem Include="..\..\Config\Config.yaml">
-            <ContainerId>ResourceItem</ContainerId>
-            <ResourceType>RCDATA</ResourceType>
-            <ResourceId>Config_yaml</ResourceId>
-        </RcItem>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -211,7 +157,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\..\..\..\..\..\Public\Documents\Embarcadero\Studio\19.0\Bpl\KittoIDE250.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\KittoIDE250.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>KittoIDE.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -582,8 +528,6 @@
                 <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
             </Deployment>
             <Platforms>
-                <Platform value="Android">False</Platform>
-                <Platform value="Linux64">False</Platform>
                 <Platform value="Win32">True</Platform>
             </Platforms>
         </BorlandProject>

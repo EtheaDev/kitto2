@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2019 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -175,6 +175,16 @@ type
     procedure EditRecord(const ARecord: TKRecord); virtual;
 
     /// <summary>
+    ///  Called after creating Windows for editing a record in the user interface.
+    ///  Descendants may set computed values.
+    /// </summary>
+    /// <param name="ARecord">
+    ///  The record being edited. It is usually an
+    ///  instance of TKViewTableRecord.
+    /// </param>
+    procedure AfterShowEditWindow(const ARecord: TKRecord); virtual;
+
+    /// <summary>
     ///  <para>
     ///   Called when duplicating a record.
     ///   Descendants should read the values in ARecord and call RaiseError
@@ -332,6 +342,9 @@ type
     ///  a reference.
     /// </summary>
     function GetReferencedModelInstanceValue(const AReferenceName, AFieldName: string; const ARecord: TKRecord): Variant;
+
+    procedure AfterRefreshReferenceField(const AField: TKField); virtual;
+
   end;
   TKRuleImplClass = class of TKRuleImpl;
 
@@ -402,6 +415,10 @@ procedure TKRuleImpl.AfterFieldChange(const AField: TKField; const AOldValue, AN
 begin
 end;
 
+procedure TKRuleImpl.AfterRefreshReferenceField(const AField: TKField);
+begin
+end;
+
 procedure TKRuleImpl.AfterUpdate(const ARecord: TKRecord);
 begin
   AfterAddOrUpdate(ARecord);
@@ -461,13 +478,18 @@ begin
   inherited;
 end;
 
+procedure TKRuleImpl.EditRecord(const ARecord: TKRecord);
+begin
+end;
+
+procedure TKRuleImpl.AfterShowEditWindow(const ARecord: TKRecord);
+begin
+end;
+
 procedure TKRuleImpl.DuplicateRecord(const ARecord: TKRecord);
 begin
 end;
 
-procedure TKRuleImpl.EditRecord(const ARecord: TKRecord);
-begin
-end;
 
 class function TKRuleImpl.GetClassId: string;
 begin

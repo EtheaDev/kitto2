@@ -17,6 +17,8 @@ type
   TExtObjectClass = TJSObjectClass;
   TExtExpression = TJSExpression;
 
+  TExtMessageType = (emtInfo, emtWarning, emtError);
+
   TExtBase = class(TExtObject)
   public
     class function JSClassName: string; override;
@@ -201,6 +203,7 @@ type
     function Hide: TExtExpression;
     function SetDisabled(const AValue: Boolean): TExtExpression;
     function SetVisible(const AValue: Boolean): TExtExpression;
+    function SetWidth(const AValue: Integer): TExtExpression;
     function Show(const AAnimateTarget: string = ''): TExtExpression; overload;
     function Show(const AAnimateTarget: TExtExpression): TExtExpression; overload;
     // Kitto specific.
@@ -700,7 +703,6 @@ type
   // Procedural types for events TExtTabPanel
   TExtTabPanelOnTabChange = procedure(ATabPanel: TExtTabPanel; ANewTab: TExtComponent) of object;
 
-  TExtTabPanelClass = class of TExtPanel;
   TExtTabPanel = class(TExtPanel)
   private
     FOnTabChange: TExtTabPanelOnTabChange;
@@ -770,6 +772,9 @@ type
   public
     class function JSClassName: string; override;
     function Alert(const ATitle: string; const AMsg: string;
+      const AFn: TExtExpression = nil; const AScope: TExtObject = nil): TExtExpression;
+    function ShowMessage(const AMessageType: TExtMessageType;
+      const ATitle: string; const AMsg: string;
       const AFn: TExtExpression = nil; const AScope: TExtObject = nil): TExtExpression;
   end;
 
@@ -1074,6 +1079,13 @@ end;
 function TExtComponent.SetVisible(const AValue: Boolean): TExtExpression;
 begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'setVisible')
+    .AddParam(AValue)
+    .AsExpression;
+end;
+
+function TExtComponent.SetWidth(const AValue: Integer): TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setWidth')
     .AddParam(AValue)
     .AsExpression;
 end;
@@ -2175,6 +2187,14 @@ begin
 end;
 
 function TExtMessageBoxSingleton.Alert(const ATitle: string; const AMsg: string;
+  const AFn: TExtExpression = nil; const AScope: TExtObject = nil): TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'alert').AddParam(ATitle).AddParam(AMsg)
+    .AddParam(AFn).AddParam(AScope).AsExpression;
+end;
+
+function TExtMessageBoxSingleton.ShowMessage(const AMessageType: TExtMessageType;
+  const ATitle: string; const AMsg: string;
   const AFn: TExtExpression = nil; const AScope: TExtObject = nil): TExtExpression;
 begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'alert').AddParam(ATitle).AddParam(AMsg)

@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -66,8 +66,8 @@ begin
 end;
 
 initialization
-  TKConfig.SetConfigClass(TKideConfig);
+//  TKConfig.SetConfigClass(TKideConfig);
   //activation for memory leaks
-  ReportMemoryLeaksOnShutdown := DebugHook <> 0;
+//  ReportMemoryLeaksOnShutdown := DebugHook <> 0;
 
 end.

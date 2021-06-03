@@ -15,4 +15,9 @@ Fields:
     DisplayLabel: Last Name
   EMAIL_ADDRESS: String(100)
     DisplayLabel: Email Address
+  MUST_CHANGE_PASSWORD: Boolean
+    DisplayLabel: Must Change Password
+    IsVisible: False
+Rules:
+  KittoUserCheck:
 PluralDisplayLabel: _(User)

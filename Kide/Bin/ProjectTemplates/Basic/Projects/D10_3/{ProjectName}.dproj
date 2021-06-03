@@ -101,8 +101,7 @@
         </DelphiCompile>
         <DCCReference Include="..\..\Source\Controllers.pas"/>
         <DCCReference Include="..\..\Source\Rules.pas"/>
-        <DCCReference Include="..\..\Source\UseKitto.pas">
-        </DCCReference>
+        <DCCReference Include="..\..\Source\UseKitto.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

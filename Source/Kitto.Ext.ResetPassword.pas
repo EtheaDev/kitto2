@@ -31,6 +31,7 @@ type
   // Asks for an e-mail address and calls the current authenticator's ResetPassword method.
   TKExtResetPassword = class(TKExtPanelControllerBase)
   private
+    FUserName: TExtFormTextField;
     FEmailAddress: TExtFormTextField;
     FSendButton: TKExtButton;
     FStatusBar: TKExtStatusBar;
@@ -62,8 +63,24 @@ uses
 procedure TKExtResetPassword.DoDisplay;
 begin
   inherited;
+  // Needed to force the controller to display as a modal window.
+  SetContainer(nil);
+  DisplayMode := 'Modal';
+  Closable := True;
+  Width := 400;
+  Height := 250;
+  Closable := True;
+
   Layout := 'form';
   BodyPadding := Format('%0:dpx 0 0 0', [TKDefaults.GetSingleSpacing]);
+
+  FUserName := TExtFormTextField.CreateAndAddToArray(Items);
+  FUserName.Name := 'UserName';
+  FUserName.FieldLabel := _('User Name');
+  FUserName.AllowBlank := False;
+  FUserName.EnableKeyEvents := True;
+  FUserName.SelectOnFocus := True;
+  FUserName.WidthString := '100%';
 
   FEmailAddress := TExtFormTextField.CreateAndAddToArray(Items);
   FEmailAddress.Name := 'EmailAddress';
@@ -92,10 +109,11 @@ begin
 
   FSendButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoSend)
     .AddParam('Dummy', FStatusBar.ShowBusy)
+    .AddParam('UserName', FUserName.GetValue)
     .AddParam('EmailAddress', FEmailAddress.GetValue)
     .AsFunction;
   FSendButton.Disabled := (FEmailAddress.Value = '');
-  FEmailAddress.Focus(False, 750);
+  FUserName.Focus(False, 750);
 end;
 
 procedure TKExtResetPassword.DoSend;
@@ -104,10 +122,11 @@ var
 begin
   LParams := TEFNode.Create;
   try
+    LParams.SetString('UserName', TKWebRequest.Current.GetQueryField('UserName'));
     LParams.SetString('EmailAddress', TKWebRequest.Current.GetQueryField('EmailAddress'));
     try
       TKAuthenticator.Current.ResetPassword(LParams);
-      ExtMessageBox.Alert(_(TKWebApplication.Current.Config.AppTitle), _('A new temporary password was generated and sent to the specified e-mail address.'));
+      ExtMessageBox.ShowMessage(emtInfo, _('Reset Password'), _('A new temporary password was generated and sent to the specified e-mail address.'));
       Close;
     except
       on E: Exception do

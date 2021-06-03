@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -128,6 +128,8 @@ procedure TKExtChangePassword.DoDisplay;
     Result := ReplaceStr(Result, '%OLDPW%', FOldPassword.JSName);
     Result := ReplaceStr(Result, '%NEWPW%', FNewPassword.JSName);
     Result := ReplaceStr(Result, '%NEWPW2%', FConfirmNewPassword.JSName);
+    Result := ReplaceStr(Result, '%STATUSBAR%', FStatusBar.JSName);
+    Result := ReplaceStr(Result, '%CAPS_ON%', _('Caps On'));
   end;
 
   function GetEnableButtonJS: string;
@@ -135,6 +137,16 @@ procedure TKExtChangePassword.DoDisplay;
     Result := ReplaceMacros(
       '%BUTTON%.setDisabled(%OLDPW%.getValue() == "" || %NEWPW%.getValue() == "" ' +
       '|| !(%NEWPW%.getValue() == %NEWPW2%.getValue()));');
+  end;
+
+  function GetCheckCapsLockJS: string;
+  begin
+(*
+    Result := ReplaceMacros(
+      'if (event.keyCode !== 13 && event.getModifierState("CapsLock")) ' +
+      '{%STATUSBAR%.setText(''%CAPS_ON%''); %STATUSBAR%.setIcon('''');} ' +
+      'else {%STATUSBAR%.setText('''');}');
+*)
   end;
 
   function GetSubmitJS: string;
@@ -154,6 +166,7 @@ begin
   Closable := True;
   Width := 400;
   Height := 250;
+  Closable := True;
 
   Layout := 'form';
   BodyPadding := Format('%dpx 0 0 0', [TKDefaults.GetSingleSpacing]);
@@ -196,6 +209,11 @@ begin
   FOldPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
   FNewPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
   FConfirmNewPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+
+  FOldPassword.On('keydown', GenerateAnonymousFunction(GetCheckCapsLockJS));
+  FNewPassword.On('keydown', GenerateAnonymousFunction(GetCheckCapsLockJS));
+  FConfirmNewPassword.On('keydown', GenerateAnonymousFunction(GetCheckCapsLockJS));
+
   FOldPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
   FNewPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
   FConfirmNewPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));

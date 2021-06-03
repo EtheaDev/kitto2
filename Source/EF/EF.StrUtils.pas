@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -63,6 +63,13 @@ function StripSuffix(const AString, ASuffix: string): string;
 ///	  '0'..'9' printable sets. Excludes the specified characters.
 ///	</summary>
 function GetRandomString(const ALength: Integer; const AExcludeChars: string = ''): string;
+
+///	<summary>
+///	  Generates a random string of ALength characters in the
+///   'A'..'Z' and 'a'..'z' and '0'..'9' printable sets.
+///   Excludes the specified characters.
+///	</summary>
+function GetRandomStringEx(const ALength: Integer; const AExcludeChars: string = ''): string;
 
 ///	<summary>
 ///	 Returns True if APattern matches AString. APattern may contain the
@@ -380,6 +387,33 @@ begin
     if Random(2) = 1 then
       // A random character between '0' and '9'.
       LNextChar := Chr(Random(Ord('9') - Ord('0') + 1) + Ord('0'))
+    else
+      // A random character between 'A' e 'Z'.
+      LNextChar := Chr(Random(Ord('Z') - Ord('A') + 1) + Ord('A'));
+
+    if (AExcludeChars = '') or not AExcludeChars.Contains(LNextChar) then
+      Result := Result + LNextChar;
+  end;
+end;
+
+function GetRandomStringEx(const ALength: Integer; const AExcludeChars: string = ''): string;
+var
+  LNextChar: Char;
+  LRandom: Integer;
+begin
+  // If this function is moved out of this unit, then a call to Randomize should
+  // be made somewhere in the application. See this unit's initialization section.
+  Result := '';
+  while Length(Result) < ALength do
+  begin
+    LRandom := Random(3);
+    // Randomly decide whether the next character will be a letter or a number.
+    if LRandom = 0 then
+      // A random character between '0' and '9'.
+      LNextChar := Chr(Random(Ord('9') - Ord('0') + 1) + Ord('0'))
+    else if LRandom = 1 then
+      // A random character between 'a' e 'z'.
+      LNextChar := Chr(Random(Ord('z') - Ord('a') + 1) + Ord('a'))
     else
       // A random character between 'A' e 'Z'.
       LNextChar := Chr(Random(Ord('Z') - Ord('A') + 1) + Ord('A'));

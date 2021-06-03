@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -168,6 +168,8 @@ type
   TKExtFormDateField = class(TExtFormDateField);
 
   TKExtFormCheckBoxField = class(TExtFormCheckBox);
+
+  TKExtFormNumberField = class(TExtFormNumberField);
 
   TKExtStatusBar = class(TExtUxStatusBar)
   public
@@ -396,7 +398,7 @@ end;
 function TKExtActionButton.GetConfirmCall(const AMessage: string): string;
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
-    [_(TKWebApplication.Current.Config.AppTitle), AMessage, GetMethodURL(ExecuteButtonAction)]);
+    [_('Confirm operation'), AMessage, GetMethodURL(ExecuteButtonAction)]);
 end;
 
 procedure TKExtActionButton.InitController(const AController: IJSController);

@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -195,6 +195,7 @@ begin
       TKWebResponse.Current := TKWebResponse.Create(AResponse, AOwnsObjects);
       try
         Result := HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL);
+
         if not Result and AHandleAllRequests then
         begin
           { TODO : Fetch the appname and other data from config to display meaningful error }
@@ -204,6 +205,8 @@ begin
             '<head><title>Web Server Application</title></head>' +
             '<body>Unknown request: ' + ARequest.PathInfo + '</body>' +
             '</html>';
+          AResponse.StatusCode := 500;
+          AResponse.HTTPRequest.URL.Empty;
           AResponse.SendResponse;
         end;
       finally

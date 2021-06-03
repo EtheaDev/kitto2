@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -533,6 +533,7 @@ type
     // Same as above but fires the view table's model's Before/AfterNewRecord events.
     procedure ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable; const AIsCloned: Boolean);
     procedure ApplyEditRecordRules;
+    procedure ApplyAfterShowEditWindowRules;
     procedure ApplyDuplicateRecordRules;
     procedure ApplyBeforeRules;
     procedure ApplyAfterRules;
@@ -777,6 +778,11 @@ type
   end;
 
   TKFileReferenceDataType = class(TEFStringDataType)
+  public
+    class function GetTypeName: string; override;
+  end;
+
+  TKHTMLMemoDataType = class(TEFMemoDataType)
   public
     class function GetTypeName: string; override;
   end;
@@ -2633,6 +2639,15 @@ begin
     end);
 end;
 
+procedure TKViewTableRecord.ApplyAfterShowEditWindowRules;
+begin
+  ViewTable.ApplyRules(
+    procedure (ARuleImpl: TKRuleImpl)
+    begin
+      ARuleImpl.AfterShowEditWindow(Self);
+    end);
+end;
+
 procedure TKViewTableRecord.ApplyDuplicateRecordRules;
 begin
   ViewTable.ApplyRules(
@@ -2790,6 +2805,12 @@ begin
                 LDerivedField.SetToNull;
             end;
           end;
+          LField.ViewField.EnumRules(
+            function (ARuleImpl: TKRuleImpl): Boolean
+            begin
+              ARuleImpl.AfterRefreshReferenceField(LField);
+              Result := True;
+            end);
         finally
           FreeAndNil(LStore);
         end;
@@ -3124,9 +3145,17 @@ begin
   Result := Self;
 end;
 
+{ TKHTMLMemoDataType }
+
+class function TKHTMLMemoDataType.GetTypeName: string;
+begin
+  Result := 'HTMLMemo';
+end;
+
 initialization
   TKViewRegistry.Instance.RegisterClass(TKMetadata.SYS_PREFIX + 'Data', TKDataView);
   TEFDataTypeRegistry.Instance.RegisterClass(TKFileReferenceDataType.GetTypeName, TKFileReferenceDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TKHTMLMemoDataType.GetTypeName, TKHTMLMemoDataType);
 
 finalization
   // For some reason, the unit defining TKViewRegistry is finalized before this one.
@@ -3134,5 +3163,6 @@ finalization
   if TKViewRegistry.HasInstance then
     TKViewRegistry.Instance.UnregisterClass(TKMetadata.SYS_PREFIX + 'Data');
   TEFDataTypeRegistry.Instance.UnregisterClass(TKFileReferenceDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TKHTMLMemoDataType.GetTypeName);
 
 end.

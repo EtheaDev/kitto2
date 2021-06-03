@@ -1,0 +1,19 @@
+﻿Controller:
+  Style: opacity:0.9
+  BorderPanel:
+    NorthView:
+      Controller: HtmlPanel
+        Height: 100
+        Html: |
+          <div style="text-align: center">
+            <center>
+              <p><img src="%IMAGE(taskitto_logo_150)%"></img></p>
+              <p><H1>%Config:AppTitle% %APP_VERSION%</H1></p>
+            </center>
+            <p/>
+          </div>
+#  ExtraWidth: 400
+  LabelWidth: 150
+#  ExtraHeight: 100
+  ResetPassword: True
+  RegisterNewUser: True

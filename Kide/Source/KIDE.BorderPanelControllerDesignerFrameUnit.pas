@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ type
       const ARegion: string): string;
     function GetRegionControllerName(
       const ARegion: string): string;
-    function FindBorderPanelControllerClass(const ANode: TEFNode): TExtTabPanelClass;
+    function FindBorderPanelControllerClass(const ANode: TEFNode): TExtTabPanel;
     procedure UpdateControllerGUI(const ARegion: string;
       const AButton: TSpeedButton; const ATabSheet: TTabSheet);
     procedure UpdateViewGUI(const ARegion: string;
@@ -118,7 +118,7 @@ end;
 
 procedure TBorderPanelControllerDesignerFrame.Init(const ANode: TEFTree);
 var
-  LBorderPanelControllerClass: TExtTabPanelClass;
+  LBorderPanelControllerClass: TExtTabPanel;
 (*
   procedure InitController(const ANodeName: string; const ATabSheet: TTabSheet);
   var
@@ -156,13 +156,13 @@ begin
 end;
 
 function TBorderPanelControllerDesignerFrame.FindBorderPanelControllerClass(
-  const ANode: TEFNode): TExtTabPanelClass;
+  const ANode: TEFNode): TExtTabPanel;
 var
   LControllerClass: TClass;
 begin
   LControllerClass := GetControllerClass(ANode);
   if Assigned(LControllerClass) then
-    Result := TExtTabPanelClass(LControllerClass)
+    Result := TExtTabPanel(LControllerClass)
   else
     Result := nil;
 end;
@@ -170,7 +170,7 @@ end;
 function TBorderPanelControllerDesignerFrame.GetRegionViewName(
   const ARegion: string): string;
 var
-  LBorderPanelControllerClass: TExtTabPanelClass;
+  LBorderPanelControllerClass: TExtTabPanel;
 begin
   LBorderPanelControllerClass := FindBorderPanelControllerClass(TEFNode(EditNode));
   if Assigned(LBorderPanelControllerClass) then
@@ -182,7 +182,7 @@ end;
 function TBorderPanelControllerDesignerFrame.GetRegionControllerName(
   const ARegion: string): string;
 var
-  LBorderPanelControllerClass: TExtTabPanelClass;
+  LBorderPanelControllerClass: TExtTabPanel;
 begin
   LBorderPanelControllerClass := FindBorderPanelControllerClass(EditNode as TEFNode);
   if Assigned(LBorderPanelControllerClass) then

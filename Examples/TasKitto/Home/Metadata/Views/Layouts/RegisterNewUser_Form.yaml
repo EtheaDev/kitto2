@@ -1,0 +1,6 @@
+Field: USER_NAME
+  DisplayLabel: User Name
+  CharWidth: 20
+Field: EMAIL_ADDRESS
+  CharWidth: 20
+LabelAlign: Right

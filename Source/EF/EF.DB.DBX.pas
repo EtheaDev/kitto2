@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -274,8 +274,12 @@ begin
 
   if AStatement = '' then
     raise EEFError.Create(_('Unspecified Statement text.'));
-
-  Result := FConnection.ExecuteDirect(AStatement);
+  try
+    Result := FConnection.ExecuteDirect(AStatement);
+  except
+    on E: Exception do
+      raise EEFDBError.CreateForQuery(E.Message, AStatement);
+  end;
 end;
 
 function TEFDBDBXConnection.GetConnection: TObject;
@@ -468,8 +472,13 @@ end;
 function TEFDBDBXCommand.Execute: Integer;
 begin
   inherited;
-  Connection.DBEngineType.BeforeExecute(FQuery.SQL.Text, FQuery.Params);
-  FQuery.ExecSQL;
+  try
+    Connection.DBEngineType.BeforeExecute(FQuery.SQL.Text, FQuery.Params);
+    FQuery.ExecSQL;
+  except
+    on E: Exception do
+      raise EEFDBError.CreateForQuery(E.Message, FQuery.SQL.Text);
+  end;
   Result := FQuery.RowsAffected;
 end;
 
@@ -568,18 +577,13 @@ end;
 
 procedure TEFDBDBXQuery.Open;
 begin
-  Connection.Open;
-  Connection.DBEngineType.BeforeExecute(FQuery.SQL.Text, FQuery.Params);
   try
+    Connection.Open;
+    Connection.DBEngineType.BeforeExecute(FQuery.SQL.Text, FQuery.Params);
     DataSet.Open;
   except
     on E: Exception do
-    begin
-      raise EEFError.Create(_(Format('Error "%s" opening query: %s.',
-        [E.Message, FQuery.SQL.Text])));
-    end
-    else
-      raise;
+      raise EEFDBError.CreateForQuery(E.Message, FQuery.SQL.Text);
   end;
 end;
 

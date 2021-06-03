@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -306,6 +306,31 @@ type
     procedure SetReadOnly(const AValue: Boolean);
   end;
 
+(*
+  TKExtFormHTMLEditor = class(TExtFormHTMLEditor, IKExtEditItem, IKExtEditor)
+  private
+    FFieldName: string;
+    FRecordField: TKViewTableField;
+    FAdditionalWidth: Integer;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+  public
+    function AsObject: TObject; inline;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    procedure SetOption(const ANode: TEFNode);
+    function AsExtObject: TExtObject; inline;
+    function AsExtFormField: TExtFormField; inline;
+    function GetRecordField: TKViewTableField;
+    procedure SetRecordField(const AValue: TKViewTableField);
+    function GetFieldName: string;
+    procedure SetFieldName(const AValue: string);
+    procedure RefreshValue;
+    procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
+  end;
+*)
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
   private
     FFieldName: string;
@@ -662,6 +687,9 @@ type
     function TryCreateNumberField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
+//    function TryCreateHtmlEditor(const AOwner: TJSBase; const AViewField: TKViewField;
+//      const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
+//      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
     function CreateTextField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
@@ -738,6 +766,7 @@ uses
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Form
+  , Kitto.Ext.Utils
   , Kitto.Ext.Rules
   , Kitto.Ext.Editors.Files
   ;
@@ -792,29 +821,34 @@ end;
 
 function IsChangeHandlerNeeded(const AViewTableField: TKViewTableField): Boolean;
 begin
-  // Short-circuited for performance reasons.
-  Result := True;
-//  if AViewTableField.ViewField.FileNameField <> '' then
-//    // Uploads always need the change handler.
-//    Result := True
-//  else if AViewTableField.ViewField.DerivedFieldsExist then
-//    // Derived fields must be updated when source field changes.
-//    Result := True
-//  else if AViewTableField.ViewField.HasServerSideRules then
-//    // Server-side rules need the change handler in order to be applied.
-//    Result := True
-//  else if AViewTableField.ViewField.GetBoolean('NotifyChange') then
-//    // Temporary, for cases not handled by this detector and setup manually.
-//    Result := True
-//  else if Length(AViewTableField.ViewField.Table.GetFilterByFields(
-//      function (AFilterByViewField: TKFilterByViewField): Boolean
-//      begin
-//        Result := AFilterByViewField.SourceField = AViewTableField.ViewField;
-//      end)) > 0 then
-//    // If any fields are filtered by this field, then the change must be notified.
-//    Result := True
-//  else
-//    Result := False;
+  if TKWebApplication.Current.Config.Config.GetBoolean('Defaults/AlwaysNotifyChange', True) then
+    Result := True
+  else
+  begin
+    { TODO : Consider dependencies such as field names used in layout elements
+      (such as field set titles). In order to do that, build a dependency list/tree.}
+    if AViewTableField.ViewField.FileNameField <> '' then
+      // Uploads always need the change handler.
+      Result := True
+    else if AViewTableField.ViewField.DerivedFieldsExist then
+      // Derived fields must be updated when source field changes.
+      Result := True
+    else if AViewTableField.ViewField.HasServerSideRules then
+      // Server-side rules need the change handler in order to be applied.
+      Result := True
+    else if AViewTableField.ViewField.GetBoolean('NotifyChange') then
+      // Temporary, for cases not handled by this detector and setup manually.
+      Result := AViewTableField.ViewField.GetBoolean('NotifyChange')
+    else if Length(AViewTableField.ViewField.Table.GetFilterByFields(
+        function (AFilterByViewField: TKFilterByViewField): Boolean
+        begin
+          Result := AFilterByViewField.SourceField = AViewTableField.ViewField;
+        end)) > 0 then
+      // If any fields are filtered by this field, then the change must be notified.
+      Result := True
+    else
+      Result := False;
+  end;
 end;
 
 procedure InvalidTransientProperty(APropertyName: string; const AValue: Variant);
@@ -828,6 +862,8 @@ begin
     AComponent.SetVisible(AValue)
   else if SameText(APropertyName, 'Enabled') then
     AComponent.SetDisabled(not AValue)
+  else if SameText(APropertyName, 'CharWidth') then
+    AComponent.SetWidth(AValue)
   else
     InvalidTransientProperty(APropertyName, AValue);
 end;
@@ -876,7 +912,6 @@ begin
   LNode := ANode.FindNode('LabelAlign');
   if Assigned(LNode) then
     FCurrentLabelAlign := OptionAsLabelAlign(LNode.AsString);
-
   LNode := ANode.FindNode('LabelWidth');
   if Assigned(LNode) then
     FCurrentLabelWidth := LNode.AsInteger;
@@ -1051,7 +1086,6 @@ begin
       end;
     end;
     FinalizeCurrentEditPage;
-
     // Done.
     LInitialPage.Rendered := True;
   end;
@@ -1660,6 +1694,98 @@ function TKExtFormTextField._Release: Integer;
 begin
   Result := -1;
 end;
+
+{ TKExtFormHTMLEditor }
+
+(*
+function TKExtFormHTMLEditor.AsExtFormField: TExtFormField;
+begin
+  Result := Self;
+end;
+
+function TKExtFormHTMLEditor.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+function TKExtFormHTMLEditor.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+procedure TKExtFormHTMLEditor.FieldChange(This: TExtFormField; NewValue, OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, TKWebApplication.Current.Config.UserFormatSettings);
+end;
+
+function TKExtFormHTMLEditor.GetFieldName: string;
+begin
+  Result := FFieldName;
+end;
+
+function TKExtFormHTMLEditor.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
+end;
+
+function TKExtFormHTMLEditor.GetRecordField: TKViewTableField;
+begin
+  Result := FRecordField;
+end;
+
+procedure TKExtFormHTMLEditor.RefreshValue;
+begin
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormHTMLEditor.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+end;
+
+procedure TKExtFormHTMLEditor.SetRecordField(const AValue: TKViewTableField);
+begin
+  FRecordField := AValue;
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
+    OnChange := FieldChange;
+end;
+
+procedure TKExtFormHTMLEditor.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
+end;
+
+procedure TKExtFormHTMLEditor.StoreValue(const AObjectName: string);
+begin
+  AsExtFormField.StoreValue(AObjectName);
+end;
+
+procedure TKExtFormHTMLEditor.SetFieldName(const AValue: string);
+begin
+  FFieldName := AValue;
+end;
+
+procedure TKExtFormHTMLEditor.SetOption(const ANode: TEFNode);
+begin
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
+  begin
+    if SameText(ANode.Name, 'Lines') then
+      Height := LinesToPixels(ANode.AsInteger)
+    else
+      TKExtEditorManager.InvalidOption(ANode);
+  end;
+end;
+
+function TKExtFormHTMLEditor._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TKExtFormHTMLEditor._Release: Integer;
+begin
+  Result := -1;
+end;
+*)
 
 { TKExtFormTextArea }
 
@@ -2796,6 +2922,8 @@ begin
     Result := TryCreateLookupEditor(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
     Result := TryCreateComboBox(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
+//  if Result = nil then
+//    Result := TryCreateHtmlEditor(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
     Result := TryCreateTextArea(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
@@ -3094,6 +3222,46 @@ begin
   else
     Result := nil;
 end;
+
+(*
+function TKExtEditorManager.TryCreateHtmlEditor(
+  const AOwner: TComponent; const AViewField: TKViewField;
+  const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
+  const AIsReadOnly: Boolean): IKExtEditor;
+var
+  LFormHTMLEditor: TKExtFormHTMLEditor;
+begin
+  Assert(Assigned(AOwner));
+
+  if (AViewField.DataType is TKHTMLMemoDataType) then
+  begin
+    LFormHTMLEditor := TKExtFormHTMLEditor.Create(AOwner);
+    try
+      if not Assigned(ARowField) then
+        LFormHTMLEditor.Width := LFormHTMLEditor.CharsToPixels(AFieldCharWidth)
+      else
+        ARowField.CharWidth := AFieldCharWidth;
+      LFormHTMLEditor.Height := LFormHTMLEditor.LinesToPixels(AViewField.GetInteger('EditLines', 5));
+      LFormHTMLEditor.AutoScroll := True;
+      LFormHTMLEditor.EnableAlignments := AViewField.GetBoolean('HTMLEditor/EnableAlignments', not AIsReadOnly);
+      LFormHTMLEditor.EnableColors     := AViewField.GetBoolean('HTMLEditor/EnableColors', not AIsReadOnly);
+      LFormHTMLEditor.EnableFont       := AViewField.GetBoolean('HTMLEditor/EnableFont', not AIsReadOnly);
+      LFormHTMLEditor.EnableFontSize   := AViewField.GetBoolean('HTMLEditor/EnableFontSize', not AIsReadOnly);
+      LFormHTMLEditor.EnableFormat     := AViewField.GetBoolean('HTMLEditor/EnableFormat', not AIsReadOnly);
+      LFormHTMLEditor.EnableLinks      := AViewField.GetBoolean('HTMLEditor/EnableLinks', not AIsReadOnly);
+      LFormHTMLEditor.EnableLists      := AViewField.GetBoolean('HTMLEditor/EnableLists', not AIsReadOnly);
+      LFormHTMLEditor.EnableSourceEdit := AViewField.GetBoolean('HTMLEditor/EnableSourceEdit', not AIsReadOnly);
+      Result := LFormHTMLEditor;
+    except
+      LFormHTMLEditor.Free;
+      raise;
+    end;
+
+  end
+  else
+    Result := nil;
+end;
+*)
 
 function TKExtEditorManager.TryCreateNumberField(const AOwner: TJSBase;
   const AViewField: TKViewField;

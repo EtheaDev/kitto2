@@ -22,10 +22,6 @@ inherited BorderPanelControllerDesignerFrame: TBorderPanelControllerDesignerFram
           object SubControllersTabSheet: TTabSheet
             Caption = 'SubControllers'
             ImageIndex = 1
-            ExplicitLeft = 0
-            ExplicitTop = 0
-            ExplicitWidth = 0
-            ExplicitHeight = 0
             object SubControllersPageControl: TPageControl
               Left = 0
               Top = 101
@@ -37,42 +33,22 @@ inherited BorderPanelControllerDesignerFrame: TBorderPanelControllerDesignerFram
               Visible = False
               object CenterControllerTabSheet: TTabSheet
                 Caption = 'CenterController'
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
               object NorthControllerTabSheet: TTabSheet
                 Caption = 'NorthController'
                 ImageIndex = 2
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
               object EastControllerTabSheet: TTabSheet
                 Caption = 'EastController'
                 ImageIndex = 3
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
               object SouthControllerTabSheet: TTabSheet
                 Caption = 'SouthController'
                 ImageIndex = 4
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
               object WestControllerTabSheet: TTabSheet
                 Caption = 'WestController'
                 ImageIndex = 1
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
             end
             object ControllersGroupBox: TGroupBox
@@ -155,10 +131,6 @@ inherited BorderPanelControllerDesignerFrame: TBorderPanelControllerDesignerFram
           object SubViewsTabSheet: TTabSheet
             Caption = 'SubViews'
             ImageIndex = 2
-            ExplicitLeft = 0
-            ExplicitTop = 0
-            ExplicitWidth = 0
-            ExplicitHeight = 0
             object SubViewsPageControl: TPageControl
               Left = 0
               Top = 101
@@ -170,42 +142,22 @@ inherited BorderPanelControllerDesignerFrame: TBorderPanelControllerDesignerFram
               Visible = False
               object CenterViewTabSheet: TTabSheet
                 Caption = 'CenterView'
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
               object NorthViewTabSheet: TTabSheet
                 Caption = 'NorthView'
                 ImageIndex = 2
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
               object EastViewTabSheet: TTabSheet
                 Caption = 'EastView'
                 ImageIndex = 3
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
               object SouthViewTabSheet: TTabSheet
                 Caption = 'SouthView'
                 ImageIndex = 4
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
               object WestViewTabSheet: TTabSheet
                 Caption = 'WestView'
                 ImageIndex = 1
-                ExplicitLeft = 0
-                ExplicitTop = 0
-                ExplicitWidth = 0
-                ExplicitHeight = 0
               end
             end
             object ViewsGroupBox: TGroupBox

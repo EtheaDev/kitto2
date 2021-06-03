@@ -48,6 +48,8 @@ Databases:
       Protocol: TCPIP
 
 Auth: TextFile
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: password
   IsClearPassword: True
   Defaults:
     UserName: guest

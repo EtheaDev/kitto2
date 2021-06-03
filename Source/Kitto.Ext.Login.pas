@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -41,13 +41,19 @@ type
     FLanguage: TExtFormComboBox;
     FLocalStorageEnabled: TExtFormCheckbox;
     FResetPasswordLink: TExtBoxComponent;
+    FRegisterNewUserLink: TExtBoxComponent;
+    FPrivacyPolicyLink: TExtBoxComponent;
     FLoginButton: TKExtButton;
     FStatusBar: TKExtStatusBar;
     FLocalStorageMode: string;
     FLocalStorageAskUser: Boolean;
-    FResetPassword: TEFNode;
+    FResetPasswordNode: TEFNode;
+    FRegisterNewUserNode: TEFNode;
+    FPrivacyPolicyNode: TEFNode;
     function GetEnableButtonJS: string;
     function GetSubmitJS: string;
+    function GetCheckCapsLockJS: string;
+    function ReplaceMacros(const ACode: string): string;
     function GetLocalStorageSaveJSCode(const AMode: string; const AAskUser: Boolean): string;
     function GetLocalStorageRetrieveJSCode(const AMode: string; const AAutoLogin: Boolean): string;
     function StartEnableTask: TExtExpression;
@@ -58,6 +64,8 @@ type
   //published
     procedure DoLogin;
     procedure DoResetPassword;
+    procedure DoRegisterNewUser;
+    procedure DoPrivacyPolicy;
   end;
 
   /// <summary>
@@ -85,6 +93,7 @@ implementation
 
 uses
   Math
+  , StrUtils
   , NetEncoding
   , EF.Classes
   , EF.Localization
@@ -115,9 +124,10 @@ var
   LLocalStorageAutoLogin: Boolean;
   LLocalStorageOptions: TEFNode;
   LLoginHandler: TJSAjaxCall;
-  LResetPasswordClickCode: string;
+  LResetPasswordClickCode, LRegisterNewUserClickCode: string;
   LEditWidth: Integer;
   LExtraHeight, LExtraWidth: Integer;
+  LInputStyle, LResetPasswordStyle, LRegisterNewUserStyle, LPrivacyPolicyStyle, LButtonStyle: string;
 begin
   inherited;
   LTitle := Config.FindNode('Title');
@@ -145,12 +155,16 @@ begin
 
   FStatusBar := TKExtStatusBar.Create(LFormPanel);
   FStatusBar.DefaultText := '';
+  FStatusBar.StatusAlign := Config.GetString('FormPanel/StatusAlign', 'left');
   FStatusBar.BusyText := _('Logging in...');
   LFormPanel.Bbar := FStatusBar;
 
   FLoginButton := TKExtButton.CreateAndAddToArray(FStatusBar.Items);
   FLoginButton.SetIconAndScale('login', 'medium');
   FLoginButton.Text := _('Login');
+  LButtonStyle := Config.GetString('FormPanel/ButtonStyle');
+  if LButtonStyle <> '' then
+    FLoginButton.Style := LButtonStyle;
 
   LFormPanel.BodyPadding := '20px 0 0 0';
   LEditWidth := Config.GetInteger('EditWidth', 200);
@@ -163,6 +177,9 @@ begin
   FUserName.EnableKeyEvents := True;
   FUserName.SelectOnFocus := True;
   FUserName.Width := LEditWidth + LFormPanel.LabelWidth;
+  LInputStyle := Config.GetString('FormPanel/InputStyle');
+  if LInputStyle <> '' then
+    FUserName.Style := LInputStyle;
   Inc(LHeight, CONTROL_HEIGHT);
 
   FPassword := TExtFormTextField.CreateAndAddToArray(LFormPanel.Items);
@@ -174,16 +191,20 @@ begin
   FPassword.EnableKeyEvents := True;
   FPassword.SelectOnFocus := True;
   FPassword.Width := LEditWidth + LFormPanel.LabelWidth;
+  if LInputStyle <> '' then
+    FPassword.Style := LInputStyle;
   Inc(LHeight, CONTROL_HEIGHT);
 
   FUserName.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
   FPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
+  FPassword.On('keydown', GenerateAnonymousFunction(GetCheckCapsLockJS));
 
   StartEnableTask;
 
-  FResetPassword := Config.FindNode('ResetPassword');
-  if Assigned(FResetPassword) and FResetPassword.AsBoolean then
+  FResetPasswordNode := Config.FindNode('ResetPassword');
+  if Assigned(FResetPasswordNode) and FResetPasswordNode.AsBoolean then
   begin
+    LResetPasswordStyle := FResetPasswordNode.GetString('Style');
     FResetPasswordLink := TExtBoxComponent.CreateAndAddToArray(LFormPanel.Items);
     FResetPasswordLink.Padding := Format('0 0 %0:dpx 0', [TKDefaults.GetSingleSpacing]);
     LResetPasswordClickCode := GetJSCode(
@@ -193,12 +214,63 @@ begin
       end);
     FResetPasswordLink.Html := Format(
       '<div style="text-align:right;"><a href="#" onclick="%s">%s</a></div>',
-      [TNetEncoding.HTML.Encode(LResetPasswordClickCode), TNetEncoding.HTML.Encode(_('Password forgotten?'))]);
+      [TNetEncoding.HTML.Encode(LResetPasswordClickCode),
+       TNetEncoding.HTML.Encode(_('Password forgotten?'))]);
     FResetPasswordLink.Width := LEditWidth + LFormPanel.LabelWidth;
+    if LResetPasswordStyle <> '' then
+      FResetPasswordLink.Style := LResetPasswordStyle;
     Inc(LHeight, CONTROL_HEIGHT + TKDefaults.GetSingleSpacing);
   end
   else
     FResetPasswordLink := nil;
+
+  FRegisterNewUserNode := Config.FindNode('RegisterNewUser');
+  if Assigned(FRegisterNewUserNode) and FRegisterNewUserNode.AsBoolean then
+  begin
+    LRegisterNewUserStyle := FRegisterNewUserNode.GetString('Style');
+    FRegisterNewUserLink := TExtBoxComponent.CreateAndAddToArray(LFormPanel.Items);
+    FRegisterNewUserLink.Padding := Format('0 0 %0:dpx 0', [TKDefaults.GetSingleSpacing]);
+    LRegisterNewUserClickCode := GetJSCode(
+      procedure
+      begin
+        TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoRegisterNewUser);
+      end);
+    FRegisterNewUserLink.Padding := Format('0 0 %0:dpx 0', [TKDefaults.GetSingleSpacing]);
+    LRegisterNewUserClickCode := GetJSCode(
+      procedure
+      begin
+        TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoRegisterNewUser);
+      end);
+    FRegisterNewUserLink.Html := Format(
+      '<div style="text-align:right;"><a href="#" onclick="%s">%s</a></div>',
+      [TNetEncoding.HTML.Encode(LRegisterNewUserClickCode),
+       TNetEncoding.HTML.Encode(_('New User? Register...'))]);
+    FRegisterNewUserLink.Width := LEditWidth + LabelWidth;
+    if LRegisterNewUserStyle <> '' then
+      FRegisterNewUserLink.Style := LRegisterNewUserStyle;
+
+    Inc(LHeight, CONTROL_HEIGHT + TKDefaults.GetSingleSpacing);
+  end
+  else
+    FRegisterNewUserLink := nil;
+
+  FPrivacyPolicyNode := Config.FindNode('PrivacyPolicy');
+  if Assigned(FPrivacyPolicyNode) and FPrivacyPolicyNode.AsBoolean then
+  begin
+    LPrivacyPolicyStyle := FPrivacyPolicyNode.GetString('Style');
+    FPrivacyPolicyLink := TExtBoxComponent.CreateAndAddToArray(Items);
+    FPrivacyPolicyLink.Html := Format(
+      '<div style="text-align:right"><a href="#" onclick="%s">%s</a></div>',
+      [TNetEncoding.HTML.Encode(LResetPasswordClickCode),
+       TNetEncoding.HTML.Encode(_('Privacy policy...'))]);
+    FPrivacyPolicyLink.Width := LEditWidth + LabelWidth;
+    if LPrivacyPolicyStyle <> '' then
+      FPrivacyPolicyLink.Style := LPrivacyPolicyStyle;
+
+    Inc(LHeight, CONTROL_HEIGHT + TKDefaults.GetSingleSpacing);
+  end
+  else
+    FPrivacyPolicyLink := nil;
 
   if TKWebApplication.Current.Config.LanguagePerSession then
   begin
@@ -216,6 +288,9 @@ begin
     FLanguage.ForceSelection := True;
     FLanguage.TriggerAction := 'all'; // Disable filtering list items based on current value.
     FLanguage.Width := LEditWidth + LFormPanel.LabelWidth;
+    if LInputStyle <> '' then
+      FLanguage.Style := LInputStyle;
+
     Inc(LHeight, CONTROL_HEIGHT);
   end
   else
@@ -280,6 +355,9 @@ begin
   Height := LHeight + LExtraHeight;
   LExtraWidth := Config.GetInteger('ExtraWidth');
   Width := Config.GetInteger('Width', STANDARD_WIDTH) + LExtraWidth;
+
+  //if TKWebRequest.Current.IsMobileBrowser then
+//    DisplayMode := 'FullScreen';
 end;
 
 function TKExtLoginPanel.GetEnableButtonJS: string;
@@ -295,6 +373,23 @@ begin
     // For some reason != does not survive rendering.
     'if (e.getKey() == 13 && !(%s.getValue() == "") && !(%s.getValue() == "")) %s.handler.call(%s.scope, %s);',
     [FUserName.JSName, FPassword.JSName, FLoginButton.JSName, FLoginButton.JSName, FLoginButton.JSName]);
+end;
+
+function TKExtLoginPanel.ReplaceMacros(const ACode: string): string;
+begin
+  Result := ACode;
+  Result := ReplaceStr(Result, '%STATUSBAR%', FStatusBar.JSName);
+  Result := ReplaceStr(Result, '%CAPS_ON%', _('Caps On'));
+end;
+
+function TKExtLoginPanel.GetCheckCapsLockJS: string;
+begin
+(*
+  Result := ReplaceMacros(
+    'if (event.keyCode !== 13 && event.getModifierState("CapsLock")) ' +
+    '{%STATUSBAR%.setText(''%CAPS_ON%''); %STATUSBAR%.setIcon('''');} ' +
+    'else {%STATUSBAR%.setText('''');}');
+*)
 end;
 
 function TKExtLoginPanel.StartEnableTask: TExtExpression;
@@ -327,9 +422,27 @@ begin
   end;
 end;
 
+procedure TKExtLoginPanel.DoPrivacyPolicy;
+begin
+  Assert(Assigned(FPrivacyPolicyNode));
+
+  { TODO : Add a way to open standard/system views without needing to store them in a yaml file.
+    Maybe a json definition passed as a string? }
+  TKWebApplication.Current.DisplayView('PrivacyPolicy');
+end;
+
+procedure TKExtLoginPanel.DoRegisterNewUser;
+begin
+  Assert(Assigned(FRegisterNewUserLink));
+
+  { TODO : Add a way to open standard/system views without needing to store them in a yaml file.
+    Maybe a json definition passed as a string? }
+  TKWebApplication.Current.DisplayView('RegisterNewUser');
+end;
+
 procedure TKExtLoginPanel.DoResetPassword;
 begin
-  Assert(Assigned(FResetPassword));
+  Assert(Assigned(FResetPasswordNode));
 
   { TODO : Add a way to open standard/system views without needing to store them in a yaml file.
     Maybe a json definition passed as a string? }

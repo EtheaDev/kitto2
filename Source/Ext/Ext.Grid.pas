@@ -253,6 +253,7 @@ type
     FTrackMouseOver: Boolean;
     FView: TExtObject;
     FViewConfig: TExtObject;
+    FAutoLoad: Boolean;
     procedure SetAutoExpandColumn(const AValue: string);
     procedure SetColumnLines(const AValue: Boolean);
     procedure SetDisableSelection(const AValue: Boolean);
@@ -262,6 +263,7 @@ type
     procedure SetStripeRows(const AValue: Boolean);
     procedure SetTrackMouseOver(const AValue: Boolean);
     procedure SetView(const AValue: TExtObject);
+    procedure SetAutoLoad(const AValue: boolean);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -279,6 +281,7 @@ type
     property TrackMouseOver: Boolean read FTrackMouseOver write SetTrackMouseOver;
     property View: TExtObject read FView write SetView;
     property ViewConfig: TExtObject read FViewConfig;
+    property AutoLoad: boolean read FAutoLoad write SetAutoLoad;
   end;
 
   TExtGridFeatureFeature = class(TExtBase)
@@ -711,6 +714,11 @@ begin
   FAutoExpandColumn := SetConfigItem('autoExpandColumn', AValue);
 end;
 
+procedure TExtGridGridPanel.SetAutoLoad(const AValue: boolean);
+begin
+  FAutoLoad := SetConfigItem('autoLoad', AValue);
+end;
+
 procedure TExtGridGridPanel.SetColumnLines(const AValue: Boolean);
 begin
   FColumnLines := SetConfigItem('columnLines', AValue);
@@ -764,6 +772,7 @@ begin
   FColumns := CreateConfigObjectArray('columns');
   FFeatures := CreateConfigObjectArray('features');
   FViewConfig := CreateConfigObject('viewConfig');
+  AutoLoad := True;
 end;
 
 function TExtGridGridPanel.GetObjectNamePrefix: string;

@@ -50,6 +50,8 @@ Databases:
       Protocol: TCPIP
 
 Auth: TasKitto
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: password
   IsClearPassword: True
   .Defaults:
     UserName: admin

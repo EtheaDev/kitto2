@@ -56,11 +56,11 @@ MainTable:
     CloneButton:
     Width: 1220
     Height: 460
-    ToolViews:
-      DownloadText:
-        DisplayLabel: Download in TXT
-        Controller: ExportTextTool
-          ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
+#    ToolViews:
+#      DownloadText:
+#        DisplayLabel: Download in TXT
+#        Controller: ExportTextTool
+#          ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
   Controller:
     ToolViews:
       DownloadText:

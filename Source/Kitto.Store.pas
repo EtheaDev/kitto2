@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -755,8 +755,8 @@ begin
         Records.Clear;
       if not ADBQuery.IsOpen then
         ADBQuery.Open;
-      //TEFMacroExpansionEngine.Instance.Disable;
-      //try
+      TEFMacroExpansionEngine.Instance.DisableForCurrentThread;
+      try
         while not ADBQuery.DataSet.Eof do
         begin
           LRecord := Records.AppendAndInitialize;
@@ -765,9 +765,9 @@ begin
             AForEachRecord(LRecord);
           ADBQuery.DataSet.Next;
         end;
-      //finally
-      //  TEFMacroExpansionEngine.Instance.Enable;
-      //end;
+      finally
+        TEFMacroExpansionEngine.Instance.EnableForCurrentThread;
+      end;
     end);
 end;
 
@@ -1382,7 +1382,14 @@ begin
       if AByIndex then
         LDBField := AFields[I]
       else
-        LDBField := AFields.FindField(TranslateFieldName(Fields[I].FieldName));
+      begin
+        if (I < AFields.Count) then
+          LDBField := AFields[I]
+        else
+          LDBField := nil;
+        if not Assigned(LDBField) or not SameText(LDBField.FieldName, Fields[I].FieldName) then
+          LDBField := AFields.FindField(TranslateFieldName(Fields[I].FieldName));
+      end;
       if Assigned(LDBField) then
       begin
         Fields[I].AssignFieldValue(LDBField);

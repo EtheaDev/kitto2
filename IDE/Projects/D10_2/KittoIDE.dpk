@@ -1,7 +1,6 @@
 package KittoIDE;
 
 {$R *.res}
-{$R *.dres}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -38,22 +37,25 @@ requires
   VclSmp;
 
 contains
-  KIDE.IOTA.ProjectWizard in '..\..\Source\KIDE.IOTA.ProjectWizard.pas',
-  KIDE.IOTA.Register in '..\..\Source\KIDE.IOTA.Register.pas',
-  KIDE.IOTA.ProjectCreator in '..\..\Source\KIDE.IOTA.ProjectCreator.pas',
-  KIDE.IOTA.Utils in '..\..\Source\KIDE.IOTA.Utils.pas',
-  KIDE.IOTA.ModuleCreator in '..\..\Source\KIDE.IOTA.ModuleCreator.pas',
-  KIDE.BaseForm in '..\..\Source\KIDE.BaseForm.pas' {BaseForm},
-  KIDE.BaseWizardForm in '..\..\Source\KIDE.BaseWizardForm.pas' {BaseWizardForm},
-  KIDE.NewProjectWizardForm in '..\..\Source\KIDE.NewProjectWizardForm.pas' {NewProjectWizardForm},
-  KIDE.MRUOptions in '..\..\Source\KIDE.MRUOptions.pas',
-  KIDE.ProjectTemplateFrame in '..\..\Source\KIDE.ProjectTemplateFrame.pas' {ProjectTemplateFrame: TFrame},
-  KIDE.BaseFrame in '..\..\Source\KIDE.BaseFrame.pas' {BaseFrame: TFrame},
-  KIDE.ProjectTemplate in '..\..\Source\KIDE.ProjectTemplate.pas',
-  KIDE.Config in '..\..\Source\KIDE.Config.pas',
-  KIDE.Project in '..\..\Source\KIDE.Project.pas',
-  KIDE.YAMLHighlighter in '..\..\Source\KIDE.YAMLHighlighter.pas',
-  KIDE.MainDataModule in '..\..\Source\KIDE.MainDataModule.pas' {MainDataModule: TDataModule},
-  KIDE.IOTA.MainFormCreator in '..\..\Source\KIDE.IOTA.MainFormCreator.pas';
+  KIDE.YAMLHighlighter in '..\..\Source\KIDE.YAMLHighlighter.pas'
+(*
+  ,KIDE.IOTA.ProjectWizard in '..\..\Source\KIDE.IOTA.ProjectWizard.pas'
+  ,KIDE.IOTA.ProjectCreator in '..\..\Source\KIDE.IOTA.ProjectCreator.pas'
+  ,KIDE.IOTA.Utils in '..\..\Source\KIDE.IOTA.Utils.pas'
+  ,KIDE.IOTA.ModuleCreator in '..\..\Source\KIDE.IOTA.ModuleCreator.pas'
+  ,KIDE.BaseForm in '..\..\Source\KIDE.BaseForm.pas' {BaseForm}
+  ,KIDE.BaseWizardForm in '..\..\Source\KIDE.BaseWizardForm.pas' {BaseWizardForm}
+  ,KIDE.NewProjectWizardForm in '..\..\Source\KIDE.NewProjectWizardForm.pas' {NewProjectWizardForm}
+  ,KIDE.MRUOptions in '..\..\Source\KIDE.MRUOptions.pas'
+  ,KIDE.ProjectTemplateFrame in '..\..\Source\KIDE.ProjectTemplateFrame.pas' {ProjectTemplateFrame: TFrame}
+  ,KIDE.BaseFrame in '..\..\Source\KIDE.BaseFrame.pas' {BaseFrame: TFrame}
+  ,KIDE.ProjectTemplate in '..\..\Source\KIDE.ProjectTemplate.pas'
+  ,KIDE.Config in '..\..\Source\KIDE.Config.pas'
+  ,KIDE.Project in '..\..\Source\KIDE.Project.pas'
+  ,KIDE.MainDataModule in '..\..\Source\KIDE.MainDataModule.pas' {MainDataModule: TDataModule}
+  ,KIDE.IOTA.MainFormCreator in '..\..\Source\KIDE.IOTA.MainFormCreator.pas'
+  ,KIDE.IOTA.Register in '..\..\Source\KIDE.IOTA.Register.pas'
+*)
+;
 
 end.

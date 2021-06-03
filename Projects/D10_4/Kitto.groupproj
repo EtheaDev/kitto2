@@ -1,0 +1,60 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{407D680B-4C31-4351-A29E-D5ED3ECBEDD5}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="KittoCore.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\IDE\Projects\D10_4\KittoIDE.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Kide\Projects\D10_4\KIDE2.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="KittoCore">
+        <MSBuild Projects="KittoCore.dproj"/>
+    </Target>
+    <Target Name="KittoCore:Clean">
+        <MSBuild Projects="KittoCore.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="KittoCore:Make">
+        <MSBuild Projects="KittoCore.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="KittoIDE">
+        <MSBuild Projects="..\..\IDE\Projects\D10_4\KittoIDE.dproj"/>
+    </Target>
+    <Target Name="KittoIDE:Clean">
+        <MSBuild Projects="..\..\IDE\Projects\D10_4\KittoIDE.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="KittoIDE:Make">
+        <MSBuild Projects="..\..\IDE\Projects\D10_4\KittoIDE.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="KIDE2">
+        <MSBuild Projects="..\..\Kide\Projects\D10_4\KIDE2.dproj"/>
+    </Target>
+    <Target Name="KIDE2:Clean">
+        <MSBuild Projects="..\..\Kide\Projects\D10_4\KIDE2.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="KIDE2:Make">
+        <MSBuild Projects="..\..\Kide\Projects\D10_4\KIDE2.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="KittoCore;KittoIDE;KIDE2"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="KittoCore:Clean;KittoIDE:Clean;KIDE2:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="KittoCore:Make;KittoIDE:Make;KIDE2:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

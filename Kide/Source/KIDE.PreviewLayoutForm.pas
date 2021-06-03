@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -210,7 +210,7 @@ begin
   FFormPanel.Align := alClient;
   //FFormPanel.Border := False;
   //FFormPanel.Header := False;
-  //FFormPanel.Layout := 'fit'; // Vital to avoid detail grids with zero height!
+  //FFormPanel.Layout := lyFit; // Vital to avoid detail grids with zero height!
   FFormPanel.AutoScroll := False;
   FFormPanel.LabelWidth := 120;
   //FFormPanel.MonitorValid := True;

@@ -3,25 +3,36 @@ Controller: BorderPanel
   DisplayMode: FullScreen
   WestView:
     DisplayLabel: _(Main Menu)
-    Controller: TreePanel
-      TreeView: MainMenu
-      Width: 220
+    Controller: BorderPanel
+      Width: 230
       Collapsible: True
-      Collapsed: True
       Border: True
+      Split: True
       Header: True
+      NorthView:
+        Controller: HtmlPanel
+          Split: False
+          Html: |
+            <center>
+              <img src="%IMAGE(taskitto_logo_150)%"></img>
+              <h3>An example activity tracking application.</h3>
+            </center>
+          Height: 100
+      CenterView:
+        Controller: TreePanel
+          TreeView: MainMenu
 
   CenterController: TabPanel
     Border: True
     # List of views to be auto-opened in tabs.
-    SubViews:
+    .SubViews:
       View: ActivityInput
       View: ActivityReport
       View: Projects
   #View: ActivityBarChart
   #View: ActivityPieChart
 
-  NorthController: HtmlPanel
+  .NorthController: HtmlPanel
     Split: False
     Html: |
       <center>

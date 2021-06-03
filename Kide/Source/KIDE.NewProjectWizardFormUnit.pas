@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -60,12 +60,9 @@ type
     DelphiGroupBox: TGroupBox;
     SearchPathLabel: TLabel;
     SearchPathComboBox: TComboBox;
-    DXE7CheckBox: TCheckBox;
-    DXE8CheckBox: TCheckBox;
-    D10CheckBox: TCheckBox;
-    D10_1CheckBox: TCheckBox;
     D10_2CheckBox: TCheckBox;
     D10_3CheckBox: TCheckBox;
+    D10_4CheckBox: TCheckBox;
     ThreadPoolSizeLabel: TLabel;
     ServerThreadPoolSizeEdit: TSpinEdit;
     SessionTimeOutLabel: TLabel;
@@ -171,12 +168,9 @@ begin
   end
   else if (ACurrentPageIndex = PAGE_OPTIONS) and AGoingForward then
   begin
-    FTemplate.Options.SetBoolean('DXE7', DXE7CheckBox.Checked);
-    FTemplate.Options.SetBoolean('DXE8', DXE8CheckBox.Checked);
-    FTemplate.Options.SetBoolean('D10', D10CheckBox.Checked);
-    FTemplate.Options.SetBoolean('D10_1', D10_1CheckBox.Checked);
     FTemplate.Options.SetBoolean('D10_2', D10_2CheckBox.Checked);
     FTemplate.Options.SetBoolean('D10_3', D10_3CheckBox.Checked);
+    FTemplate.Options.SetBoolean('D10_4', D10_4CheckBox.Checked);
     FTemplate.Options.SetString('SearchPath', SearchPathComboBox.Text);
     FTemplate.Options.SetBoolean('DB/ADO', DBADOCheckBox.Checked);
     FTemplate.Options.SetBoolean('DB/DBX', DBDBXCheckBox.Checked);
@@ -230,12 +224,9 @@ var
   LKeyBase: string;
 begin
   LKeyBase := GetKeyBase + TemplateFrame.CurrentTemplateName + '/';
-  DXE7CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DXE7');
-  DXE8CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DXE8');
-  D10CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10');
-  D10_1CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_1');
   D10_2CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_2');
   D10_3CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_3');
+  D10_4CheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'D10_4');
   SearchPathComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'SearchPath', '..\..\..\..');
   DBADOCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/ADO');
   DBDBXCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/DBX', True);
@@ -255,12 +246,9 @@ var
   LKeyBase: string;
 begin
   LKeyBase := GetKeyBase + TemplateFrame.CurrentTemplateName + '/';
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'DXE7', DXE7CheckBox.Checked);
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'DXE8', DXE8CheckBox.Checked);
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10', D10CheckBox.Checked);
-  TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_1', D10_1CheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_2', D10_2CheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_3', D10_3CheckBox.Checked);
+  TMRUOptions.Instance.SetBoolean(LKeyBase + 'D10_4', D10_4CheckBox.Checked);
   TMRUOptions.Instance.SetString(LKeyBase + 'SearchPath', SearchPathComboBox.Text);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/ADO', DBADOCheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/DBX', DBDBXCheckBox.Checked);
@@ -310,9 +298,8 @@ end;
 function TNewProjectWizardForm.OptionsValid: Boolean;
 begin
   Result := True;
-  if not DXE7CheckBox.Checked and not DXE8CheckBox.Checked and
-    not D10CheckBox.Checked and not D10_1CheckBox.Checked and
-    not D10_2CheckBox.Checked and not D10_3CheckBox.Checked then
+  if not D10_2CheckBox.Checked and not D10_3CheckBox.Checked and
+    not D10_4CheckBox.Checked then
     Result := False
   else if SearchPathComboBox.Text = '' then
     Result := False;

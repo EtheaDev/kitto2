@@ -284,7 +284,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         Left = 3
         Top = 1
         Width = 326
-        Height = 134
+        Height = 87
         Caption = 'Create Delphi Project'
         TabOrder = 0
         object SearchPathLabel: TLabel
@@ -294,61 +294,37 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
           Height = 13
           Caption = 'Kitto Search Path'
         end
-        object DXE7CheckBox: TCheckBox
-          Left = 8
-          Top = 18
-          Width = 110
-          Height = 17
-          Caption = 'Delphi XE7'
-          TabOrder = 0
-        end
-        object DXE8CheckBox: TCheckBox
-          Left = 8
-          Top = 37
-          Width = 110
-          Height = 17
-          Caption = 'Delphi XE8'
-          TabOrder = 1
-        end
         object SearchPathComboBox: TComboBox
           Left = 136
           Top = 33
           Width = 177
           Height = 21
           Hint = 'Root Kitto directory as seen by the Delphi project'
-          TabOrder = 6
-        end
-        object D10CheckBox: TCheckBox
-          Left = 8
-          Top = 56
-          Width = 110
-          Height = 17
-          Caption = 'Delphi 10 Seattle'
           TabOrder = 2
-        end
-        object D10_1CheckBox: TCheckBox
-          Left = 8
-          Top = 74
-          Width = 110
-          Height = 17
-          Caption = 'Delphi 10.1 Berlin'
-          TabOrder = 3
         end
         object D10_2CheckBox: TCheckBox
           Left = 8
-          Top = 92
+          Top = 22
           Width = 110
           Height = 17
           Caption = 'Delphi 10.2 Tokyo'
-          TabOrder = 4
+          TabOrder = 0
         end
         object D10_3CheckBox: TCheckBox
           Left = 8
-          Top = 110
+          Top = 40
           Width = 110
           Height = 17
           Caption = 'Delphi 10.3 Rio'
-          TabOrder = 5
+          TabOrder = 1
+        end
+        object D10_4CheckBox: TCheckBox
+          Left = 8
+          Top = 58
+          Width = 110
+          Height = 17
+          Caption = 'Delphi 10.4 Sydney'
+          TabOrder = 3
         end
       end
       object ServerThreadPoolSizeEdit: TSpinEdit

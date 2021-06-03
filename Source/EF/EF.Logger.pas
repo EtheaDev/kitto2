@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -215,7 +215,11 @@ begin
   if SameText(AContext, '{ConfigChanged}') then
     Configure(TEFLogger(ASubject.AsObject).Config, TEFLogger(ASubject.AsObject).MacroExpansionEngine)
   else
-    DoLog(AContext);
+  begin
+    //prevent logging of password
+    if pos('PASSWORD', UpperCase(AContext)) = 0 then
+      DoLog(AContext);
+  end;
 end;
 
 end.

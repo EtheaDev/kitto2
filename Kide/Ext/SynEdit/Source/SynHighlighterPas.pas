@@ -48,9 +48,7 @@ Two extra properties included (DelphiVersion, PackageSource):
   PackageSource - Allows you to enable/disable the highlighting of package keywords
 }
 
-{$IFNDEF QSYNHIGHLIGHTERPAS}
 unit SynHighlighterPas;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
@@ -1373,13 +1371,22 @@ procedure TSynPasSyn.EnumUserSettings(DelphiVersions: TStrings);
     end;
   end;
 
+var
+  LWowNode : string;
 begin
   { returns the user settings that exist in the registry }
   // See UseUserSettings below where these strings are used
-  LoadKeyVersions('\SOFTWARE\Borland\Delphi', '');
-  LoadKeyVersions('\SOFTWARE\Borland\BDS', BDSVersionPrefix);
-  LoadKeyVersions('\SOFTWARE\CodeGear\BDS', BDSVersionPrefix);
-  LoadKeyVersions('\SOFTWARE\Embarcadero\BDS', BDSVersionPrefix);
+  {$ifdef WIN64}
+  LWowNode := 'WOW6432Node\';
+  {$else}
+  LWowNode := '';
+  {$ENDIF}
+
+  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Borland\Delphi', '');
+  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Borland\BDS', BDSVersionPrefix);
+  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'CodeGear\BDS', BDSVersionPrefix);
+  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Embarcadero\BDS', BDSVersionPrefix);
+
 end;
 
 function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;

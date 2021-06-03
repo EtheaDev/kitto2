@@ -12,7 +12,7 @@ Controller: BorderPanel
       Border: True
       Split: True
       Header: True
-      .NorthView:
+      NorthView:
         Controller: HtmlPanel
           Split: False
           Html: <center><p><img src="%IMAGE(hello_kitto_150)%" width="150" height="47"></img></p></center>

@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -299,6 +299,32 @@ type
     FIsCurrentValue: Boolean;
     FViewTable: TKViewTable;
     procedure FieldChecked(This: TExtFormCheckBox; Checked: boolean);
+  public
+    procedure SetConfig(const AConfig: TEFNode);
+    function AsExtObject: TExtObject;
+    function GetExpression: string;
+    procedure SetViewTable(const AViewTable: TKViewTable);
+    function ExpandValues(const AString: string): string;
+    function GetId: string;
+    procedure Invalidate;
+  end;
+
+   /// <summary>
+  ///  <para>
+  ///   Numeric search. Displays an edit for a free search criteria numeric input.
+  ///  </para>
+  ///  <para>
+  ///   AutoSearchAfterChars determines the number of characters that can
+  ///   be entered before the search automatically fires. Default is 0
+  ///   characters (no auto search).
+  ///  </para>
+  /// </summary>
+  TKNumericSearchFilter = class(TKExtFormNumberField, IKExtFilter)
+  strict private
+    FCurrentValue: string;
+    FConfig: TEFNode;
+    FViewTable: TKViewTable;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
@@ -1499,6 +1525,78 @@ begin
   FViewTable := AViewTable;
 end;
 
+{ TKNumericSearchFilter }
+
+function TKNumericSearchFilter.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+function TKNumericSearchFilter.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
+end;
+
+procedure TKNumericSearchFilter.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  if FCurrentValue <> NewValue then
+  begin
+    FCurrentValue := NewValue;
+    NotifyObservers('FilterChanged');
+  end;
+end;
+
+function TKNumericSearchFilter.GetExpression: string;
+begin
+  if FCurrentValue <> '' then
+    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', ReplaceStr(FCurrentValue, '''', ''''''))
+  else
+    Result := '';
+end;
+
+function TKNumericSearchFilter.GetId: string;
+begin
+  Assert(Assigned(FConfig));
+
+  Result := FConfig.GetExpandedString('Id');
+end;
+
+procedure TKNumericSearchFilter.Invalidate;
+begin
+  SetValue('');
+end;
+
+procedure TKNumericSearchFilter.SetConfig(const AConfig: TEFNode);
+var
+  LAutoSearchAfterChars: Integer;
+begin
+  Assert(Assigned(AConfig));
+  FConfig := AConfig;
+
+  LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 0);
+  if LAutoSearchAfterChars <> 0 then
+  begin
+    // Auto-fire change event when at least MinChars characters are typed.
+    EnableKeyEvents := True;
+    On('keyup', GenerateAnonymousFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
+  end;
+  FieldLabel := _(AConfig.AsString);
+  WidthExpression := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  FCurrentValue := AConfig.GetExpandedString('DefaultValue');
+  if FCurrentValue <> '' then
+    SetValue(FCurrentValue);
+  if FConfig.GetBoolean('Sys/IsReadOnly') then
+    Disabled := True
+  else
+    OnChange := FieldChange;
+end;
+
+procedure TKNumericSearchFilter.SetViewTable(const AViewTable: TKViewTable);
+begin
+  FViewTable := AViewTable;
+end;
+
 initialization
   TKExtFilterRegistry.Instance.RegisterClass('List', TKListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('DynaList', TKDynaListFilter);
@@ -1510,6 +1608,7 @@ initialization
   TKExtFilterRegistry.Instance.RegisterClass('ApplyButton', TKFilterApplyButton);
   TKExtFilterRegistry.Instance.RegisterClass('Spacer', TKFilterSpacer);
   TKExtFilterRegistry.Instance.RegisterClass('Lookup', TKLookupFilter);
+  TKExtFilterRegistry.Instance.RegisterClass('NumericSearch', TKNumericSearchFilter);
 
 finalization
   TKExtFilterRegistry.Instance.UnregisterClass('List');
@@ -1522,5 +1621,6 @@ finalization
   TKExtFilterRegistry.Instance.UnregisterClass('ApplyButton');
   TKExtFilterRegistry.Instance.UnregisterClass('Spacer');
   TKExtFilterRegistry.Instance.UnregisterClass('Lookup');
+  TKExtFilterRegistry.Instance.UnregisterClass('NumericSearch');
 
 end.
