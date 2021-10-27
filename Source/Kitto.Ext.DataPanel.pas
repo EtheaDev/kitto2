@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -127,7 +127,7 @@ type
     function GetDefaultRemoteSort: Boolean; virtual;
     function FindCurrentViewRecord: TKViewTableRecord;
     function GetCurrentViewRecord: TKViewTableRecord;
-    procedure DisplayEditController(const ARecord: TKViewTableRecord; const AOperation: string);
+    procedure DisplayEditController(const ARecord: TKViewTableRecord; const AOperation: TKOperation);
     function IsMultiSelect: Boolean; virtual;
     function HasDefaultAction: Boolean;
     function GetExplicitDefaultAction: string;
@@ -151,8 +151,8 @@ type
     // Inherited classes should call UpdateRecord when changes are confirmed/applied
     // and this method when changes are canceled. This class manages housekeeping.
     procedure ChangesCanceled(const ARecord: TKViewTableRecord);
-    function InitEditController(const AContainer: IJSContainer;
-  const ARecord: TKViewTableRecord; const AOperation: string): IJSController;
+    function InitEditController(const AContainer: IJSContainer; const ARecord: TKViewTableRecord; 
+      const AOperation: TKOperation): IJSController;
     function GetDefaultEditControllerType: string; virtual;
     property EditItems: TKEditItemList read GetEditItems;
     procedure ExpandExpression(var AExpression: string); virtual;
@@ -314,7 +314,7 @@ begin
     on E: EKValidationError do
     begin
       LRecord.RestorePreviousState;
-      ExtMessageBox.Alert(_(TKWebApplication.Current.Config.AppTitle), E.Message);
+      ExtMessageBox.Alert(_('Error'), E.Message);
       Exit;
     end;
   end;
@@ -396,7 +396,7 @@ var
 begin
   LRecord := GetCurrentViewRecord;
   LRecord.ApplyDuplicateRecordRules;
-  DisplayEditController(LRecord, 'Dup');
+  DisplayEditController(LRecord, emDupCurrentRecord);
 end;
 
 procedure TKExtDataPanelController.EditRecord;
@@ -405,14 +405,15 @@ var
 begin
   LRecord := GetCurrentViewRecord;
   LRecord.ApplyEditRecordRules;
-  DisplayEditController(LRecord, 'Edit');
+  DisplayEditController(LRecord, emEditCurrentRecord);
 end;
 
-procedure TKExtDataPanelController.DisplayEditController(const ARecord: TKViewTableRecord; const AOperation: string);
+procedure TKExtDataPanelController.DisplayEditController(const ARecord: TKViewTableRecord;
+  const AOperation: TKOperation);
 var
   LEditController: IJSController;
 begin
-  Assert((AOperation = 'Add') or Assigned(ARecord));
+  Assert((AOperation = emNewrecord) or Assigned(ARecord));
   Assert(ViewTable <> nil);
 
   LEditController := InitEditController(nil, ARecord, AOperation);
@@ -421,7 +422,7 @@ begin
 end;
 
 function TKExtDataPanelController.InitEditController(const AContainer: IJSContainer;
-  const ARecord: TKViewTableRecord; const AOperation: string): IJSController;
+  const ARecord: TKViewTableRecord; const AOperation: TKOperation): IJSController;
 var
   LEditControllerType: string;
   LEditControllerNode: TEFNode;
@@ -439,11 +440,19 @@ begin
     SetNewRecordDefaultValues(Result.Config);
   Result.Config.SetObject('Sys/ViewTable', ViewTable);
   Result.Config.SetObject('Sys/CallingController', Self);
-  Result.Config.SetString('Sys/Operation', AOperation);
-  Result.Config.SetString('Sys/RegionPrefix', 'Edit/');
 
-  if SameText(AOperation, 'View') and not IsActionAllowed('Edit') then
-    Result.Config.SetBoolean('PreventEditing', True);
+  case AOperation of
+    emNewRecord : Result.Config.SetString('Sys/Operation', 'Add');
+    emDupCurrentRecord : Result.Config.SetString('Sys/Operation', 'Dup');
+    emEditCurrentRecord : Result.Config.SetString('Sys/Operation', 'Edit');
+    emViewCurrentRecord :
+    begin
+      if not IsActionAllowed('Edit') then
+        Result.Config.SetBoolean('PreventEditing', True);
+      Result.Config.SetString('Sys/Operation', 'View');
+    end;
+  end;
+  Result.Config.SetString('Sys/RegionPrefix', 'Edit/');
 
   // Merge config values.
   Result.Config.Merge(ViewTable.FindNode('EditController'));
@@ -702,14 +711,14 @@ begin
       end;
     end;
     if AFillResponse then
-      TKWebResponse.Current.Items.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [LTotal, LData]));
+      TKWebResponse.Current.Items.AddJSON(Format('{"Success": true, "Total": %d, "Root": %s}', [LTotal, LData]));
   except
     on E: Exception do
     begin
       if AFillResponse then
       begin
         TKWebResponse.Current.Items.Clear;
-        TKWebResponse.Current.Items.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [TJS.StrToJS(E.Message)]));
+        TKWebResponse.Current.Items.AddJSON(Format('{"Success": false, "Msg": "%s", "Root": []}', [TJS.StrToJS(E.Message)]));
       end
       else
         raise;
@@ -925,7 +934,7 @@ end;
 
 procedure TKExtDataPanelController.NewRecord;
 begin
-  DisplayEditController(nil, 'Add');
+  DisplayEditController(nil, emNewRecord);
 end;
 
 procedure TKExtDataPanelController.SetViewTable(const AValue: TKViewTable);
@@ -1189,7 +1198,7 @@ end;
 
 procedure TKExtDataPanelController.ViewRecord;
 begin
-  DisplayEditController(GetCurrentViewRecord, 'View');
+  DisplayEditController(GetCurrentViewRecord, emViewCurrentRecord);
 end;
 
 procedure TKExtDataPanelController.UpdateObserver(const ASubject: IEFSubject; const AContext: string);

@@ -776,8 +776,8 @@ begin
   inherited;
   Assert(Assigned(FServerStore));
 
-  TKWebResponse.Current.Items.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
-    + ', Root: ' + FServerStore.GetAsJSON(False) + '}');
+  TKWebResponse.Current.Items.AddJSON('{"Total": ' + IntToStr(FServerStore.RecordCount)
+    + ', "Root": ' + FServerStore.GetAsJSON(False) + '}');
 end;
 
 { TKDynaListFilter }
@@ -854,8 +854,8 @@ begin
   LLimit := ParamAsInteger('limit');
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
-  TKWebResponse.Current.Items.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
-    + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
+  TKWebResponse.Current.Items.AddJSON('{"Total": ' + IntToStr(FServerStore.RecordCount)
+    + ', "Root": ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
 procedure TKDynaListFilter.SetConfig(const AConfig: TEFNode);

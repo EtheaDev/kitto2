@@ -4,9 +4,9 @@ AppIcon: FireBirdSql_120
 # Default is the application name in lower case.
 AppPath: /kemployee
 Application:
-  # When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
-  # you can set this to False to gain some speed. Default is True.
-  #HandleResources: False
+# When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
+# you can set this to False to gain some speed. Default is True.
+#HandleResources: False
 
 # Defaults for entire application
 Defaults:
@@ -24,7 +24,7 @@ Defaults:
     MinFieldWidth: 6
 
 Databases:
-  Old: DBX
+  Main: DBX
     Connection:
       # Example for DbExpress
       DriverName: Firebird
@@ -36,7 +36,7 @@ Databases:
       IsolationLevel: ReadCommitted
       Trim Char: False
 
-  Main: FD
+  FireDAC: FD
     Connection:
       # Example for FireDAC
       DriverID: FB
@@ -63,12 +63,12 @@ Login:
     NorthController: HtmlPanel
       Height: 120
       Html: |
-          <div style="text-align: center">
-            <p/>
-            <p><img src="%IMAGE(Firebird_Employee)%"></img></p>
-            <p><H1>Firebird Employee Demo</H1></p>
-            <p/>
-          </div>
+        <div style="text-align: center">
+          <p/>
+          <p><img src="%IMAGE(Firebird_Employee)%"></img></p>
+          <p><H1>Firebird Employee Demo</H1></p>
+          <p/>
+        </div>
     LabelWidth: 150
     EditWidth: 200
     ExtraHeight: 100
@@ -83,7 +83,12 @@ Login:
 #HomeView: Home
 
 ExtJS:
-  Theme: Neptune
+  #Theme: triton
+  #Theme: gray
+  Theme: neptune
+  #Theme: ARIA
+  #Theme: material
+
   AjaxTimeout: 100000
 # No language Id specified means try to use the language requested by the browser.
 LanguageId: en
@@ -114,4 +119,3 @@ Engine:
     TimeOut: 10
     # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
     CleanupInterval: 30
-

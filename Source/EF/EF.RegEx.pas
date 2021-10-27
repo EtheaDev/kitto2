@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -72,8 +72,13 @@ var
   LEngine: TPerlRegEx;
 begin
   LEngine := GetRegExEngine;
+  {$IF CompilerVersion > 26}
   LEngine.RegEx := APattern;
   LEngine.Subject := AString;
+  {$ELSE}
+  LEngine.RegEx := UTF8Encode(APattern);
+  LEngine.Subject := UTF8Encode(AString);
+  {$IFEND}
   Result := LEngine.Match;
 end;
 

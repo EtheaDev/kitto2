@@ -6,7 +6,7 @@ AppPath: /taskitto
 Application:
   # When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
   # you can set this to False to gain some speed. Default is True.
-  HandleResources: False
+  #HandleResources: False
 
 # Defaults for entire application
 Defaults:

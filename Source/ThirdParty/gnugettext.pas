@@ -221,6 +221,17 @@ interface
   {$DEFINE dx_StringList_has_OwnsObjects}
   {$DEFINE dx_StrProp_is_unicode}
 {$endif}
+{$ifdef VER340}
+  // Delphi 10.4 Sydney with Unicode
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$IFDEF LINUX}
+    {$UNDEF dx_has_Resource_Strings}
+  {$ELSE}
+    {$DEFINE dx_has_WideStrings}
+  {$ENDIF}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_StrProp_is_unicode}
+{$endif}
 
 {$ifdef dx_has_Unsafe_Warnings}
   {$WARN UNSAFE_TYPE OFF}

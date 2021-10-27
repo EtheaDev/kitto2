@@ -72,16 +72,16 @@ function GetRandomString(const ALength: Integer; const AExcludeChars: string = '
 function GetRandomStringEx(const ALength: Integer; const AExcludeChars: string = ''): string;
 
 ///	<summary>
-///	 Returns True if APattern matches AString. APattern may contain the
-///	 following jolly characters: ? matches any one character. * matches any
-///	 sequence of zero or more characters. Everything else is compared
-///	 literally in a case sensitive manner.
+///	  Returns True if APattern matches AString. APattern may contain the
+///	  following jolly characters: ? matches any one character. * matches any
+///	  sequence of zero or more characters. Everything else is compared
+///	  literally in a case sensitive manner.
 ///	</summary>
 function StrMatches(const AString, APattern: string): Boolean;
 
 ///	<summary>
-///	 Interprets a ~ character at the beginning of a pattern as a negation
-///	 symbol. Otherwise it's identical to StrMatches.
+///	  Interprets a ~ character at the beginning of a pattern as a negation
+///	  symbol. Otherwise it's identical to StrMatches.
 ///	</summary>
 function StrMatchesEx(const AString, APattern: string): Boolean;
 
@@ -323,9 +323,9 @@ function IndexOf(const AArray: TArray<string>; const AValue: string): Integer;
 function RemoveDuplicates(const AArray: TArray<string>): TArray<string>;
 
 /// <summary>
-///  A faster replacement for StringReplace ONLY FOR CASE_SENSITIVE comparisons.
-///  Up to 15 times faster in such cases.
-/// </summary>
+///	 A faster replacement for StringReplace ONLY FOR CASE_SENSITIVE comparisons.
+///	 Up to 15 times faster in such cases.
+///	</summary>
 procedure ReplaceAllCaseSensitive(var AString: string; const AOldPattern, ANewPattern: string);
 
 implementation

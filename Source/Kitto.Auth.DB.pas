@@ -571,10 +571,10 @@ begin
     try
       LDBCommand.Connection.StartTransaction;
       try
-        //Pezza funzionante
+        //Fixed code
         LCommandText := StringReplace(StringReplace(LCommandText,':EMAIL_ADDRESS',QuotedStr(LEmailAddress),[rfReplaceAll, rfIgnoreCase]),':PASSWORD_HASH',QuotedStr(LPassword),[rfReplaceAll, rfIgnoreCase]);
         LDBCommand.CommandText := LCommandText;
-        //Codice originale problematico
+        //Old statements
         //LDBCommand.CommandText := LCommandText;
         //LDBCommand.Params.ParamByName('EMAIL_ADDRESS').AsString := LEmailAddress;
         //LDBCommand.Params.ParamByName('PASSWORD_HASH').AsString := LPasswordHash;

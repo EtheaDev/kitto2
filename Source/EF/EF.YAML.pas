@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ type
   end;
 
   ///	<summary>
-  ///	 Reads yaml data from files or streams and constructs tree objects.
+  ///	  Reads yaml data from files or streams and constructs tree objects.
   ///	</summary>
   TEFYAMLReader = class
   private
@@ -100,7 +100,6 @@ type
     ///	 Format settings used to parse values.
     ///	</summary>
     class property FormatSettings: TFormatSettings read FFormatSettings write FFormatSettings;
-
     procedure LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
     procedure LoadTreeFromStream(const ATree: TEFTree; const AStream: TStream);
     procedure LoadTreeFromString(const ATree: TEFTree; const AString: string); overload;

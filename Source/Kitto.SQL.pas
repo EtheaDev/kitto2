@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -728,6 +728,7 @@ var
   LCaptionField: string;
   LSearchTerm: string;
   LOrderBy: string;
+  LLookupSearchModel, LSearchOperator, LSearchValue, LSearchClause: string;
 begin
   Assert(Assigned(AViewField));
   Assert(Assigned(ADBQuery));
@@ -773,10 +774,28 @@ begin
   begin
     LSearchTerm := LLookupModel.CaptionField.DBColumnNameOrExpression;
     ExpandQualification(LSearchTerm, '');
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + LSearchTerm + ' like ''%' + ASearchString + '%'')');
+    //At model level you can specify a model for the lookup search:
+    //for example: LookupSearchModel: {Value}%
+    //to search only values from first.
+    //Default is %{Value}%
+    LLookupSearchModel := LLookupModel.GetString('LookupSearchModel','%{Value}%');
+    if pos('%', LLookupSearchModel) > 0 then
+    begin
+      LSearchOperator := 'like';
+      LSearchValue := StringReplace(LLookupSearchModel,'{Value}', ASearchString, [rfIgnoreCase]);
+    end
+    else
+    begin
+      LSearchOperator := '=';
+      LSearchValue := ASearchString;
+    end;
+    LSearchClause := Format('(%s %s ''%s'')',
+      [LSearchTerm, LSearchOperator, LSearchValue]);
+    LQueryText := AddToSQLWhereClause(LQueryText, LSearchClause);
   end;
 
-  LOrderBy := LLookupModel.CaptionField.DBColumnNameOrExpression;
+  LOrderBy := LLookupModel.LookupSorting;
+
   ExpandQualification(LOrderBy, '');
   LQueryText := LQueryText + ' order by ' + LOrderBy;
 
@@ -984,10 +1003,15 @@ begin
     ExpandQualification(Result, AViewField.Table.Model.DBTableName);
   end
   else if AViewField.IsReference then
-    Result := AViewField.QualifiedDBNameOrExpression
+    if AViewField.ModelField.ReferencedModel.CaptionField.Expression <> '' then begin
+      Result := AViewField.ModelField.ReferencedModel.CaptionField.Expression;
+      ExpandQualification(Result, AViewField.DBName);
+    end
+    else
+      Result := AViewField.QualifiedDBNameOrExpression
   else begin
-    Result := AViewField.DBNameOrExpression;
-    ExpandQualification(Result, AViewField.DBName);
+    Result := '{Q}' +  AViewField.DBNameOrExpression;
+    ExpandQualification(Result, AViewField.Table.Model.DBTableName);
   end;
   if AIsDescending then
     Result := Result + ' desc';

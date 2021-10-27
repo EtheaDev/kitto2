@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -212,6 +212,7 @@ begin
   FGridPanel.Border := False;
   FGridPanel.Header := False;
   FGridPanel.Region := 'center';
+//  FGridPanel.Layout := 'fit';
   FSelectionModel := TExtSelectionRowModel.Create(FGridPanel);
 //  FSelectionModel.Grid := FGridPanel;
   FGridPanel.SelModel := FSelectionModel;
@@ -224,7 +225,6 @@ begin
   FGridPanel.EnableHdMenu := False;
   // We mask globally, see kitto-init.js
   FGridPanel.ViewConfig.SetConfigItem('loadMask', False);
-
   TKWebResponse.Current.Items.ExecuteJSCode(FGridPanel, Format(
     '%s.getView().on("refresh", function() { %s.select(0); });',
     [FGridPanel.JSName, FSelectionModel.JSName]));
@@ -553,9 +553,9 @@ var
     LColumn.MenuDisabled := True; //Column Menu always disabled
 
     if Assigned(ALayoutNode) then
-      LColumn.Header := _(ALayoutNode.GetString('DisplayLabel', AViewField.DisplayLabel))
+      LColumn.Header := _(ALayoutNode.GetString('DisplayLabel', AViewField.DisplayLabel_Grid))
     else
-      LColumn.Header := _(AViewField.DisplayLabel);
+      LColumn.Header := _(AViewField.DisplayLabel_Grid);
     LColumn.DataIndex := AViewField.AliasedName;
 
     if Assigned(ALayoutNode) then
@@ -642,7 +642,7 @@ begin
     begin
       if not Assigned(FAutoFormController) then
       begin
-        FAutoFormController := InitEditController(FAutoFormContainer, LRecord, 'View');
+        FAutoFormController := InitEditController(FAutoFormContainer, LRecord, emViewCurrentRecord);
         FAutoFormController.Config.SetBoolean('HideButtons', True);
         FAutoFormController.Config.SetString('LayoutNamePrefix', 'Auto');
         FAutoFormController.Config.SetString('DetailStyle', 'None');

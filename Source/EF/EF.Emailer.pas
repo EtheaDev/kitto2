@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -39,11 +39,16 @@ type
     FPassword: string;
     FHostName: string;
     FUseTLS: Boolean;
+    FTLSMode: TIdUseTLS;
+    FProtocol: string;
+    procedure SetTLSMode(const Value: TIdUseTLS);
+    procedure SetUseTLS(const Value: Boolean);
   public
     procedure Assign(Source: TPersistent); override;
     property HostName: string read FHostName write FHostName;
     property Port: Integer read FPort write FPort;
-    property UseTLS: Boolean read FUseTLS write FUseTLS default False;
+    property UseTLS: Boolean read FUseTLS write SetUseTLS default False;
+    property TLSMode: TIdUseTLS read FTLSMode write SetTLSMode default utNoTLSSupport;
 
     ///	<summary>
     ///	  Only set this property if authentication is used.
@@ -223,15 +228,16 @@ begin
   // Informazioni per l'identificazione del server ed eventuale autenticazione
   with FIdSMTP do
   begin
-    Host := FSMTPServerParams.HostName;
-    Port := FSMTPServerParams.Port;
     if FSMTPServerParams.HasAuthInfo then
     begin
       if FSMTPServerParams.UseTLS then
       begin
         LIdSSLIOHandler := TIdSSLIOHandlerSocketOpenSSL.Create;
+        LIdSSLIOHandler.SSLOptions.SSLVersions := [sslvTLSv1, sslvTLSv1_1, sslvTLSv1_2];
         FIdSMTP.IOHandler := LIdSSLIOHandler;
-        FIdSMTP.UseTLS := utUseRequireTLS;
+        FIdSMTP.UseTLS := FSMTPServerParams.TLSMode;
+        LIdSSLIOHandler.Host := FSMTPServerParams.HostName;
+        LIdSSLIOHandler.Port := FSMTPServerParams.Port;
       end
       else
         FIdSMTP.UseTLS := utNoTLSSupport;
@@ -245,6 +251,8 @@ begin
       Username := '';
       Password := '';
     end;
+    Host := FSMTPServerParams.HostName;
+    Port := FSMTPServerParams.Port;
     if not FIdSMTP.Connected then
       Connect;
     try
@@ -331,6 +339,21 @@ end;
 function TEFSMTPServerParams.HasAuthInfo: Boolean;
 begin
   Result := (FUserId <> '') and (FPassword <> '');
+end;
+
+procedure TEFSMTPServerParams.SetTLSMode(const Value: TIdUseTLS);
+begin
+  FTLSMode := Value;
+  FUseTLS := FTLSMode in [utUseImplicitTLS,
+    utUseRequireTLS,
+    utUseExplicitTLS];
+end;
+
+procedure TEFSMTPServerParams.SetUseTLS(const Value: Boolean);
+begin
+  FUseTLS := Value;
+  if FUseTLS and (FTLSMode = utNoTLSSupport) then
+    FTLSMode := utUseRequireTLS;
 end;
 
 { TEFEmailSender }

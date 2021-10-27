@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -76,6 +76,8 @@ type
     function GetQualifiedDBColumnName: string;
     function GetModel: TKModel;
     function GetDisplayLabel: string;
+    function GetDisplayLabel_Form: string;
+    function GetDisplayLabel_Grid: string;
     function GetIsVisible: Boolean;
     function GetDisplayWidth: Integer;
     function GetIsComputed: Boolean;
@@ -321,6 +323,18 @@ type
     property DisplayLabel: string read GetDisplayLabel;
 
     /// <summary>
+    ///   Default label for this field in Grid/List. If not present uses the
+    ///   value of DisplayLabel.
+    /// </summary>
+    property DisplayLabel_Grid: string read GetDisplayLabel_Grid;
+
+    /// <summary>
+    ///   Default label for this field in Form. If not present uses the
+    ///   value of DisplayLabel.
+    /// </summary>
+    property DisplayLabel_Form: string read GetDisplayLabel_Form;
+
+    /// <summary>
     ///   Default label for this field into editing control when the value is missing
     /// </summary>
     property Hint: string read GetHint;
@@ -497,6 +511,7 @@ type
     function GetDefaultPluralModelName: string;
     function GetPluralModelName: string;
   strict protected
+    function GetLookupSorting: string; protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDetailReferences: TKModelDetailReferences;
@@ -621,6 +636,13 @@ type
     /// </summary>
     property DefaultSorting: string read GetDefaultSorting;
     property DefaultDefaultSorting: string read GetDefaultDefaultSorting;
+
+    /// <summary>
+    ///  Optional fixed ORDER BY expression to apply when building the select
+    ///  SQL statement for lookup. Should refer to fields through
+    ///  qualified names. Defaults CaptionField.DBColumnNameOrExpression
+    /// </summary>
+    property LookupSorting: string read GetLookupSorting;
 
     property CaptionFieldName: string read GetCaptionFieldName;
     property DefaultCaptionField: TKModelField read GetDefaultCaptionField;
@@ -1234,7 +1256,14 @@ function TKModel.GetDefaultSorting: string;
 begin
   Result := GetString('DefaultSorting');
   if Result = '' then
-    Result := Join(GetKeyDBColumnNames(True), ', ');
+    Result := GetDefaultDefaultSorting;
+end;
+
+function TKModel.GetLookupSorting: string;
+begin
+  Result := GetString('LookupSorting');
+  if Result = '' then
+    Result := CaptionField.DBColumnNameOrExpression;
 end;
 
 function TKModel.GetDetailReference(I: Integer): TKModelDetailReference;
@@ -1756,6 +1785,20 @@ begin
   Result := GetString('DisplayLabel');
   if Result = '' then
     Result := GetDefaultDisplayLabel;
+end;
+
+function TKModelField.GetDisplayLabel_Form: string;
+begin
+  Result := GetString('DisplayLabel_Form');
+  if Result = '' then
+    Result := DisplayLabel;
+end;
+
+function TKModelField.GetDisplayLabel_Grid: string;
+begin
+  Result := GetString('DisplayLabel_Grid');
+  if Result = '' then
+    Result := DisplayLabel;
 end;
 
 function TKModelField.GetDisplayTemplate: string;

@@ -67,6 +67,8 @@ type
     function GetIsVisible: Boolean;
     function GetModelField: TKModelField;
     function GetDisplayLabel: string;
+    function GetDisplayLabel_Form: string;
+    function GetDisplayLabel_Grid: string;
     function GetDisplayWidth: Integer;
     function GetIsRequired: Boolean;
     function GetIsReadOnly: Boolean;
@@ -260,6 +262,9 @@ type
     property Expression: string read GetExpression;
 
     property DisplayLabel: string read GetDisplayLabel;
+    property DisplayLabel_Grid: string read GetDisplayLabel_Grid;
+    property DisplayLabel_Form: string read GetDisplayLabel_Form;
+
     property Hint: string read GetHint;
     property DisplayWidth: Integer read GetDisplayWidth;
     property DecimalPrecision: Integer read GetDecimalPrecision;
@@ -2021,6 +2026,20 @@ begin
   Result := GetString('DisplayLabel');
   if Result = '' then
     Result := ModelField.DisplayLabel;
+end;
+
+function TKViewField.GetDisplayLabel_Form: string;
+begin
+  Result := GetString('DisplayLabel_Form');
+  if Result = '' then
+    Result := ModelField.DisplayLabel_Form;
+end;
+
+function TKViewField.GetDisplayLabel_Grid: string;
+begin
+  Result := GetString('DisplayLabel_Grid');
+  if Result = '' then
+    Result := ModelField.DisplayLabel_Grid;
 end;
 
 function TKViewField.GetDisplayTemplate: string;

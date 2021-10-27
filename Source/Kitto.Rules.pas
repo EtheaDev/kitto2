@@ -615,7 +615,7 @@ begin
   LTo := (ARecord as TKViewTableRecord).FieldByName(Rule.GetString('To'));
 
   if not IsRange(LFrom.Value, LTo.Value) then
-    RaiseError([LTo.ViewField.DisplayLabel, LFrom.ViewField.DisplayLabel]);
+    RaiseError([LTo.ViewField.DisplayLabel_Form, LFrom.ViewField.DisplayLabel_Form]);
 end;
 
 function TKEnforceRange.InternalGetErrorMessage: string;

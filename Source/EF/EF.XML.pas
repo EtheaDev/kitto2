@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,24 +36,24 @@ const
   XmlNameSpace = 'xmlns="';
 
 /// <summary>
-///  Escapes control characters in the XML string.
+///   Escapes control characters in the XML string.
 /// </summary>
 function XMLEscape(const AString: string): string;
 
 /// <summary>
-///  Clear the XMLHeader from an XML string.
-///  Returns true if the header was found and cleared
+///   Clear the XMLHeader from an XML string.
+///   Returns true if the header was found and cleared
 /// </summary>
 function ClearXMLHeader(var AText: string): Boolean;
 
 /// <summary>
-///  Returns the position of the XMLHeader if found
+///   Returns the position of the XMLHeader if found
 /// </summary>
 function XMLHeaderPos(const AText: string): Integer;
 
 /// <summary>
-///  Clear the DOCTYPE node from an XML string.
-///  Returns true if the DOCTYPE node was found and cleared
+///   Clear the DOCTYPE node from an XML string.
+///   Returns true if the DOCTYPE node was found and cleared
 /// </summary>
 function ClearDOCTYPE(var Text: string): boolean;
 

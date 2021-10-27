@@ -1,5 +1,5 @@
 ﻿{ -------------------------------------------------------------------------------
-  Copyright 2012-2018 Ethea S.r.l.
+  Copyright 2012-2021 Ethea S.r.l.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -201,7 +201,6 @@ type
     ///  Returns True if the controller should be freed right after
     ///  calling Display because it does all its job inside that method, and
     ///  False if the controller stays on screen and is interactive instead.
-    ///  Also when False, the controller will not be added to a container.
     /// </summary>
     function IsSynchronous: Boolean;
 

@@ -1139,6 +1139,7 @@ var
   LRowField: TKExtFormRowField;
   LFormField: TExtFormField;
   LRecordField: TKViewTableField;
+  LHideLabel: Boolean;
 
   function CanEditField: Boolean;
   begin
@@ -1169,13 +1170,18 @@ begin
     LIsReadOnly := True;
 
   LLabel := '';
+  LHideLabel := False;
   if Assigned(AOptions) then
   begin
     LLabel := _(AOptions.GetString('DisplayLabel'));
     LEmptyText := _(AOptions.GetString('Hint'));
+    LHideLabel := AOptions.GetBoolean('HideLabel', False);
   end;
-  if LLabel = '' then
-    LLabel := _(LViewField.DisplayLabel);
+  if not LHideLabel then
+  begin
+    if (LLabel = '') then
+      LLabel := _(LViewField.DisplayLabel_Form);
+  end;
   if LEmptyText = '' then
     LEmptyText := _(LViewField.Hint);
 
@@ -1203,7 +1209,7 @@ begin
   begin
     if FCurrentEditPage.HideLabels and (LEmptyText = '') then
       LEmptyText := LLabel;
-    if not LIsReadOnly and LViewField.IsRequired then
+    if not LIsReadOnly and LViewField.IsRequired and not LHideLabel then
       LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
     LFormField.FieldLabel := LLabel;
     if FDefaults.LabelSeparator <> DEFAULT_LABEL_SEPARATOR then
@@ -2129,8 +2135,8 @@ begin
   LLimit := ParamAsInteger('limit');
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
-  TKWebResponse.Current.Items.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
-    + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
+  TKWebResponse.Current.Items.AddJSON('{"Total": ' + IntToStr(FServerStore.RecordCount)
+    + ', "Root": ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
 procedure TKExtFormComboBoxEditor.InitDefaults;

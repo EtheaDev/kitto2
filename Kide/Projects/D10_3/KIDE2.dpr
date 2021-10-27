@@ -181,7 +181,6 @@ uses
 
 begin
   Application.Initialize;
-  TStyleManager.TrySetStyle('Amakrits');
   Application.CreateForm(TMainDataModule, MainDataModule);
   Application.MainFormOnTaskbar := True;
   Application.Title := 'KIDE2';

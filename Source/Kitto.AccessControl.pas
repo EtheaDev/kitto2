@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -266,9 +266,12 @@ var
 begin
   Assert(AMode <> '');
 
+  // Empty UserId means a non authenticated session
+  if AUserId = '' then
+    Result := ACV_TRUE
   // Empty URIs identify nameless objects, access to which is always granted
   // and we don't even need to log it.
-  if AResourceURI = '' then
+  else if AResourceURI = '' then
     Result := ACV_TRUE
   else
   begin

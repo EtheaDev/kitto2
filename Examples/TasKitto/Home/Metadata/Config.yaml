@@ -6,7 +6,7 @@ AppPath: /taskitto
 Application:
 # When using partial proxy mode (serving /hellokitto/res/ from a separate web server)
 # you can set this to False to gain some speed. Default is True.
-#HandleResources: False
+  #HandleResources: False
 
 EmailSupport: <support@kitto.org>
 Email:
@@ -14,7 +14,7 @@ Email:
     Default:
       HostName: abc.it
       UserName: qwerty@abc.com
-      Password: qwerty 
+      Password: qwerty
       Port: 100
       UseTLS: True
 
@@ -77,8 +77,8 @@ Auth: TasKitto
   PassepartoutPassword: password
   IsClearPassword: True
   .Defaults:
-    UserName: admin
-    Password: admin
+    UserName: SYSDBA
+    Password: password
   ReadUserCommandText: |
     select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME 
     from KITTO_USERS 
@@ -129,9 +129,9 @@ Login: LoginView
 #HomeView: Home
 
 ExtJS:
-  #Theme: triton
+  Theme: triton
   #Theme: gray
-  Theme: neptune
+  #Theme: neptune
   #Theme: ARIA
   #Theme: material
   AjaxTimeout: 100000

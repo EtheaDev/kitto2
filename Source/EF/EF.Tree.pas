@@ -2470,10 +2470,19 @@ end;
 function TEFTree.GetString(const APath, ADefaultValue: string): string;
 var
   LNode: TEFNode;
+  LValue: string;
 begin
   LNode := FindNode(APath);
   if Assigned(LNode) then
-    Result := LNode.AsString
+  begin
+    LValue := LNode.AsString;
+{$IFNDEF KIDE}
+    if Pos('_(',LValue) = 1 then
+      Result := _(LValue)
+    else
+{$ENDIF}
+      Result := LValue;
+  end
   else
     Result := ADefaultValue;
 end;
@@ -3042,7 +3051,10 @@ begin
   begin
     AParam.Clear;
     if AParam.DataType = ftUnknown then
+    begin
       AParam.DataType := GetFieldType;
+      AParam.Value := NULL;
+    end;
   end
   else
     InternalNodeToParam(ANode, AParam);

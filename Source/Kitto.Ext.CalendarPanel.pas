@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -245,7 +245,7 @@ begin
     AddItem(8, 'Eighth', 'Eighth Calendar', 65280, False);
     AddItem(9, 'Ninth', 'Ninth Calendar', 255, False);
     AddItem(10, 'Tenth', 'Tenth Calendar', 65280, False);
-    TKWebResponse.Current.Items.AddJSON(Format('{Success: true, Total: %d, Root: %s}',
+    TKWebResponse.Current.Items.AddJSON(Format('{"Success": true, "Total": %d, "Root": %s}',
       [3, {$IFDEF D21+}LJSONArray.ToJSON{$ELSE}LJSONArray.ToString{$ENDIF}]));
   finally
     FreeAndNil(LJSONArray);

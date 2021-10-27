@@ -1,5 +1,5 @@
 {-------------------------------------------------------------------------------
-   Copyright 2012-2018 Ethea S.r.l.
+   Copyright 2012-2021 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ begin
   FLookupController := TKWebApplication.Current.DisplayNewController(LView, Self, True,
     procedure (AController: IJSController)
     begin
-      AController.Config.SetString('Title', _(Format('Choose %s', [FViewField.DisplayLabel])));
+      AController.Config.SetString('Title', _(Format('Choose %s', [FViewField.DisplayLabel_Form])));
       AController.Config.SetBoolean('Sys/LookupMode', True);
       AController.Config.SetString('Sys/LookupFilter', FViewField.LookupFilter);
     end);

@@ -8,6 +8,8 @@ Fields:
     IsVisible: False
   Girl_Name: String(40) not null
     DisplayLabel: _(Name)
+    DisplayLabel_Grid: _(Girl Name)
+    DisplayLabel_Form: _(Name of Girl)
     Rules:
       #ForceUpperCase:
       SubType: alpha_space
