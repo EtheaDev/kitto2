@@ -11,7 +11,6 @@ The major differences of Kitto<sup>2</sup>, compared to the first version are:
 - ExtPascal library has been removed
 - Replacement of Apache + FastCGI with WebBroker technology.
 - Replacement of ExtJS 3 with ExtJS 6
-- Kide editor also released under Open-Source license.
 
 Kitto<sup>2</sup> is aimed at **Delphi** developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS, Javascript or learning to use a particular library such as ExtJS6, yet it allows access to the bare metal if required.
 
