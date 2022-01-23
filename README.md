@@ -18,7 +18,7 @@ Kitto<sup>2</sup> includes a **database-agnostic** data-access layer, allowing t
 
 A Kitto<sup>2</sup> application is described as a set of easily maintained **YAML** files, keeping definitions abstract and declarative and allowing for future extensions. Business rules are enforced either declaratively or through small javascript fragments on the client, or in Delphi code on the server.
 
-Kitto<sup>2</sup> was designed by Nando Dessena and its development is sponsored by [Ethea](http://www.ethea.it/), which uses Kitto for internal development projects and client work and provides Kitto-related tools, support and development services.
+Kitto<sup>2</sup> was designed by Nando Dessena and its development is sponsored by [Ethea](http://www.ethea.it/) and maintained by Carlo Barazzetta, which uses Kitto for internal development projects and client work and provides Kitto-related tools, support and development services.
 
 Start [here](https://github.com/EtheaDev/kitto2/wiki/Kitto-at-a-glance) for further information.
 
