@@ -1,9 +1,0 @@
-﻿ClientFileName: File.txt
-ContentType:
-RequireSelection: False
-  Default: True
-AutoRefresh: All
-ConfirmationMessage:
-  Localizable: True
-IncludeHeader: True
-  Default: False

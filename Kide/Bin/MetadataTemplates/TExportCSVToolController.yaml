@@ -1,7 +1,0 @@
-﻿ClientFileName: File.csv
-ContentType:
-RequireSelection: False
-  Default: True
-AutoRefresh: All
-ConfirmationMessage:
-  Localizable: True

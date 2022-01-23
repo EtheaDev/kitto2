@@ -1,7 +1,0 @@
-﻿Controller: ReportBuilderTool
-DisplayLabel: ReportBuilder
-  Localizable: True
-ImageName:
-IsVisible: False
-  Default: True
-BeforeExecute:

@@ -1,7 +1,0 @@
-﻿Controller: XSLTool
-DisplayLabel: Download HTML file
-  Localizable: True
-ImageName:
-IsVisible: False
-  Default: True
-BeforeExecute:

@@ -1,7 +1,0 @@
-﻿Controller:
-Controller: ChangePassword
-Controller: Logout
-Model:
-DisplayLabel:
-  Localizable: True
-ImageName:

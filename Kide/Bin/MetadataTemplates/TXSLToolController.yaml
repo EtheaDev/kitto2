@@ -1,6 +1,0 @@
-﻿ClientFileName: Output.html
-RequireSelection: False
-AutoRefresh: All
-ConfirmationMessage:
-  Localizable: True
-TransformFileName: %APP_PATH%ReportTemplates\Template.xsl

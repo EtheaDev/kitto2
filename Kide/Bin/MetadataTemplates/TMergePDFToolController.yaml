@@ -1,8 +1,0 @@
-﻿ClientFileName: Output.pdf
-ContentType:
-RequireSelection: False
-AutoRefresh: All
-ConfirmationMessage:
-  Localizable: True
-BaseFileName: %APP_PATH%ReportTemplates\Template.pdf
-LayoutFileName: %APP_PATH%ReportTemplates\Layout.yaml

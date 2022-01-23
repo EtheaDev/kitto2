@@ -1,7 +1,0 @@
-﻿Controller: ExportCSVTool
-DisplayLabel: Download CSV file
-  Localizable: True
-ImageName:
-IsVisible: False
-  Default: True
-BeforeExecute:

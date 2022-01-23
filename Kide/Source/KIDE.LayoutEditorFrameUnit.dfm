@@ -1,2 +1,0 @@
-inherited LayoutEditorFrame: TLayoutEditorFrame
-end

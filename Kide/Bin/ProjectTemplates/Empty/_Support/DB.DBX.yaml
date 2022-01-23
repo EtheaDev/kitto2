@@ -1,9 +1,0 @@
-Connection:
-  DriverName: Firebird
-  DataBase: localhost:ChangeMe
-  User_Name: SYSDBA
-  Password: masterkey
-  ServerCharSet: UTF8
-  WaitOnLocks: True
-  IsolationLevel: ReadCommitted
-  Trim Char: False

@@ -1,9 +1,0 @@
-Connection:
-  # This doesn't work because of a bug with date and time fields in ADO/OLEDB.
-  # See http://qc.embarcadero.com/wc/qcmain.aspx?d=78910
-  #Provider: SQLOLEDB.1
-  # Using the Native client fixes the date bug but still not the time bug.
-  Provider: SQLNCLI10
-  Trusted_Connection: Yes
-  Initial Catalog: ChangeMe
-  Data Source: %COMPUTERNAME%

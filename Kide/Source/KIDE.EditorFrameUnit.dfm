@@ -1,2 +1,0 @@
-inherited EditorFrame: TEditorFrame
-end

@@ -1,9 +1,0 @@
-﻿ModelName: Sample
-Fields:
-  Id: Integer not null primary key
-  SampleStringField: String(50) not null
-  SampleNullableFloatField: Float
-    DisplayLabel: A float field
-  RenamedField: String(20)
-    PhysicalName: PHYSICAL_FIELD
-  Amount: Currency

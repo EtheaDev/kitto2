@@ -1,7 +1,0 @@
-﻿ClientFileName: Output.xls
-ContentType:
-RequireSelection: False
-AutoRefresh: All
-ConfirmationMessage:
-  Localizable: True
-TemplateFileName: %APP_PATH%ReportTemplates\Template.xlt

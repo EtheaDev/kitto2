@@ -1,7 +1,0 @@
-﻿ClientFileName: Output.pdf
-ContentType:
-RequireSelection: False
-AutoRefresh: All
-ConfirmationMessage:
-  Localizable: True
-TransformFileName: %APP_PATH%ReportTemplates\Template.xsl

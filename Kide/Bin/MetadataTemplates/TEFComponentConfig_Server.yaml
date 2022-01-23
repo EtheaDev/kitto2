@@ -1,6 +1,0 @@
-﻿Port:
-  Default: 8080
-SessionTimeOut:
-  Default: 10
-ThreadPoolSize:
-  Default: 20

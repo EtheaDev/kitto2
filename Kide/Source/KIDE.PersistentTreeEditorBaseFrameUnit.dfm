@@ -1,2 +1,0 @@
-inherited PersistentTreeEditorBaseFrame: TPersistentTreeEditorBaseFrame
-end

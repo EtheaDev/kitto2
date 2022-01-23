@@ -1,7 +1,0 @@
-﻿Controller: FOPTool
-DisplayLabel: FOP Report
-  Localizable: True
-ImageName:
-IsVisible: False
-  Default: True
-BeforeExecute:

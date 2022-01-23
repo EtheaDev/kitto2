@@ -1,7 +1,0 @@
-﻿Controller: ExportExcelTool
-DisplayLabel: Download Excel file
-  Localizable: True
-ImageName:
-IsVisible: False
-  Default: True
-BeforeExecute:
