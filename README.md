@@ -22,6 +22,6 @@ Kitto<sup>2</sup> was designed by Nando Dessena and its development is sponsored
 
 Start [here](https://github.com/EtheaDev/kitto2/wiki/Kitto-at-a-glance) for further information.
 
-Visit [this site](http://www.ethea.it/kitto_demo.html) for online demos.
+Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 
 Happy Kittoing!
